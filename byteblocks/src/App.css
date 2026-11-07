@@ -899,30 +899,44 @@
   background: #3a1820;
 }
 .nibble-sprite-chop .nibble-face {
-  left: calc(var(--nibble-unit) * -1);
-  width: calc(var(--nibble-unit) * 7);
-  height: calc(var(--nibble-unit) * 4);
+  left: calc(var(--nibble-unit) * 2);
+  top: var(--nibble-unit);
+  bottom: auto;
+  width: calc(var(--nibble-unit) * 4);
+  height: calc(var(--nibble-unit) * 3);
   background: #55ae65;
   box-shadow:
     inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #24724a,
     inset var(--nibble-unit) var(--nibble-unit) #98db80;
 }
 .nibble-sprite-chop .nibble-eye {
+  top: var(--nibble-unit);
   background: #153f36;
 }
 .nibble-sprite-chop .nibble-eye-left {
-  left: calc(var(--nibble-unit) * 2);
+  left: var(--nibble-unit);
+}
+.chop-neck {
+  position: absolute;
+  left: var(--nibble-unit);
+  top: calc(var(--nibble-unit) * 3);
+  width: calc(var(--nibble-unit) * 2);
+  height: calc(var(--nibble-unit) * 4);
+  background: #55ae65;
+  box-shadow:
+    inset var(--nibble-unit) 0 #98db80,
+    inset 0 calc(var(--nibble-unit) * -1) #24724a;
 }
 .chop-spines {
   position: absolute;
-  left: calc(var(--nibble-unit) * -1);
-  top: calc(var(--nibble-unit) * 2);
+  left: 0;
+  top: calc(var(--nibble-unit) * 3);
   width: var(--nibble-unit);
-  height: calc(var(--nibble-unit) * 3);
+  height: calc(var(--nibble-unit) * 4);
   background: #d94b42;
   box-shadow:
     0 calc(var(--nibble-unit) * -1) #ff8573,
-    0 calc(var(--nibble-unit) * 3) #a62d36;
+    0 calc(var(--nibble-unit) * 4) #a62d36;
 }
 .chop-snout {
   position: absolute;

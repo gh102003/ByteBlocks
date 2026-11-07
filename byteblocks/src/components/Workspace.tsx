@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { CodeEditor } from './CodeEditor'
+import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import { Divider } from './Divider'
 import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
 import { Icon } from './Icon'
@@ -66,6 +67,7 @@ export function Workspace({
   preferences,
 }: WorkspaceProps) {
   const [code, setCode] = useState(readCode)
+  const [editorTab, setEditorTab] = useState<'blocks' | 'code'>('blocks')
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unavailable'>(
     'saving',
   )
@@ -182,13 +184,38 @@ export function Workspace({
       >
         <section className="panel editor-panel" aria-label="Python code editor">
           <div className="panel-toolbar editor-toolbar">
-            <div className="file-tab">
-              <span className="python-icon">Py</span>
-              <span>main.py</span>
-              <span
-                className="file-dot"
-                title={saved === 'saved' ? 'Saved locally' : 'Saving changes'}
-              />
+            <div
+              className="editor-mode-nav"
+              role="tablist"
+              aria-label="Editor modes"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editorTab === 'blocks'}
+                className={`editor-nav-tab ${editorTab === 'blocks' ? 'active' : ''}`}
+                onClick={() => setEditorTab('blocks')}
+                title="Visual Scratch Chunks Builder"
+              >
+                <Icon name="puzzle" size={13} />
+                <span>Visual Blocks</span>
+                <span className="tab-pill">Scratch</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={editorTab === 'code'}
+                className={`editor-nav-tab ${editorTab === 'code' ? 'active' : ''}`}
+                onClick={() => setEditorTab('code')}
+                title="Python Source Code"
+              >
+                <span className="python-icon">Py</span>
+                <span>main.py</span>
+                <span
+                  className="file-dot"
+                  title={saved === 'saved' ? 'Saved locally' : 'Saving changes'}
+                />
+              </button>
             </div>
             <div className="editor-actions">
               <span className="language-label">Python 3</span>
@@ -207,17 +234,29 @@ export function Workspace({
           <div className="editor-breadcrumb">
             <span>workspace</span>
             <Icon name="chevron" size={12} />
-            <span>main.py</span>
+            <span>
+              {editorTab === 'blocks' ? 'Visual Scratch Chunks' : 'main.py'}
+            </span>
           </div>
-          <CodeEditor
-            value={code}
-            onChange={(next) => {
-              setCode(next)
-              setSaved('saving')
-            }}
-            onCursorChange={setCursor}
-            onRun={run}
-          />
+          {editorTab === 'blocks' ? (
+            <VisualBlockEditor
+              onPythonChange={(nextCode) => {
+                setCode(nextCode)
+                setSaved('saving')
+              }}
+              onRun={run}
+            />
+          ) : (
+            <CodeEditor
+              value={code}
+              onChange={(next) => {
+                setCode(next)
+                setSaved('saving')
+              }}
+              onCursorChange={setCursor}
+              onRun={run}
+            />
+          )}
           <footer className="editor-footer">
             <span className={saved === 'unavailable' ? 'save-warning' : ''}>
               <Icon

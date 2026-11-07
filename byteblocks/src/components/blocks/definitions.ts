@@ -1,0 +1,224 @@
+import type { BlockDefinition } from './types'
+
+export const BLOCK_DEFINITIONS: BlockDefinition[] = [
+  // --- Control & Loops ---
+  {
+    type: 'for_range',
+    category: 'control',
+    label: 'repeat (for i in range)',
+    color: '#e06c3a',
+    borderColor: '#f97316',
+    bgHover: '#f973161a',
+    isContainer: true,
+    defaultValues: {
+      varName: 'i',
+      rangeStart: '0',
+      rangeCount: '5',
+      children: [],
+    },
+  },
+  {
+    type: 'for_in',
+    category: 'control',
+    label: 'for each in list',
+    color: '#d97706',
+    borderColor: '#f59e0b',
+    bgHover: '#f59e0b1a',
+    isContainer: true,
+    defaultValues: {
+      itemVar: 'item',
+      listName: 'items',
+      children: [],
+    },
+  },
+  {
+    type: 'while_loop',
+    category: 'control',
+    label: 'while condition',
+    color: '#b45309',
+    borderColor: '#d97706',
+    bgHover: '#d977061a',
+    isContainer: true,
+    defaultValues: {
+      condition: 'count < 10',
+      children: [],
+    },
+  },
+  {
+    type: 'if_condition',
+    category: 'control',
+    label: 'if condition',
+    color: '#0284c7',
+    borderColor: '#38bdf8',
+    bgHover: '#38bdf81a',
+    isContainer: true,
+    defaultValues: {
+      condition: 'x > 0',
+      children: [],
+    },
+  },
+  {
+    type: 'if_else',
+    category: 'control',
+    label: 'if ... else',
+    color: '#0369a1',
+    borderColor: '#0ea5e9',
+    bgHover: '#0ea5e91a',
+    isContainer: true,
+    hasElse: true,
+    defaultValues: {
+      condition: 'x > 0',
+      children: [],
+      elseChildren: [],
+    },
+  },
+  {
+    type: 'break_loop',
+    category: 'control',
+    label: 'break out of loop',
+    color: '#be123c',
+    borderColor: '#f43f5e',
+    bgHover: '#f43f5e1a',
+    defaultValues: {},
+  },
+
+  // --- Functions ---
+  {
+    type: 'function_def',
+    category: 'functions',
+    label: 'define function',
+    color: '#7c3aed',
+    borderColor: '#a855f7',
+    bgHover: '#a855f71a',
+    isContainer: true,
+    defaultValues: {
+      funcName: 'calculate',
+      funcArgs: 'a, b',
+      children: [],
+    },
+  },
+  {
+    type: 'return_val',
+    category: 'functions',
+    label: 'return value',
+    color: '#6d28d9',
+    borderColor: '#8b5cf6',
+    bgHover: '#8b5cf61a',
+    defaultValues: {
+      value: 'result',
+    },
+  },
+  {
+    type: 'function_call',
+    category: 'functions',
+    label: 'call function',
+    color: '#5b21b6',
+    borderColor: '#7c3aed',
+    bgHover: '#7c3aed1a',
+    defaultValues: {
+      funcName: 'print',
+      funcArgs: '"done"',
+    },
+  },
+
+  // --- Variables & Expressions ---
+  {
+    type: 'var_set',
+    category: 'variables',
+    label: 'set variable = value',
+    color: '#2563eb',
+    borderColor: '#60a5fa',
+    bgHover: '#60a5fa1a',
+    defaultValues: {
+      varName: 'x',
+      value: '10',
+    },
+  },
+  {
+    type: 'var_change',
+    category: 'variables',
+    label: 'change variable += value',
+    color: '#1d4ed8',
+    borderColor: '#3b82f6',
+    bgHover: '#3b82f61a',
+    defaultValues: {
+      varName: 'x',
+      value: '1',
+    },
+  },
+
+  // --- Input & Output ---
+  {
+    type: 'print',
+    category: 'io',
+    label: 'print(value)',
+    color: '#059669',
+    borderColor: '#34d399',
+    bgHover: '#34d3991a',
+    defaultValues: {
+      value: '"Hello, ByteBlocks!"',
+    },
+  },
+  {
+    type: 'print_formatted',
+    category: 'io',
+    label: 'print f-string',
+    color: '#047857',
+    borderColor: '#10b981',
+    bgHover: '#10b9811a',
+    defaultValues: {
+      value: 'Result is: {x}',
+    },
+  },
+
+  // --- Lists & Dictionaries ---
+  {
+    type: 'list_create',
+    category: 'data',
+    label: 'create list [a, b, c]',
+    color: '#4f46e5',
+    borderColor: '#818cf8',
+    bgHover: '#818cf81a',
+    defaultValues: {
+      varName: 'numbers',
+      value: '1, 2, 3, 4',
+    },
+  },
+  {
+    type: 'list_append',
+    category: 'data',
+    label: 'list.append(item)',
+    color: '#4338ca',
+    borderColor: '#6366f1',
+    bgHover: '#6366f11a',
+    defaultValues: {
+      listName: 'numbers',
+      value: '5',
+    },
+  },
+  {
+    type: 'dict_create',
+    category: 'data',
+    label: 'create dictionary {k: v}',
+    color: '#3730a3',
+    borderColor: '#4f46e5',
+    bgHover: '#4f46e51a',
+    defaultValues: {
+      varName: 'user_map',
+      value: '"name": "Alice", "score": 100',
+    },
+  },
+
+  // --- Utility ---
+  {
+    type: 'comment',
+    category: 'variables',
+    label: '# add comment',
+    color: '#475569',
+    borderColor: '#94a3b8',
+    bgHover: '#94a3b81a',
+    defaultValues: {
+      commentText: 'My Python note',
+    },
+  },
+]

@@ -108,19 +108,18 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
         <div className="hero-content">
           <div className="hero-pill">
             <Icon name="sparkle" size={14} />
-            <span>AI-Guided Python Sandbox · Zero Setup</span>
+            <span>A little practice, a lot of progress</span>
           </div>
 
           <h1 className="hero-title">
-            Master Python algorithms with an AI coach that{' '}
-            <span className="text-gradient">adapts to you</span>.
+            Think in blocks.
+            <br />
+            <span className="text-gradient">Code in Python.</span>
           </h1>
 
           <p className="hero-subtitle">
-            Practice Python in an isolated, in-browser WebAssembly sandbox. Get
-            calibrated guidance tailored to your experience level—from gentle
-            Socratic hints for beginners to rigorous systems reviews for senior
-            engineers.
+            Build your ideas one piece at a time. Practice Python, explore how
+            your code works, and get a helpful nudge when you need one.
           </p>
 
           <div className="hero-actions">
@@ -137,23 +136,70 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               </span>
             </button>
             <a href="#demo" className="hero-secondary-btn">
-              <span>See AI Calibration in Action</span>
+              <span>Meet your coach</span>
               <Icon name="chevron" size={14} />
             </a>
           </div>
 
           <div className="hero-trust-bar">
             <span>
-              <Icon name="shield" size={14} /> 100% In-Browser Execution
+              <Icon name="shield" size={14} /> Python in your browser
             </span>
             <span className="dot-divider">•</span>
             <span>
-              <Icon name="sparkle" size={14} /> Calibrated Feedback Styles
+              <Icon name="sparkle" size={14} /> Hints at your level
             </span>
             <span className="dot-divider">•</span>
             <span>
-              <Icon name="code" size={14} /> Monaco Editor + Pyodide
+              <Icon name="code" size={14} /> Blocks or code
             </span>
+          </div>
+        </div>
+        <div className="hero-workbench" aria-hidden="true">
+          <div className="workbench-top">
+            <span>● ● ●</span>
+            <span>YOUR PRACTICE SPACE</span>
+            <span>01 / PYTHON</span>
+          </div>
+          <div className="workbench-body">
+            <div className="workbench-blocks">
+              <div className="workbench-label">
+                BUILD <span>01</span>
+              </div>
+              <div className="sample-block block-blue">
+                for each <b>number</b> in <b>numbers</b>
+              </div>
+              <div className="sample-block block-yellow">
+                if <b>number</b> is even
+              </div>
+              <div className="sample-block block-coral">
+                print <b>number</b>
+              </div>
+              <div className="workbench-grid-mark">
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            </div>
+            <div className="workbench-code">
+              <div className="workbench-label">
+                PYTHON <span>02</span>
+              </div>
+              <pre>
+                <span>01</span> <em>for</em> number <em>in</em> numbers:{'\n'}
+                <span>02</span> <em>if</em> number % 2 == 0:{'\n'}
+                <span>03</span> print(number)
+              </pre>
+              <div className="workbench-hint">
+                <strong>✳ A LITTLE HINT</strong>
+                <p>What happens when you divide an even number by 2?</p>
+              </div>
+            </div>
+          </div>
+          <div className="workbench-bottom">
+            <span>● READY TO PLAY</span>
+            <span>BUILD → RUN → LEARN</span>
           </div>
         </div>
       </section>
@@ -162,10 +208,10 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
       <section id="demo" className="demo-section">
         <div className="section-header">
           <span className="section-eyebrow">Interactive Preview</span>
-          <h2>See How the AI Coach Calibrates to You</h2>
+          <h2>A coach that meets you where you are</h2>
           <p>
-            Choose a skill level below to see how ByteBlocks modifies its hints,
-            mental models, and questions for the same algorithmic challenge.
+            Pick a level and see how the same problem gets a different kind of
+            hint.
           </p>
         </div>
 

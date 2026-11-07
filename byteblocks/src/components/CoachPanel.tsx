@@ -83,7 +83,8 @@ export function CoachPanel({
   const busy = status === 'submitted' || status === 'streaming'
 
   useEffect(() => {
-    coachEnd.current?.scrollIntoView({ block: 'nearest' })
+    const container = coachEnd.current?.parentElement
+    if (container) container.scrollTop = container.scrollHeight
   }, [messages, status, error])
 
   const submitMessage = (event: FormEvent) => {

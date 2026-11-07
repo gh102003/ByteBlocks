@@ -141,7 +141,9 @@ export function Workspace({
           ByteBlocks<span className="brand-dot">.</span>
         </button>
         <span className="header-divider" />
-        <span className="workspace-label">Practice workspace</span>
+        <span className="workspace-label">
+          Practice space <b> / 01</b>
+        </span>
 
         {preferences && (
           <button
@@ -177,6 +179,9 @@ export function Workspace({
       >
         <section className="panel editor-panel" aria-label="Python code editor">
           <div className="panel-toolbar editor-toolbar">
+            <div className="workspace-section-label">
+              <span /> BUILD YOUR PROGRAM
+            </div>
             <div className="editor-actions">
               <span className="language-label">Python 3</span>
               <button

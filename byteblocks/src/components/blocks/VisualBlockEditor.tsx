@@ -320,6 +320,10 @@ export function VisualBlockEditor({
               handleDrop(e.dataTransfer, {})
             }}
           >
+            <div className="canvas-label" aria-hidden="true">
+              <span>BLOCKS / BUILD</span>
+              <span>01</span>
+            </div>
             {blocks.length === 0 ? (
               <div className="empty-canvas-state">
                 <div className="empty-icon">🧩</div>

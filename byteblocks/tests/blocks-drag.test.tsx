@@ -70,3 +70,30 @@ test('dragging reorders and moves blocks into and out of a container', async () 
   )
   expect(document.querySelector('[title="Move Up"]')).toBeNull()
 })
+
+test('deleting a block requires confirmation', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  await render(
+    <VisualBlockEditor
+      onPythonChange={() => {}}
+      onRun={() => {}}
+      mode="blocks"
+      code=""
+      onEditCode={() => {}}
+      onSelectMode={() => {}}
+      onCursorChange={() => {}}
+    />,
+  )
+  const deleteButton = document.querySelector<HTMLButtonElement>(
+    '.scratch-chunk [title="Delete Block"]',
+  )!
+  deleteButton.click()
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(3)
+  confirm.mockReturnValue(true)
+  deleteButton.click()
+  await vi.waitFor(() =>
+    expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(2),
+  )
+  confirm.mockRestore()
+})

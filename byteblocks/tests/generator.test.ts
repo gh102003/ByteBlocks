@@ -78,6 +78,29 @@ describe('Block Generator to Python', () => {
     )
   })
 
+  it('emits one top-level import for queues in nested branches and functions', () => {
+    const blocks: BlockItem[] = [
+      { id: '1', type: 'print', value: '"start"' },
+      {
+        id: '2',
+        type: 'if_else',
+        condition: 'ready',
+        children: [{ id: '3', type: 'queue_create', varName: 'first' }],
+        elseChildren: [
+          {
+            id: '4',
+            type: 'function_def',
+            funcName: 'make_queue',
+            children: [{ id: '5', type: 'queue_create', varName: 'second' }],
+          },
+        ],
+      },
+    ]
+    expect(generatePython(blocks)).toBe(
+      'from collections import deque\nprint("start")\nif ready:\n    first = deque([])\nelse:\n    def make_queue():\n        second = deque([])',
+    )
+  })
+
   it('generates clean python for all presets without crashing', () => {
     for (const preset of PRESETS) {
       const code = generatePython(preset.blocks)

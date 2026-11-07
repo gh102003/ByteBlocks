@@ -1,18 +1,24 @@
-import type { BlockItem } from './types'
+import type { BlockItem, BlockType } from './types'
 
-function containsQueue(blocks: BlockItem[]): boolean {
-  return blocks.some(
-    (block) =>
-      block.type === 'queue_create' ||
-      (block.children !== undefined && containsQueue(block.children)) ||
-      (block.elseChildren !== undefined && containsQueue(block.elseChildren)),
-  )
+const BLOCK_IMPORTS: Partial<Record<BlockType, readonly string[]>> = {
+  queue_create: ['from collections import deque'],
+}
+
+function collectImports(blocks: BlockItem[], imports: Set<string>): void {
+  for (const block of blocks) {
+    for (const statement of BLOCK_IMPORTS[block.type] ?? [])
+      imports.add(statement)
+    if (block.children) collectImports(block.children, imports)
+    if (block.elseChildren) collectImports(block.elseChildren, imports)
+  }
 }
 
 export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
   const body = generatePythonBody(blocks, indentLevel)
-  if (indentLevel > 0 || !containsQueue(blocks)) return body
-  return `from collections import deque\n${body}`
+  if (indentLevel > 0) return body
+  const imports = new Set<string>()
+  collectImports(blocks, imports)
+  return imports.size ? `${[...imports].join('\n')}\n${body}` : body
 }
 
 function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
@@ -137,7 +143,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         lines.push(`${indent}def ${name}(${args}):`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }

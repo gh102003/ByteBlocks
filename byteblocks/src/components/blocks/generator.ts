@@ -408,6 +408,9 @@ function containerBody(
 }
 
 function guidedCondition(block: BlockItem): string {
+  if (block.conditionKind === 'boolean')
+    return block.conditionBoolean === 'False' ? 'False' : 'True'
+
   const left = block.conditionLeft?.trim()
   const operator = block.conditionOperator?.trim()
   const right = block.conditionRight?.trim()

@@ -673,11 +673,63 @@ export function BlockNode({
             </div>
           )
         }
+        if (block.conditionKind === 'boolean') {
+          return (
+            <div className="chunk-inputs">
+              <span className="chunk-keyword">
+                {block.type === 'while_loop' ? 'repeat while' : 'if'}
+              </span>
+              <select
+                className="chunk-select value-kind-select"
+                value="boolean"
+                onChange={(e) => {
+                  if (e.target.value === 'comparison')
+                    onUpdate({ ...block, conditionKind: 'comparison' })
+                }}
+                aria-label="Condition type"
+              >
+                <option value="boolean">bool:</option>
+                <option value="comparison">comparison:</option>
+              </select>
+              <select
+                className="chunk-select variable-picker"
+                value={block.conditionBoolean ?? 'True'}
+                onChange={(e) =>
+                  onUpdate({
+                    ...block,
+                    conditionBoolean: e.target.value as 'True' | 'False',
+                  })
+                }
+                aria-label="Boolean condition"
+              >
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+              <span className="chunk-colon">:</span>
+            </div>
+          )
+        }
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">
               {block.type === 'while_loop' ? 'repeat while' : 'if'}
             </span>
+            <select
+              className="chunk-select value-kind-select"
+              value="comparison"
+              onChange={(e) => {
+                if (e.target.value === 'boolean')
+                  onUpdate({
+                    ...block,
+                    conditionKind: 'boolean',
+                    conditionBoolean: 'True',
+                  })
+              }}
+              aria-label="Condition type"
+            >
+              <option value="comparison">comparison:</option>
+              <option value="boolean">bool:</option>
+            </select>
             <VariablePicker
               value={block.conditionLeft ?? ''}
               field="conditionLeft"
@@ -1195,7 +1247,11 @@ export function BlockNode({
       case 'if_condition':
       case 'if_else':
       case 'while_loop':
-        return Boolean(block.conditionLeft) && !hasVariable(block.conditionLeft)
+        return (
+          block.conditionKind !== 'boolean' &&
+          Boolean(block.conditionLeft) &&
+          !hasVariable(block.conditionLeft)
+        )
       case 'stack_add':
       case 'stack_remove':
       case 'stack_peek':

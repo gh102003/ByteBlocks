@@ -90,6 +90,9 @@ export interface BlockItem {
   conditionLeft?: string
   conditionOperator?: string
   conditionRight?: string
+  /** Selects either a comparison or a boolean literal predicate. */
+  conditionKind?: 'comparison' | 'boolean'
+  conditionBoolean?: 'True' | 'False'
   isText?: boolean
   condition?: string
   rangeCount?: string

@@ -15,6 +15,9 @@ const CATEGORIES: { id: BlockCategory; label: string }[] = [
   { id: 'variables', label: 'Variables & Math' },
   { id: 'io', label: 'Say & Ask' },
   { id: 'data', label: 'Lists & Collections' },
+  { id: 'stacks', label: 'Stacks' },
+  { id: 'queues', label: 'Queues' },
+  { id: 'dictionaries', label: 'Dictionaries' },
 ]
 
 // These are deliberately the blocks that can be completed without typing Python.
@@ -31,6 +34,21 @@ const BEGINNER_BLOCK_TYPES = new Set([
   'print',
   'list_create',
   'list_append',
+  'dict_create',
+  'stack_create',
+  'stack_add',
+  'stack_remove',
+  'stack_peek',
+  'stack_size',
+  'stack_empty',
+  'stack_clear',
+  'queue_create',
+  'queue_add',
+  'queue_remove',
+  'queue_peek',
+  'queue_size',
+  'queue_empty',
+  'queue_clear',
   'comment',
 ])
 

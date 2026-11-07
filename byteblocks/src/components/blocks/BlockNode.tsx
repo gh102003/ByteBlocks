@@ -20,6 +20,8 @@ interface BlockNodeProps {
   ) => void
   variableNames?: string[]
   listNames?: string[]
+  stackNames?: string[]
+  queueNames?: string[]
 }
 
 const MATH_OPERATORS = ['+', '−', '×', '÷', '%', '**']
@@ -43,6 +45,8 @@ export function BlockNode({
   onDropBlock,
   variableNames = [],
   listNames = [],
+  stackNames = [],
+  queueNames = [],
 }: BlockNodeProps) {
   const [isDragOverChildren, setIsDragOverChildren] = useState(false)
   const [isDragOverElse, setIsDragOverElse] = useState(false)
@@ -66,6 +70,33 @@ export function BlockNode({
     if (index === values.length - 1 && value.trim()) values.push('')
     onUpdate({ ...block, listValues: values })
   }
+
+  const handleDictionaryEntryChange = (
+    index: number,
+    field: 'key' | 'value',
+    value: string,
+  ) => {
+    const entries = [...(block.dictionaryEntries ?? [{ key: '', value: '' }])]
+    entries[index] = { ...entries[index], [field]: value }
+    if (
+      index === entries.length - 1 &&
+      entries[index].key &&
+      entries[index].value
+    )
+      entries.push({ key: '', value: '' })
+    onUpdate({ ...block, dictionaryEntries: entries })
+  }
+
+  const EmptyToggle = () => (
+    <label className="empty-collection-toggle">
+      <input
+        type="checkbox"
+        checked={block.startsEmpty ?? false}
+        onChange={(e) => onUpdate({ ...block, startsEmpty: e.target.checked })}
+      />
+      start empty
+    </label>
+  )
 
   const VariableInput = ({
     value,
@@ -131,6 +162,32 @@ export function BlockNode({
     </select>
   )
 
+  const StructurePicker = ({
+    value,
+    field,
+    names,
+    label,
+  }: {
+    value: string
+    field: keyof BlockItem
+    names: string[]
+    label: string
+  }) => (
+    <select
+      className="chunk-select variable-picker"
+      value={value}
+      onChange={(e) => handleUpdateField(field, e.target.value)}
+      aria-label={`Choose a ${label}`}
+    >
+      <option value="">choose a {label}</option>
+      {names.map((name) => (
+        <option key={name} value={name}>
+          {name}
+        </option>
+      ))}
+    </select>
+  )
+
   const handleChildUpdate = (childIndex: number, updatedChild: BlockItem) => {
     const nextChildren = [...(block.children ?? [])]
     nextChildren[childIndex] = updatedChild
@@ -161,70 +218,110 @@ export function BlockNode({
   const renderInputs = () => {
     switch (block.type) {
       case 'stack_create':
-      case 'stack_add':
-      case 'stack_remove':
-      case 'stack_peek':
-      case 'stack_size':
-      case 'stack_empty':
-      case 'stack_clear':
-      case 'queue_create':
-      case 'queue_add':
-      case 'queue_remove':
-      case 'queue_peek':
-      case 'queue_size':
-      case 'queue_empty':
-      case 'queue_clear':
+      case 'queue_create': {
+        const kind = block.type === 'stack_create' ? 'stack' : 'queue'
         return (
           <div className="chunk-inputs">
-            <span className="chunk-keyword">{def.label}</span>
-            <input
-              aria-label={
-                block.type.endsWith('_create') ? 'Name' : 'Stack or queue'
-              }
-              className="chunk-input var-input"
-              value={
-                (block.type.endsWith('_create')
-                  ? block.varName
-                  : block.listName) ?? ''
-              }
-              onChange={(e) =>
-                handleUpdateField(
-                  block.type.endsWith('_create') ? 'varName' : 'listName',
-                  e.target.value,
-                )
-              }
+            <span className="chunk-keyword">make {kind}</span>
+            <VariableInput
+              value={block.varName ?? ''}
+              field="varName"
+              placeholder={`${kind} name`}
             />
-            {(block.type.endsWith('_create') ||
-              block.type.endsWith('_add')) && (
-              <input
-                aria-label={
-                  block.type.endsWith('_create') ? 'Initial values' : 'Item'
-                }
-                className="chunk-input expr-input"
-                placeholder={
-                  block.type.endsWith('_create')
-                    ? 'initial values, comma separated'
-                    : 'item'
-                }
-                value={block.value ?? ''}
-                onChange={(e) => handleUpdateField('value', e.target.value)}
-              />
-            )}
-            {['_remove', '_peek', '_size', '_empty'].some((suffix) =>
-              block.type.endsWith(suffix),
-            ) && (
-              <>
-                <span className="chunk-label">into</span>
+            <EmptyToggle />
+            {!block.startsEmpty && <span className="chunk-label">with</span>}
+            {!block.startsEmpty &&
+              (block.listValues ?? ['']).map((value, index) => (
                 <input
-                  aria-label="Result variable"
-                  className="chunk-input var-input"
-                  value={block.varName ?? ''}
-                  onChange={(e) => handleUpdateField('varName', e.target.value)}
+                  key={index}
+                  type="number"
+                  className="chunk-input list-value-input"
+                  value={value}
+                  onChange={(e) => handleListValueChange(index, e.target.value)}
+                  placeholder={`item ${index + 1}`}
                 />
-              </>
-            )}
+              ))}
           </div>
         )
+      }
+      case 'stack_add':
+      case 'queue_add': {
+        const kind = block.type === 'stack_add' ? 'stack' : 'queue'
+        const names = kind === 'stack' ? stackNames : queueNames
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">add</span>
+            <input
+              type="number"
+              className="chunk-input expr-input"
+              value={block.value ?? ''}
+              onChange={(e) => handleUpdateField('value', e.target.value)}
+              placeholder="a number"
+            />
+            <span className="chunk-label">to {kind}</span>
+            <StructurePicker
+              value={block.listName ?? ''}
+              field="listName"
+              names={names}
+              label={kind}
+            />
+          </div>
+        )
+      }
+      case 'stack_remove':
+      case 'queue_remove':
+      case 'stack_peek':
+      case 'queue_peek':
+      case 'stack_size':
+      case 'queue_size':
+      case 'stack_empty':
+      case 'queue_empty': {
+        const isStack = block.type.startsWith('stack_')
+        const kind = isStack ? 'stack' : 'queue'
+        const action = block.type.endsWith('_remove')
+          ? isStack
+            ? 'take top from'
+            : 'take first from'
+          : block.type.endsWith('_peek')
+            ? isStack
+              ? 'look at top of'
+              : 'look at first of'
+            : block.type.endsWith('_size')
+              ? 'count items in'
+              : 'check if empty'
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">{action}</span>
+            <StructurePicker
+              value={block.listName ?? ''}
+              field="listName"
+              names={isStack ? stackNames : queueNames}
+              label={kind}
+            />
+            <span className="chunk-label">put in</span>
+            <VariableInput
+              value={block.varName ?? ''}
+              field="varName"
+              placeholder="result"
+            />
+          </div>
+        )
+      }
+      case 'stack_clear':
+      case 'queue_clear': {
+        const isStack = block.type === 'stack_clear'
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">clear</span>
+            <StructurePicker
+              value={block.listName ?? ''}
+              field="listName"
+              names={isStack ? stackNames : queueNames}
+              label={isStack ? 'stack' : 'queue'}
+            />
+          </div>
+        )
+      }
       case 'comment':
         return (
           <div className="chunk-inputs">
@@ -607,18 +704,20 @@ export function BlockNode({
               onChange={(e) => handleUpdateField('varName', e.target.value)}
               placeholder="my_list"
             />
-            <span className="chunk-label">with</span>
-            {(block.listValues ?? ['']).map((value, index) => (
-              <input
-                key={index}
-                type="number"
-                className="chunk-input list-value-input"
-                value={value}
-                onChange={(e) => handleListValueChange(index, e.target.value)}
-                placeholder={`item ${index + 1}`}
-                aria-label={`List item ${index + 1}`}
-              />
-            ))}
+            <EmptyToggle />
+            {!block.startsEmpty && <span className="chunk-label">with</span>}
+            {!block.startsEmpty &&
+              (block.listValues ?? ['']).map((value, index) => (
+                <input
+                  key={index}
+                  type="number"
+                  className="chunk-input list-value-input"
+                  value={value}
+                  onChange={(e) => handleListValueChange(index, e.target.value)}
+                  placeholder={`item ${index + 1}`}
+                  aria-label={`List item ${index + 1}`}
+                />
+              ))}
           </div>
         )
 
@@ -641,7 +740,7 @@ export function BlockNode({
       case 'dict_create':
         return (
           <div className="chunk-inputs">
-            <span className="chunk-keyword">dict</span>
+            <span className="chunk-keyword">make dictionary</span>
             <input
               type="text"
               className="chunk-input var-input"
@@ -649,15 +748,43 @@ export function BlockNode({
               onChange={(e) => handleUpdateField('varName', e.target.value)}
               placeholder="my_dict"
             />
-            <span className="chunk-operator">= {'{'}</span>
-            <input
-              type="text"
-              className="chunk-input expr-input"
-              value={block.value ?? ''}
-              onChange={(e) => handleUpdateField('value', e.target.value)}
-              placeholder="'key': 'value'"
-            />
-            <span className="chunk-bracket">{'}'}</span>
+            <EmptyToggle />
+            {!block.startsEmpty &&
+              (block.dictionaryEntries ?? [{ key: '', value: '' }]).map(
+                (entry, index) => (
+                  <span className="dictionary-entry" key={index}>
+                    <input
+                      type="text"
+                      className="chunk-input dictionary-key-input"
+                      value={entry.key}
+                      onChange={(e) =>
+                        handleDictionaryEntryChange(
+                          index,
+                          'key',
+                          e.target.value,
+                        )
+                      }
+                      placeholder="key"
+                      aria-label={`Dictionary key ${index + 1}`}
+                    />
+                    <span className="chunk-label">is</span>
+                    <input
+                      type="number"
+                      className="chunk-input list-value-input"
+                      value={entry.value}
+                      onChange={(e) =>
+                        handleDictionaryEntryChange(
+                          index,
+                          'value',
+                          e.target.value,
+                        )
+                      }
+                      placeholder="value"
+                      aria-label={`Dictionary value ${index + 1}`}
+                    />
+                  </span>
+                ),
+              )}
           </div>
         )
 
@@ -774,6 +901,8 @@ export function BlockNode({
                   onDropBlock={onDropBlock}
                   variableNames={variableNames}
                   listNames={listNames}
+                  stackNames={stackNames}
+                  queueNames={queueNames}
                 />
               ))}
             </div>
@@ -819,6 +948,8 @@ export function BlockNode({
                     onDropBlock={onDropBlock}
                     variableNames={variableNames}
                     listNames={listNames}
+                    stackNames={stackNames}
+                    queueNames={queueNames}
                   />
                 ))}
               </div>

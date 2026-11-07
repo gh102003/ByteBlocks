@@ -788,6 +788,190 @@ export function BlockNode({
           </div>
         )
 
+      case 'dict_set':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">set</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.listName ?? ''}
+              onChange={(e) => handleUpdateField('listName', e.target.value)}
+              placeholder="dictionary"
+              aria-label="Dictionary name"
+            />
+            <span className="chunk-label">key</span>
+            <input
+              type="text"
+              className="chunk-input dictionary-key-input"
+              value={block.valueVariable ?? ''}
+              onChange={(e) =>
+                handleUpdateField('valueVariable', e.target.value)
+              }
+              placeholder="key"
+              aria-label="Dictionary key"
+            />
+            <span className="chunk-label">to</span>
+            <input
+              type="text"
+              className="chunk-input expr-input"
+              value={block.value ?? ''}
+              onChange={(e) => handleUpdateField('value', e.target.value)}
+              placeholder="value"
+              aria-label="Dictionary value"
+            />
+          </div>
+        )
+
+      case 'dict_get':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">get</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.varName ?? ''}
+              onChange={(e) => handleUpdateField('varName', e.target.value)}
+              placeholder="result"
+              aria-label="Result variable"
+            />
+            <span className="chunk-label">from</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.listName ?? ''}
+              onChange={(e) => handleUpdateField('listName', e.target.value)}
+              placeholder="dictionary"
+              aria-label="Dictionary name"
+            />
+            <span className="chunk-label">key</span>
+            <input
+              type="text"
+              className="chunk-input dictionary-key-input"
+              value={block.valueVariable ?? ''}
+              onChange={(e) =>
+                handleUpdateField('valueVariable', e.target.value)
+              }
+              placeholder="key"
+              aria-label="Dictionary key"
+            />
+          </div>
+        )
+
+      case 'dict_remove':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">remove key</span>
+            <input
+              type="text"
+              className="chunk-input dictionary-key-input"
+              value={block.valueVariable ?? ''}
+              onChange={(e) =>
+                handleUpdateField('valueVariable', e.target.value)
+              }
+              placeholder="key"
+              aria-label="Dictionary key"
+            />
+            <span className="chunk-label">from</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.listName ?? ''}
+              onChange={(e) => handleUpdateField('listName', e.target.value)}
+              placeholder="dictionary"
+              aria-label="Dictionary name"
+            />
+          </div>
+        )
+
+      case 'dict_keys':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">get keys from</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.listName ?? ''}
+              onChange={(e) => handleUpdateField('listName', e.target.value)}
+              placeholder="dictionary"
+              aria-label="Dictionary name"
+            />
+            <span className="chunk-label">into</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.varName ?? ''}
+              onChange={(e) => handleUpdateField('varName', e.target.value)}
+              placeholder="keys"
+              aria-label="Result variable"
+            />
+          </div>
+        )
+
+      case 'random_integer':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">random number</span>
+            <input
+              type="number"
+              className="chunk-input list-value-input"
+              value={block.rangeStart ?? ''}
+              onChange={(e) => handleUpdateField('rangeStart', e.target.value)}
+              aria-label="Minimum number"
+            />
+            <span className="chunk-label">to</span>
+            <input
+              type="number"
+              className="chunk-input list-value-input"
+              value={block.rangeCount ?? ''}
+              onChange={(e) => handleUpdateField('rangeCount', e.target.value)}
+              aria-label="Maximum number"
+            />
+            <span className="chunk-label">into</span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.varName ?? ''}
+              onChange={(e) => handleUpdateField('varName', e.target.value)}
+              placeholder="number"
+              aria-label="Result variable"
+            />
+          </div>
+        )
+
+      case 'random_choice':
+      case 'random_shuffle':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">
+              {block.type === 'random_choice'
+                ? 'pick random item from'
+                : 'shuffle'}
+            </span>
+            <input
+              type="text"
+              className="chunk-input var-input"
+              value={block.listName ?? ''}
+              onChange={(e) => handleUpdateField('listName', e.target.value)}
+              placeholder="items"
+              aria-label="List name"
+            />
+            {block.type === 'random_choice' && (
+              <>
+                <span className="chunk-label">into</span>
+                <input
+                  type="text"
+                  className="chunk-input var-input"
+                  value={block.varName ?? ''}
+                  onChange={(e) => handleUpdateField('varName', e.target.value)}
+                  placeholder="item"
+                  aria-label="Result variable"
+                />
+              </>
+            )}
+          </div>
+        )
+
       case 'custom_code':
         return (
           <div className="chunk-inputs">

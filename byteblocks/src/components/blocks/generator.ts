@@ -2,6 +2,9 @@ import type { BlockItem, BlockType } from './types'
 
 const BLOCK_IMPORTS: Partial<Record<BlockType, readonly string[]>> = {
   queue_create: ['from collections import deque'],
+  random_integer: ['import random'],
+  random_choice: ['import random'],
+  random_shuffle: ['import random'],
 }
 
 function collectImports(blocks: BlockItem[], imports: Set<string>): void {
@@ -324,6 +327,57 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
                 .join(', ')
             : block.value?.trim() || ''
         lines.push(`${indent}${name} = {${val}}`)
+        break
+      }
+
+      case 'dict_set': {
+        const name = block.listName?.trim() || 'my_dict'
+        const key = block.valueVariable?.trim() || 'key'
+        const value = block.value?.trim() || 'value'
+        lines.push(`${indent}${name}[${JSON.stringify(key)}] = ${value}`)
+        break
+      }
+
+      case 'dict_get': {
+        const result = block.varName?.trim() || 'result'
+        const name = block.listName?.trim() || 'my_dict'
+        const key = block.valueVariable?.trim() || 'key'
+        lines.push(`${indent}${result} = ${name}.get(${JSON.stringify(key)})`)
+        break
+      }
+
+      case 'dict_remove': {
+        const name = block.listName?.trim() || 'my_dict'
+        const key = block.valueVariable?.trim() || 'key'
+        lines.push(`${indent}${name}.pop(${JSON.stringify(key)}, None)`)
+        break
+      }
+
+      case 'dict_keys': {
+        const result = block.varName?.trim() || 'keys'
+        const name = block.listName?.trim() || 'my_dict'
+        lines.push(`${indent}${result} = list(${name}.keys())`)
+        break
+      }
+
+      case 'random_integer': {
+        const name = block.varName?.trim() || 'number'
+        const start = block.rangeStart?.trim() || '1'
+        const end = block.rangeCount?.trim() || '10'
+        lines.push(`${indent}${name} = random.randint(${start}, ${end})`)
+        break
+      }
+
+      case 'random_choice': {
+        const name = block.varName?.trim() || 'item'
+        const list = block.listName?.trim() || 'items'
+        lines.push(`${indent}${name} = random.choice(${list})`)
+        break
+      }
+
+      case 'random_shuffle': {
+        const list = block.listName?.trim() || 'items'
+        lines.push(`${indent}random.shuffle(${list})`)
         break
       }
 

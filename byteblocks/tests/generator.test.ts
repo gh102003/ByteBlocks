@@ -189,6 +189,65 @@ describe('Block Generator to Python', () => {
     )
   })
 
+  it('generates random operations with a single import', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'random_integer',
+          varName: 'roll',
+          rangeStart: '1',
+          rangeCount: '6',
+        },
+        {
+          id: '2',
+          type: 'random_choice',
+          varName: 'winner',
+          listName: 'players',
+        },
+        { id: '3', type: 'random_shuffle', listName: 'players' },
+      ]),
+    ).toBe(
+      'import random\nroll = random.randint(1, 6)\nwinner = random.choice(players)\nrandom.shuffle(players)',
+    )
+  })
+
+  it('generates dictionary mutations and safe lookups', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'dict_create',
+          varName: 'scores',
+          dictionaryEntries: [{ key: 'Ada', value: '10' }],
+        },
+        {
+          id: '2',
+          type: 'dict_set',
+          listName: 'scores',
+          valueVariable: 'Grace',
+          value: '12',
+        },
+        {
+          id: '3',
+          type: 'dict_get',
+          varName: 'ada_score',
+          listName: 'scores',
+          valueVariable: 'Ada',
+        },
+        {
+          id: '4',
+          type: 'dict_remove',
+          listName: 'scores',
+          valueVariable: 'Grace',
+        },
+        { id: '5', type: 'dict_keys', varName: 'names', listName: 'scores' },
+      ]),
+    ).toBe(
+      'scores = {"Ada": 10}\nscores["Grace"] = 12\nada_score = scores.get("Ada")\nscores.pop("Grace", None)\nnames = list(scores.keys())',
+    )
+  })
+
   it('generates clean python for all presets without crashing', () => {
     for (const preset of PRESETS) {
       const code = generatePython(preset.blocks)

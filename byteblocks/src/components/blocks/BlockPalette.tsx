@@ -141,7 +141,7 @@ export function BlockPalette({
             }}
           >
             <option value="" disabled>
-              ▦ Load Preset / Demo...
+              Load Preset / Demo...
             </option>
             {PRESETS.filter((preset) => preset.beginner).map((preset) => (
               <option key={preset.id} value={preset.id}>

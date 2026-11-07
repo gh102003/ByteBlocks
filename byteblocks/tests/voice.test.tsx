@@ -82,6 +82,8 @@ test('voice receives the shared workspace, history, and voice-specific boundarie
     'Only claim to have run code after a successful run_code tool call',
   )
   expect(prompt).toContain('Never change code, blocks')
+  expect(prompt).toContain('Never emit, quote, spell out')
+  expect(prompt).not.toContain('BLOCKS IS A HARD OUTPUT REQUIREMENT')
 })
 
 test('voice context excludes visual byteblocks JSON', () => {

@@ -35,12 +35,15 @@
   content: '';
   position: absolute;
   z-index: 1;
-  width: 12px;
-  height: 12px;
-  top: 6px;
-  right: -3px;
+  width: 6px;
+  height: 6px;
+  top: 1px;
+  right: 2px;
   border-radius: 50%;
   background: var(--theme-surface-base);
+  box-shadow:
+    2px 4px 0 var(--theme-surface-base),
+    4px 8px 0 var(--theme-surface-base);
 }
 .brand-symbol i {
   position: absolute;

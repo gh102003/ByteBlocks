@@ -53,6 +53,11 @@ function applyTheme() {
   monaco.editor.setTheme('byteblocks')
 }
 
+export async function colorizePython(value: string) {
+  applyTheme()
+  return monaco.editor.colorize(value, 'python', {})
+}
+
 export function createEditor(
   element: HTMLElement,
   value: string,

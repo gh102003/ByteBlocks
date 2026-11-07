@@ -17,7 +17,17 @@ beforeEach(() => {
 
 test('dragging reorders and moves blocks into and out of a container', async () => {
   const onPythonChange = vi.fn()
-  await render(<VisualBlockEditor onPythonChange={onPythonChange} />)
+  await render(
+    <VisualBlockEditor
+      onPythonChange={onPythonChange}
+      onRun={() => {}}
+      mode="blocks"
+      code=""
+      onEditCode={() => {}}
+      onSelectMode={() => {}}
+      onCursorChange={() => {}}
+    />,
+  )
   const chunks = () =>
     Array.from(document.querySelectorAll<HTMLElement>('.scratch-chunk'))
   const drag = (source: HTMLElement, target: HTMLElement, y = 0) => {

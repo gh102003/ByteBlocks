@@ -1,6 +1,5 @@
 import { ThemeToggle } from './ThemeToggle'
-import { useEffect, useRef, useState } from 'react'
-import { CodeEditor } from './CodeEditor'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
@@ -36,11 +35,25 @@ export function Workspace({
 }: WorkspaceProps) {
   const [code, setCode] = useState(readCode)
   const [editorTab, setEditorTab] = useState<'blocks' | 'code'>('blocks')
+  const selectEditorTab = (mode: 'blocks' | 'code') => {
+    if (mode === 'blocks' && editorTab === 'code') {
+      const confirmed = window.confirm(
+        'Switching back to blocks will replace your code edits with the generated code. Continue?',
+      )
+      if (!confirmed) return
+    }
+    setEditorTab(mode)
+    try {
+      localStorage.setItem('byteblocks.editor.mode', mode)
+    } catch {
+      /* Storage is optional. */
+    }
+  }
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unavailable'>(
     'saving',
   )
   const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
-  const [columnSplit, setColumnSplit] = useState(50)
+  const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
   const outputEnd = useRef<HTMLDivElement>(null)
@@ -63,6 +76,11 @@ export function Workspace({
     if (activeTab === 'Output')
       outputEnd.current?.scrollIntoView({ block: 'nearest' })
   }, [runner.output, activeTab])
+
+  const updateCode = useCallback((nextCode: string) => {
+    setCode(nextCode)
+    setSaved('saving')
+  }, [])
 
   const run = () => {
     setActiveTab('Output')
@@ -122,39 +140,6 @@ export function Workspace({
       >
         <section className="panel editor-panel" aria-label="Python code editor">
           <div className="panel-toolbar editor-toolbar">
-            <div
-              className="editor-mode-nav"
-              role="tablist"
-              aria-label="Editor modes"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === 'blocks'}
-                className={`editor-nav-tab ${editorTab === 'blocks' ? 'active' : ''}`}
-                onClick={() => setEditorTab('blocks')}
-                title="Visual Scratch Chunks Builder"
-              >
-                <Icon name="puzzle" size={13} />
-                <span>Visual Blocks</span>
-                <span className="tab-pill">Scratch</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === 'code'}
-                className={`editor-nav-tab ${editorTab === 'code' ? 'active' : ''}`}
-                onClick={() => setEditorTab('code')}
-                title="Python Source Code"
-              >
-                <span className="python-icon">Py</span>
-                <span>main.py</span>
-                <span
-                  className="file-dot"
-                  title={saved === 'saved' ? 'Saved locally' : 'Saving changes'}
-                />
-              </button>
-            </div>
             <div className="editor-actions">
               <span className="language-label">Python 3</span>
               <button
@@ -169,32 +154,15 @@ export function Workspace({
               </button>
             </div>
           </div>
-          <div className="editor-breadcrumb">
-            <span>workspace</span>
-            <Icon name="chevron" size={12} />
-            <span>
-              {editorTab === 'blocks' ? 'Visual Scratch Chunks' : 'main.py'}
-            </span>
-          </div>
-          {editorTab === 'blocks' ? (
-            <VisualBlockEditor
-              onPythonChange={(nextCode) => {
-                setCode(nextCode)
-                setSaved('saving')
-              }}
-              onRun={run}
-            />
-          ) : (
-            <CodeEditor
-              value={code}
-              onChange={(next) => {
-                setCode(next)
-                setSaved('saving')
-              }}
-              onCursorChange={setCursor}
-              onRun={run}
-            />
-          )}
+          <VisualBlockEditor
+            mode={editorTab}
+            code={code}
+            onSelectMode={selectEditorTab}
+            onPythonChange={updateCode}
+            onEditCode={updateCode}
+            onCursorChange={setCursor}
+            onRun={run}
+          />
           <footer className="editor-footer">
             <span className={saved === 'unavailable' ? 'save-warning' : ''}>
               <Icon

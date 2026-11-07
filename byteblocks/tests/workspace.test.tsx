@@ -33,6 +33,24 @@ describe('Desktop coding workspace', () => {
       .toBeVisible()
   })
 
+  test('switches between generated blocks and editable code', async () => {
+    await render(<App />)
+    await page.getByRole('button', { name: 'Edit Python code' }).click()
+    await expect
+      .element(page.getByRole('button', { name: 'Edit blocks' }))
+      .toBeVisible()
+    expect(
+      document.querySelector('.blocks-canvas')?.hasAttribute('inert'),
+    ).toBe(true)
+    await page.getByRole('button', { name: 'Edit blocks' }).click()
+    await expect
+      .element(page.getByRole('button', { name: 'Edit Python code' }))
+      .toBeVisible()
+    expect(
+      document.querySelector('.blocks-canvas')?.hasAttribute('inert'),
+    ).toBe(false)
+  })
+
   test('both dividers resize with the keyboard', async () => {
     await render(<App />)
     const columns = page.getByRole('separator', {
@@ -40,7 +58,7 @@ describe('Desktop coding workspace', () => {
     })
     await columns.click()
     await userEvent.keyboard('{ArrowRight}')
-    await expect.element(columns).toHaveAttribute('aria-valuenow', '52')
+    await expect.element(columns).toHaveAttribute('aria-valuenow', '69')
     const rows = page.getByRole('separator', {
       name: 'Resize helpers and coach',
     })
@@ -65,6 +83,7 @@ describe('Desktop coding workspace', () => {
   test('Run opens Output and renders stdout as text', async () => {
     const output = '<img src=x onerror=alert(1)>'
     localStorage.setItem(STORAGE_KEY, `print(${JSON.stringify(output)})`)
+    localStorage.setItem('byteblocks.editor.mode', 'code')
     await render(<App />)
     await page.getByRole('button', { name: 'Run code', exact: false }).click()
     await expect

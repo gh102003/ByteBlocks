@@ -38,11 +38,12 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         break
       }
 
-      case 'var_set': {
+      case 'var_set':
+      case 'math_calculate': {
         const name = block.varName?.trim() || 'x'
-        const baseValue = guidedValue(block)
+        const baseValue = operandValue(block.valueOperand, guidedValue(block))
         const operator = block.operator?.trim()
-        const rightValue = block.rightValue?.trim()
+        const rightValue = operandValue(block.rightOperand, block.rightValue)
         const val =
           operator && rightValue
             ? `${baseValue} ${operator} ${rightValue}`
@@ -53,14 +54,14 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'var_change': {
         const name = block.varName?.trim() || 'x'
-        const val = block.value?.trim() || '1'
+        const val = operandValue(block.valueOperand, block.value) || '1'
         lines.push(`${indent}${name} += ${val}`)
         break
       }
 
       case 'var_decrement': {
         const name = block.varName?.trim() || 'x'
-        const val = block.value?.trim() || '1'
+        const val = operandValue(block.valueOperand, block.value) || '1'
         lines.push(`${indent}${name} -= ${val}`)
         break
       }
@@ -407,6 +408,9 @@ function containerBody(
 }
 
 function guidedCondition(block: BlockItem): string {
+  if (block.conditionKind === 'boolean')
+    return block.conditionBoolean === 'False' ? 'False' : 'True'
+
   const left = block.conditionLeft?.trim()
   const operator = block.conditionOperator?.trim()
   const right = block.conditionRight?.trim()
@@ -434,4 +438,13 @@ function listItemExpression(
 function guidedValue(block: BlockItem): string {
   if (block.valueKind === 'variable') return block.valueVariable?.trim() || '0'
   return block.value?.trim() || '0'
+}
+
+function operandValue(
+  operand: BlockItem['valueOperand'],
+  fallback: string | undefined,
+): string {
+  if (operand?.kind === 'variable') return operand.name.trim()
+  if (operand?.kind === 'number') return operand.value.trim()
+  return fallback?.trim() ?? ''
 }

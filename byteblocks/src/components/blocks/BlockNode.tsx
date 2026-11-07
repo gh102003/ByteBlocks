@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { BlockItem } from './types'
+import type { BlockItem, ValueOperand } from './types'
 import { BLOCK_DEFINITIONS } from './definitions'
 import { Icon } from '../Icon'
 import { BlockIcon } from './BlockIcon'
@@ -36,6 +36,71 @@ const pythonOperator = (operator: string) =>
     '≤': '<=',
     '≥': '>=',
   })[operator] ?? operator
+
+function legacyOperand(
+  value: string | undefined,
+  kind: BlockItem['valueKind'],
+  variable: string | undefined,
+): ValueOperand {
+  if (kind === 'variable') return { kind: 'variable', name: variable ?? '' }
+  return { kind: 'number', value: value ?? '' }
+}
+
+function ValuePicker({
+  operand,
+  onChange,
+  label,
+  variableNames,
+}: {
+  operand: ValueOperand
+  onChange: (operand: ValueOperand) => void
+  label: string
+  variableNames: string[]
+}) {
+  return (
+    <span className="value-picker">
+      <select
+        className="chunk-select value-kind-select"
+        value={operand.kind}
+        onChange={(e) =>
+          onChange(
+            e.target.value === 'variable'
+              ? { kind: 'variable', name: variableNames[0] ?? '' }
+              : { kind: 'number', value: '0' },
+          )
+        }
+        aria-label={`${label} type`}
+      >
+        <option value="number">number:</option>
+        <option value="variable">variable:</option>
+      </select>
+      {operand.kind === 'number' ? (
+        <input
+          type="number"
+          className="chunk-input expr-input"
+          value={operand.value}
+          onChange={(e) => onChange({ kind: 'number', value: e.target.value })}
+          placeholder="4"
+          aria-label={`${label} number`}
+        />
+      ) : (
+        <select
+          className="chunk-select variable-picker"
+          value={operand.name}
+          onChange={(e) => onChange({ kind: 'variable', name: e.target.value })}
+          aria-label={`${label} variable`}
+        >
+          <option value="">choose a variable</option>
+          {variableNames.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      )}
+    </span>
+  )
+}
 
 export function BlockNode({
   block,
@@ -125,26 +190,6 @@ export function BlockNode({
       onChange={(e) => handleUpdateField(field, e.target.value)}
       placeholder={placeholder}
       aria-label="Variable name"
-    />
-  )
-
-  const ValueInput = ({
-    value,
-    onChange,
-    placeholder,
-  }: {
-    value: string
-    onChange: (value: string) => void
-    placeholder: string
-  }) => (
-    <input
-      type="text"
-      list="byteblocks-variables"
-      className="chunk-input expr-input"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      aria-label="Number or variable"
     />
   )
 
@@ -385,52 +430,60 @@ export function BlockNode({
         )
 
       case 'var_set':
+      case 'math_calculate': {
+        const valueOperand =
+          block.valueOperand ??
+          legacyOperand(block.value, block.valueKind, block.valueVariable)
+        const rightOperand =
+          block.rightOperand ??
+          legacyOperand(block.rightValue, undefined, undefined)
         return (
           <div className="chunk-inputs">
-            <span className="chunk-keyword">set</span>
+            <span className="chunk-keyword">
+              {block.type === 'math_calculate' ? 'calculate' : 'set'}
+            </span>
             <VariableInput value={block.varName ?? ''} field="varName" />
             <span className="chunk-label">to</span>
-            <ValueInput
-              value={
-                block.valueKind === 'variable'
-                  ? (block.valueVariable ?? '')
-                  : (block.value ?? '')
-              }
-              onChange={(value) =>
-                onUpdate({
-                  ...block,
-                  value,
-                  valueKind: 'number',
-                  valueVariable: undefined,
-                })
-              }
-              placeholder="number or variable"
+            <ValuePicker
+              operand={valueOperand}
+              onChange={(valueOperand) => onUpdate({ ...block, valueOperand })}
+              label="Value"
+              variableNames={variableNames}
             />
-            <select
-              className="chunk-select operator-select"
-              value={block.operator ?? ''}
-              onChange={(e) => handleUpdateField('operator', e.target.value)}
-              aria-label="Math operation"
-            >
-              <option value="">no math</option>
-              {MATH_OPERATORS.map((operator) => (
-                <option key={operator} value={pythonOperator(operator)}>
-                  {operator}
-                </option>
-              ))}
-            </select>
-            {block.operator && (
-              <ValueInput
-                value={block.rightValue ?? ''}
-                onChange={(value) => handleUpdateField('rightValue', value)}
-                placeholder="number or variable"
-              />
+            {block.type === 'math_calculate' && (
+              <>
+                <select
+                  className="chunk-select operator-select"
+                  value={block.operator ?? '+'}
+                  onChange={(e) =>
+                    handleUpdateField('operator', e.target.value)
+                  }
+                  aria-label="Math operation"
+                >
+                  {MATH_OPERATORS.map((operator) => (
+                    <option key={operator} value={pythonOperator(operator)}>
+                      {operator}
+                    </option>
+                  ))}
+                </select>
+                <ValuePicker
+                  operand={rightOperand}
+                  onChange={(rightOperand) =>
+                    onUpdate({ ...block, rightOperand })
+                  }
+                  label="Second value"
+                  variableNames={variableNames}
+                />
+              </>
             )}
           </div>
         )
+      }
 
       case 'var_change':
-      case 'var_decrement':
+      case 'var_decrement': {
+        const valueOperand =
+          block.valueOperand ?? legacyOperand(block.value, undefined, undefined)
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">
@@ -438,13 +491,15 @@ export function BlockNode({
             </span>
             <VariablePicker value={block.varName ?? ''} field="varName" />
             <span className="chunk-label">by</span>
-            <ValueInput
-              value={block.value ?? ''}
-              onChange={(value) => handleUpdateField('value', value)}
-              placeholder="amount"
+            <ValuePicker
+              operand={valueOperand}
+              onChange={(valueOperand) => onUpdate({ ...block, valueOperand })}
+              label="Amount"
+              variableNames={variableNames}
             />
           </div>
         )
+      }
 
       case 'list_item_math':
         return (
@@ -494,24 +549,49 @@ export function BlockNode({
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">say</span>
-            <input
-              type="text"
-              className="chunk-input expr-input"
-              value={block.value ?? ''}
-              onChange={(e) => handleUpdateField('value', e.target.value)}
-              placeholder="Hello!"
-            />
             <select
               className="chunk-select text-kind-select"
               value={block.isText ? 'text' : 'value'}
-              onChange={(e) =>
-                onUpdate({ ...block, isText: e.target.value === 'text' })
-              }
+              onChange={(e) => {
+                const isText = e.target.value === 'text'
+                onUpdate({
+                  ...block,
+                  isText,
+                  value:
+                    !isText && !variableNames.includes(block.value ?? '')
+                      ? ''
+                      : block.value,
+                })
+              }}
               aria-label="What to say"
             >
-              <option value="text">as text</option>
-              <option value="value">as a variable/value</option>
+              <option value="text">text:</option>
+              <option value="value">value:</option>
             </select>
+            {block.isText ? (
+              <input
+                type="text"
+                className="chunk-input expr-input"
+                value={block.value ?? ''}
+                onChange={(e) => handleUpdateField('value', e.target.value)}
+                placeholder="hi"
+                aria-label="Text to say"
+              />
+            ) : (
+              <select
+                className="chunk-select variable-picker"
+                value={block.value ?? ''}
+                onChange={(e) => handleUpdateField('value', e.target.value)}
+                aria-label="Variable to say"
+              >
+                <option value="">choose a variable</option>
+                {variableNames.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )
 
@@ -593,11 +673,63 @@ export function BlockNode({
             </div>
           )
         }
+        if (block.conditionKind === 'boolean') {
+          return (
+            <div className="chunk-inputs">
+              <span className="chunk-keyword">
+                {block.type === 'while_loop' ? 'repeat while' : 'if'}
+              </span>
+              <select
+                className="chunk-select value-kind-select"
+                value="boolean"
+                onChange={(e) => {
+                  if (e.target.value === 'comparison')
+                    onUpdate({ ...block, conditionKind: 'comparison' })
+                }}
+                aria-label="Condition type"
+              >
+                <option value="boolean">bool:</option>
+                <option value="comparison">comparison:</option>
+              </select>
+              <select
+                className="chunk-select variable-picker"
+                value={block.conditionBoolean ?? 'True'}
+                onChange={(e) =>
+                  onUpdate({
+                    ...block,
+                    conditionBoolean: e.target.value as 'True' | 'False',
+                  })
+                }
+                aria-label="Boolean condition"
+              >
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+              <span className="chunk-colon">:</span>
+            </div>
+          )
+        }
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">
               {block.type === 'while_loop' ? 'repeat while' : 'if'}
             </span>
+            <select
+              className="chunk-select value-kind-select"
+              value="comparison"
+              onChange={(e) => {
+                if (e.target.value === 'boolean')
+                  onUpdate({
+                    ...block,
+                    conditionKind: 'boolean',
+                    conditionBoolean: 'True',
+                  })
+              }}
+              aria-label="Condition type"
+            >
+              <option value="comparison">comparison:</option>
+              <option value="boolean">bool:</option>
+            </select>
             <VariablePicker
               value={block.conditionLeft ?? ''}
               field="conditionLeft"
@@ -1115,7 +1247,11 @@ export function BlockNode({
       case 'if_condition':
       case 'if_else':
       case 'while_loop':
-        return Boolean(block.conditionLeft) && !hasVariable(block.conditionLeft)
+        return (
+          block.conditionKind !== 'boolean' &&
+          Boolean(block.conditionLeft) &&
+          !hasVariable(block.conditionLeft)
+        )
       case 'stack_add':
       case 'stack_remove':
       case 'stack_peek':

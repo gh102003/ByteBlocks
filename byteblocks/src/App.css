@@ -575,7 +575,7 @@
   border-radius: 6px;
   padding: 14px;
 }
-.complexity-stats span {
+.complexity-stats > div > span {
   font-size: 8px;
   letter-spacing: 1px;
   color: var(--theme-text-muted);
@@ -866,6 +866,142 @@
   align-items: center;
   color: var(--accent);
 }
+.nibble-sprite {
+  --nibble-unit: 4px;
+  position: relative;
+  display: inline-block;
+  width: calc(var(--nibble-unit) * 6);
+  height: calc(var(--nibble-unit) * 7);
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+}
+.nibble-sprite-medium {
+  --nibble-unit: 5px;
+}
+.nibble-sprite-large {
+  --nibble-unit: 10px;
+}
+.nibble-ear,
+.nibble-face,
+.nibble-eye,
+.nibble-tooth {
+  position: absolute;
+  display: block;
+}
+.nibble-ear {
+  width: calc(var(--nibble-unit) * 2);
+  height: calc(var(--nibble-unit) * 3);
+  background: #5db5ed;
+  box-shadow: inset var(--nibble-unit) var(--nibble-unit) #a9e5ff;
+}
+.nibble-ear-left {
+  left: 0;
+  top: 0;
+}
+.nibble-ear-right {
+  right: 0;
+  top: 0;
+}
+.nibble-face {
+  left: 0;
+  bottom: 0;
+  width: calc(var(--nibble-unit) * 6);
+  height: calc(var(--nibble-unit) * 5);
+  background: #2d82c7;
+  box-shadow:
+    inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #15528b,
+    inset var(--nibble-unit) var(--nibble-unit) #76c9f4;
+}
+.nibble-eye {
+  top: calc(var(--nibble-unit) * 2);
+  width: var(--nibble-unit);
+  height: var(--nibble-unit);
+  background: #123b66;
+}
+.nibble-eye-left {
+  left: var(--nibble-unit);
+}
+.nibble-eye-right {
+  right: var(--nibble-unit);
+}
+.nibble-tooth {
+  bottom: 0;
+  width: var(--nibble-unit);
+  height: calc(var(--nibble-unit) * 2);
+  background: #fff9dc;
+}
+.nibble-tooth-left {
+  left: calc(var(--nibble-unit) * 2);
+}
+.nibble-tooth-right {
+  left: calc(var(--nibble-unit) * 3);
+  border-left: 1px solid #cce4e6;
+}
+.nibble-standing {
+  height: calc(var(--nibble-unit) * 13);
+}
+.nibble-standing .nibble-face {
+  top: calc(var(--nibble-unit) * 2);
+  bottom: auto;
+  z-index: 3;
+}
+.nibble-body {
+  left: var(--nibble-unit);
+  top: calc(var(--nibble-unit) * 6);
+  width: calc(var(--nibble-unit) * 4);
+  height: calc(var(--nibble-unit) * 5);
+  z-index: 1;
+  background: #28669e;
+  outline: 2px solid #123b66;
+  outline-offset: -2px;
+  box-shadow:
+    inset var(--nibble-unit) 0 #4b97cc,
+    inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #153e68;
+}
+.nibble-arm {
+  z-index: 0;
+  top: calc(var(--nibble-unit) * 7);
+  width: var(--nibble-unit);
+  height: calc(var(--nibble-unit) * 3);
+  background: #5db5ed;
+}
+.nibble-arm-left {
+  left: calc(var(--nibble-unit) * -1);
+}
+.nibble-arm-right {
+  right: calc(var(--nibble-unit) * -1);
+}
+.nibble-foot {
+  z-index: 0;
+  top: calc(var(--nibble-unit) * 11);
+  width: calc(var(--nibble-unit) * 2);
+  height: calc(var(--nibble-unit) * 2);
+  background: #102e50;
+  box-shadow: inset 0 var(--nibble-unit) #071a30;
+}
+.nibble-foot-left {
+  left: var(--nibble-unit);
+}
+.nibble-foot-right {
+  right: var(--nibble-unit);
+}
+.nibble-shirt {
+  position: absolute;
+  left: var(--nibble-unit);
+  top: 0;
+  width: calc(var(--nibble-unit) * 2);
+  height: calc(var(--nibble-unit) * 3);
+  background: #f5f0df;
+}
+.nibble-tie {
+  position: absolute;
+  left: calc(var(--nibble-unit) * 2);
+  top: var(--nibble-unit);
+  width: var(--nibble-unit);
+  height: calc(var(--nibble-unit) * 3);
+  background: #ef806d;
+  z-index: 1;
+}
 .coach-title strong {
   font-size: 11px;
   font-weight: 550;
@@ -957,6 +1093,10 @@
 }
 .message-markdown p {
   white-space: normal;
+}
+.message-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 .message-markdown pre {
   margin: 10px 0;
@@ -1122,6 +1262,9 @@
   line-height: 1.6;
   outline: none;
 }
+.coach-composer textarea:focus-visible {
+  outline: none;
+}
 .coach-composer textarea::placeholder {
   color: var(--theme-text-muted);
 }
@@ -1285,8 +1428,7 @@
   }
 }
 
-/* ==========================================================================
-   Home Landing Page Styles
+/* ===================================================================   Home Landing Page Styles
    ========================================================================== */
 
 .app-root {
@@ -1353,6 +1495,7 @@
 
 /* Hero Section */
 .hero-section {
+  position: relative;
   padding: 90px 24px 70px;
   display: flex;
   justify-content: center;
@@ -1899,8 +2042,7 @@
   color: var(--accent);
 }
 
-/* ==========================================================================
-   Onboarding Questionnaire Modal Styles
+/* ===================================================================   Onboarding Questionnaire Modal Styles
    ========================================================================== */
 
 .onboarding-overlay {
@@ -2161,8 +2303,7 @@
   background: var(--theme-accent-soft);
 }
 
-/* ==========================================================================
-   Workspace Navigation & AI Badge
+/* ===================================================================   Workspace Navigation & AI Badge
    ========================================================================== */
 
 .brand-btn {
@@ -2227,8 +2368,7 @@
   }
 }
 
-/* ==========================================================================
-   Visual Scratch Block System
+/* ===================================================================   Visual Scratch Block System
    ========================================================================== */
 
 .visual-block-editor {
@@ -2581,9 +2721,11 @@
 }
 
 .chunk-handle {
+  align-self: center;
   cursor: grab;
   color: var(--theme-text-subtle);
   font-size: 14px;
+  line-height: 1;
   user-select: none;
   padding: 0 2px;
 }
@@ -2756,6 +2898,12 @@
   color: #fbbf24;
 }
 
+.value-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .list-value-input {
   width: 58px;
   color: #c4b5fd;
@@ -2765,7 +2913,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #cbd5e1;
+  color: inherit;
   font-size: 11px;
   cursor: pointer;
 }
@@ -3450,27 +3598,43 @@
 }
 .sample-block {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   width: fit-content;
   max-width: 100%;
-  margin-bottom: 4px;
-  padding: 12px;
-  color: #17232c;
-  font: 600 11px var(--mono);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+  margin-bottom: 7px;
+  padding: 9px 10px;
+  color: #101827;
+  font: 650 10px var(--mono);
+  border-left: 5px solid var(--sample-block-border);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--sample-block-border) 75%, white);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.16);
 }
 .sample-block b {
-  background: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.48);
   padding: 2px 3px;
+  border-radius: 2px;
 }
-.block-blue {
-  background: #91c9ea;
+.sample-block-icon {
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(16, 24, 39, 0.12);
+  font: 800 13px/1 var(--mono);
 }
-.block-yellow {
-  background: #f4c85f;
+.block-repeat {
+  --sample-block-border: #f59e0b;
+}
+.block-decision {
+  --sample-block-border: #38bdf8;
   margin-left: 14px;
 }
-.block-coral {
-  background: #ef9b87;
+.block-output {
+  --sample-block-border: #34d399;
   margin-left: 28px;
 }
 .workbench-grid-mark {
@@ -4141,4 +4305,47 @@
 }
 .goal-stage-completed .goal-detail {
   margin-bottom: 0;
+}
+.complexity-graphs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.complexity-graph {
+  min-width: 0;
+}
+.complexity-graph h3 {
+  font-size: 11px;
+  color: var(--theme-info);
+  margin: 0;
+}
+.complexity-graph .chart {
+  margin-top: 8px;
+}
+.complexity-graph .chart svg {
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+.chart .chart-axis {
+  stroke: var(--theme-text-muted);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.chart .chart-reference {
+  stroke: var(--theme-text-muted);
+  vector-effect: non-scaling-stroke;
+  opacity: 0.35;
+  stroke-width: 1.25;
+}
+.chart .chart-highlight {
+  stroke: var(--accent);
+  vector-effect: non-scaling-stroke;
+  stroke-width: 3;
+}
+.complexity-graph-note {
+  margin-top: 10px;
+  color: var(--theme-text-muted);
+  font-size: 9px;
+  line-height: 1.5;
 }

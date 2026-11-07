@@ -11,7 +11,7 @@ beforeEach(() => {
 })
 
 describe('Desktop coding workspace', () => {
-  test('switches helper tabs with the mouse and keyboard and labels sample analysis', async () => {
+  test('switches helper tabs with the mouse and keyboard and labels the complexity estimate', async () => {
     await render(<App />)
     await page.getByRole('tab', { name: 'Goal', exact: true }).click()
     await expect
@@ -20,7 +20,7 @@ describe('Desktop coding workspace', () => {
     await page.getByRole('tab', { name: 'Complexity', exact: true }).click()
     await expect
       .element(
-        page.getByText('This is not an analysis of your current code.', {
+        page.getByText('Based on the current Python code.', {
           exact: false,
         }),
       )

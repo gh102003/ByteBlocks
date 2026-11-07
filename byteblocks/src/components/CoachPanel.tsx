@@ -8,6 +8,8 @@ import {
 } from 'react'
 import type { FormEvent } from 'react'
 import Markdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import type { UIMessage } from 'ai'
 import { getChatConnector } from '../ai/connector'
 import type { ChatConnector } from '../ai/connector'
@@ -16,6 +18,7 @@ import type { CoachContext } from '../ai/transport'
 import type { UserPreferences } from '../preferences'
 import { Icon } from './Icon'
 import { AdviceBlocks } from './AdviceBlocks'
+import { NibbleSprite } from './NibbleSprite'
 
 function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
   const level = prefs?.level
@@ -33,14 +36,14 @@ function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
             : ''
 
   let welcomeText =
-    'Hey! Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.'
+    'Hi, I’m Nibble! Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.'
 
   if (level === 'senior') {
-    welcomeText = `Hey! I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate your current challenge and its tradeoffs.`
+    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate your current challenge and its tradeoffs.`
   } else if (level === 'beginner') {
-    welcomeText = `Hey! Welcome to Python practice. I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge step-by-step. Try running the code first to see how it works!`
+    welcomeText = `Hi, I’m Nibble! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge step-by-step. Try running the code first to see how it works!`
   } else if (level) {
-    welcomeText = `Hey! I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
+    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
   }
 
   return [
@@ -155,14 +158,12 @@ export function CoachPanel({
     <section className="panel coach-panel" aria-label="AI coach">
       <div className="panel-toolbar coach-toolbar">
         <div className="coach-title">
-          <span className="coach-mark">
-            <Icon name="sparkle" size={17} />
-          </span>
-          <strong>AI coach</strong>
+          <NibbleSprite size="small" />
+          <strong>Nibble</strong>
           <span className="coach-subtitle">
             {effectivePreferences
               ? `Calibrated for ${effectivePreferences.level} (${effectivePreferences.feedbackStyle})`
-              : 'A little nudge goes a long way.'}
+              : 'Your pocket-sized Python guide.'}
           </span>
         </div>
         <span className="sample-badge" title={connector.label}>
@@ -176,7 +177,7 @@ export function CoachPanel({
       <div
         className="coach-messages"
         role="log"
-        aria-label="Coach conversation"
+        aria-label="Nibble conversation"
         aria-live="polite"
         aria-busy={busy}
       >
@@ -194,14 +195,14 @@ export function CoachPanel({
               className={`message-avatar ${message.role === 'assistant' ? 'coach-message-avatar' : ''}`}
             >
               {message.role === 'assistant' ? (
-                <Icon name="sparkle" size={15} />
+                <NibbleSprite size="small" />
               ) : (
                 'Y'
               )}
             </span>
             <div className="message-content">
               <div className="message-label">
-                {message.role === 'assistant' ? 'ByteBlocks coach' : 'You'}
+                {message.role === 'assistant' ? 'Nibble' : 'You'}
                 {message.role === 'assistant' && effectivePreferences && (
                   <span className="calibrated-tag">
                     {effectivePreferences.feedbackStyle.toUpperCase()}
@@ -210,20 +211,22 @@ export function CoachPanel({
               </div>
               {message.parts.map((part, index) =>
                 part.type === 'text' ? (
-                  message.role === 'assistant' ? (
-                    <div className="message-markdown" key={index}>
-                      <Markdown
-                        skipHtml
-                        disallowedElements={['img']}
-                        components={{
-                          a: ({ children, href }) => (
-                            <a href={href} target="_blank" rel="noreferrer">
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {effectivePreferences?.adviceFormat === 'blocks'
+                  <div className="message-markdown" key={index}>
+                    <Markdown
+                      skipHtml
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      disallowedElements={['img']}
+                      components={{
+                        a: ({ children, href }) => (
+                          <a href={href} target="_blank" rel="noreferrer">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.role === 'assistant'
+                        ? effectivePreferences?.adviceFormat === 'blocks'
                           ? withoutNonBlockCode(
                               withoutAdviceBlocks(
                                 part.text.replace(
@@ -235,15 +238,14 @@ export function CoachPanel({
                           : part.text.replace(
                               /\[\[PROGRESS:(?:advance|bonus|skip)\]\]/g,
                               '',
-                            )}
-                      </Markdown>
-                      {effectivePreferences?.adviceFormat === 'blocks' && (
+                            )
+                        : part.text}
+                    </Markdown>
+                    {message.role === 'assistant' &&
+                      effectivePreferences?.adviceFormat === 'blocks' && (
                         <AdviceBlocks text={part.text} />
                       )}
-                    </div>
-                  ) : (
-                    <p key={index}>{part.text}</p>
-                  )
+                  </div>
                 ) : null,
               )}
             </div>
@@ -279,8 +281,8 @@ export function CoachPanel({
           <p className="coach-status" role="status">
             <span className="status-dot pulsing" />
             {status === 'submitted'
-              ? 'Coach is thinking…'
-              : 'Coach is replying…'}
+              ? 'Nibble is thinking…'
+              : 'Nibble is nibbling on a reply…'}
           </p>
         )}
         {(connector.configurationError || error) && (
@@ -300,7 +302,7 @@ export function CoachPanel({
         <form className="coach-composer" onSubmit={submitMessage}>
           <textarea
             aria-label="Message the coach"
-            placeholder="Ask a question, or think out loud…"
+            placeholder="Ask Nibble a question, or think out loud…"
             maxLength={4000}
             rows={2}
             value={draft}

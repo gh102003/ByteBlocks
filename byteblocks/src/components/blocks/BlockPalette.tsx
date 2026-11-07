@@ -12,7 +12,8 @@ interface BlockPaletteProps {
 }
 
 const CATEGORIES: { id: BlockCategory; label: string }[] = [
-  { id: 'variables', label: 'Variables & Math' },
+  { id: 'variables', label: 'Variables' },
+  { id: 'maths', label: 'Maths' },
   { id: 'data', label: 'Lists' },
   { id: 'repeat', label: 'Repeat' },
   { id: 'decisions', label: 'Decide' },
@@ -22,6 +23,7 @@ const CATEGORIES: { id: BlockCategory; label: string }[] = [
   { id: 'stacks', label: 'Stacks' },
   { id: 'queues', label: 'Queues' },
   { id: 'dictionaries', label: 'Dictionaries' },
+  { id: 'comments', label: 'Comments' },
 ]
 
 // These are deliberately the blocks that can be completed without typing Python.
@@ -40,6 +42,7 @@ const BEGINNER_BLOCK_TYPES = new Set([
   'var_set',
   'var_change',
   'var_decrement',
+  'math_calculate',
   'list_item_math',
   'print',
   'list_create',

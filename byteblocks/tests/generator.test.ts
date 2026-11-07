@@ -105,6 +105,27 @@ describe('Block Generator to Python', () => {
     ).toBe('total = price + tax\ntotal += 1\ntotal -= discount')
   })
 
+  it('generates typed number and variable operands', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'var_set',
+          varName: 'total',
+          valueOperand: { kind: 'variable', name: 'price' },
+          operator: '*',
+          rightOperand: { kind: 'number', value: '2' },
+        },
+        {
+          id: '2',
+          type: 'var_change',
+          varName: 'total',
+          valueOperand: { kind: 'variable', name: 'bonus' },
+        },
+      ]),
+    ).toBe('total = price * 2\ntotal += bonus')
+  })
+
   it('generates guided math and comparison controls as Python', () => {
     const blocks: BlockItem[] = [
       {
@@ -128,6 +149,27 @@ describe('Block Generator to Python', () => {
     expect(generatePython(blocks)).toBe(
       'total = 4 * 3\nif total >= 12:\n    print(total)',
     )
+  })
+
+  it('generates boolean predicates for loops and conditionals', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'while_loop',
+          conditionKind: 'boolean',
+          conditionBoolean: 'True',
+          children: [{ id: '2', type: 'break_loop' }],
+        },
+        {
+          id: '3',
+          type: 'if_condition',
+          conditionKind: 'boolean',
+          conditionBoolean: 'False',
+          children: [{ id: '4', type: 'print', value: 'unreachable' }],
+        },
+      ]),
+    ).toBe('while True:\n    break\nif False:\n    print(unreachable)')
   })
 
   it('generates list-item math without exposing list indexing in the block', () => {

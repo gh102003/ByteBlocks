@@ -57,27 +57,31 @@ function findVariableNames(blocks: BlockItem[]): {
   const lists = new Set<string>()
   const stacks = new Set<string>()
   const queues = new Set<string>()
+  const addName = (name: string | undefined) => {
+    const trimmed = name?.trim()
+    if (trimmed && /^[A-Za-z_]\w*$/.test(trimmed)) names.add(trimmed)
+  }
   const visit = (items: BlockItem[]) =>
     items.forEach((block) => {
-      if (block.varName?.trim() && /^[A-Za-z_]\w*$/.test(block.varName.trim()))
-        names.add(block.varName.trim())
+      addName(block.varName)
       if (block.type === 'list_create' && block.varName?.trim())
         lists.add(block.varName.trim())
       if (block.type === 'stack_create' && block.varName?.trim())
         stacks.add(block.varName.trim())
       if (block.type === 'queue_create' && block.varName?.trim())
         queues.add(block.varName.trim())
-      if (block.itemVar?.trim() && /^[A-Za-z_]\w*$/.test(block.itemVar.trim()))
-        names.add(block.itemVar.trim())
+      addName(block.itemVar)
+      block.functionArgs?.forEach(addName)
+      block.funcArgs?.split(',').forEach(addName)
       if (block.children) visit(block.children)
       if (block.elseChildren) visit(block.elseChildren)
     })
   visit(blocks)
   return {
-    names: [...names].sort(),
-    lists: [...lists].sort(),
-    stacks: [...stacks].sort(),
-    queues: [...queues].sort(),
+    names: [...names],
+    lists: [...lists],
+    stacks: [...stacks],
+    queues: [...queues],
   }
 }
 

@@ -557,7 +557,7 @@ export function Workspace({
                   unavailable={coachUnavailable}
                 />
               )}
-              {activeTab === 'Complexity' && <ComplexityPanel />}
+              {activeTab === 'Complexity' && <ComplexityPanel code={code} />}
               {activeTab === 'Visualizer' && (
                 <ExecutionVisualizer
                   runner={runner}

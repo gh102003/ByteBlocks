@@ -299,7 +299,7 @@ describe('AI coach', () => {
       .element(page.getByRole('button', { name: 'Send message' }))
       .toBeVisible()
     await expect
-      .element(page.getByRole('log', { name: 'Coach conversation' }))
+      .element(page.getByRole('log', { name: 'Nibble conversation' }))
       .toMatchTextContent('Start with the complement.')
     await page
       .getByRole('textbox', { name: 'Message the coach' })

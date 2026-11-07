@@ -1,6 +1,21 @@
 import type { BlockItem } from './types'
 
+function containsQueue(blocks: BlockItem[]): boolean {
+  return blocks.some(
+    (block) =>
+      block.type === 'queue_create' ||
+      (block.children !== undefined && containsQueue(block.children)) ||
+      (block.elseChildren !== undefined && containsQueue(block.elseChildren)),
+  )
+}
+
 export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
+  const body = generatePythonBody(blocks, indentLevel)
+  if (indentLevel > 0 || !containsQueue(blocks)) return body
+  return `from collections import deque\n${body}`
+}
+
+function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
   const indent = '    '.repeat(indentLevel)
   const lines: string[] = []
 
@@ -48,7 +63,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}for ${varName} in range(${rangeExpr}):`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -61,7 +76,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}for ${itemVar} in ${listName}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -73,7 +88,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}while ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -85,7 +100,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -97,14 +112,14 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
 
         lines.push(`${indent}else:`)
         if (block.elseChildren && block.elseChildren.length > 0) {
-          lines.push(generatePython(block.elseChildren, indentLevel + 1))
+          lines.push(generatePythonBody(block.elseChildren, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -206,7 +221,6 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
       case 'queue_create': {
         const name = block.varName?.trim() || 'queue'
         const values = block.value?.trim() || ''
-        lines.push(`${indent}from collections import deque`)
         lines.push(`${indent}${name} = deque([${values}])`)
         break
       }

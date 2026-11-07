@@ -61,11 +61,11 @@ describe('Block Generator to Python', () => {
     ]
     expect(generatePython(blocks)).toBe(
       [
+        'from collections import deque',
         's = [1, 2]',
         's.append(3)',
         'top = s[-1]',
         'popped = s.pop()',
-        'from collections import deque',
         'q = deque([1, 2])',
         'q.append(3)',
         'front = q[0]',

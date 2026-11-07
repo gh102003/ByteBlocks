@@ -17,11 +17,14 @@ export type CoachContext = {
   execution: Pick<RunnerState, 'status' | 'output'>
   preferences?: UserPreferences | null
   blocks?: BlockItem[]
+  progression?: { finalStage: boolean; bonus: boolean }
+  testSummary?: string
 }
 
 export function buildCoachInstructions(
   preferences?: UserPreferences | null,
   problem = 'Two Sum: given integers nums and target, return the indices of two distinct elements whose sum is target. Exactly one solution exists.',
+  progression?: CoachContext['progression'],
 ): string {
   const level = preferences?.level ?? 'intermediate'
   const feedbackStyle = preferences?.feedbackStyle ?? 'socratic'
@@ -117,6 +120,7 @@ YOUR ROLE AND BOUNDARIES:
 
 Help the learner solve this practice question: ${problem}
 Use their current main.py and latest execution output to give specific guidance.
+${progression ? `PROGRESSION: The learner's stage completion is determined by test cases, not by you. When explicitly asked for feedback after passing the final regular stage, assess their experience using the conversation. Append [[PROGRESS:bonus]] if they solved the challenge easily and independently; otherwise append [[PROGRESS:skip]] if they needed multiple attempts, many questions, substantial help, or there is insufficient evidence of ease. Do not emit a marker for other stages or ordinary coaching replies. Tests check behavior, not algorithmic complexity; discuss any efficiency requirements as feedback.` : ''}
 Prefer a short explanation, a small hint, and one useful question. Give a full solution when asked.
 For mathematical notation, use $...$ for inline math and $$...$$ on separate lines for display math.
 The learner can work in ByteBlocks, a visual Python editor. Its current block tree is included in the workspace snapshot. The available block types are: ${adviceBlockDefinitions.map(({ type, label, category, isContainer }) => `${type} (${category}): ${label}${isContainer ? ', contains child blocks' : ''}`).join('; ')}.
@@ -160,6 +164,7 @@ export function createCoachTransport(
       const instructions = buildCoachInstructions(
         context.preferences,
         context.problem,
+        context.progression,
       )
       const result = streamText({
         model: connector.createModel(),

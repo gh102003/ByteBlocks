@@ -34,6 +34,49 @@ describe('Desktop coding workspace', () => {
       .toBeVisible()
   })
 
+  test('shows only the current stage and locks future challenges', async () => {
+    await render(<App />)
+    await page.getByRole('tab', { name: 'Goal', exact: true }).click()
+    await expect
+      .element(page.getByRole('heading', { name: 'Find a pair' }))
+      .toBeVisible()
+    expect(document.body.textContent).not.toContain('Handle duplicates')
+    const options = document.querySelectorAll<HTMLOptionElement>(
+      'select[aria-label="Choose a practice question"] option',
+    )
+    expect(options).toHaveLength(5)
+    expect(options[0].disabled).toBe(false)
+    expect(options[1].disabled).toBe(true)
+  })
+
+  test('restores the unlocked challenge and stage from local progress', async () => {
+    localStorage.setItem(
+      'byteblocks.challenge-progress.v1',
+      JSON.stringify([
+        { stage: 1, bonus: false, complete: true },
+        { stage: 1, bonus: false, complete: false },
+        ...Array.from({ length: 3 }, () => ({
+          stage: 0,
+          bonus: false,
+          complete: false,
+        })),
+      ]),
+    )
+    await render(<App />)
+    await page.getByRole('tab', { name: 'Goal', exact: true }).click()
+    await expect
+      .element(page.getByRole('heading', { name: 'Bubble Sort.' }))
+      .toBeVisible()
+    await expect
+      .element(page.getByRole('heading', { name: 'Cover edge cases' }))
+      .toBeVisible()
+    const options = document.querySelectorAll<HTMLOptionElement>(
+      'select[aria-label="Choose a practice question"] option',
+    )
+    expect(options[1].disabled).toBe(false)
+    expect(options[2].disabled).toBe(true)
+  })
+
   test('switches between generated blocks and editable code', async () => {
     await render(<App />)
     await page.getByRole('button', { name: 'Edit Python code' }).click()
@@ -72,10 +115,10 @@ describe('Desktop coding workspace', () => {
     await render(<App />)
     const send = page.getByRole('button', { name: 'Send message' })
     await expect.element(send).toBeDisabled()
-    await page.getByRole('button', { name: 'Why use a dictionary?' }).click()
+    await page.getByRole('button', { name: 'How should I start?' }).click()
     await expect
       .element(page.getByRole('textbox', { name: 'Message the coach' }))
-      .toHaveValue('Why use a dictionary here?')
+      .toHaveValue('How should I start this stage?')
     await expect
       .element(page.getByText('DEMO', { exact: true }))
       .not.toBeInTheDocument()

@@ -169,15 +169,21 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               </div>
               <div className="sample-block block-repeat">
                 <span className="sample-block-icon">↻</span>
-                <span>for every <b>number</b> in <b>numbers</b></span>
+                <span>
+                  for every <b>number</b> in <b>numbers</b>
+                </span>
               </div>
               <div className="sample-block block-decision">
                 <span className="sample-block-icon">?</span>
-                <span>if <b>number</b> is even</span>
+                <span>
+                  if <b>number</b> is even
+                </span>
               </div>
               <div className="sample-block block-output">
                 <span className="sample-block-icon">›</span>
-                <span>say <b>number</b></span>
+                <span>
+                  say <b>number</b>
+                </span>
               </div>
               <div className="workbench-grid-mark">
                 <i />

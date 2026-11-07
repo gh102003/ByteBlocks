@@ -11,6 +11,28 @@ export interface PresetTemplate {
 /** Every example is built only from the Scratch-style palette. */
 export const PRESETS: PresetTemplate[] = [
   {
+    id: 'two-sum-function',
+    name: 'Two Sum Function',
+    description: 'Start the required two_sum(nums, target) function',
+    beginner: true,
+    blocks: [
+      {
+        id: 'p-two-sum-1',
+        type: 'function_def',
+        funcName: 'two_sum',
+        functionArgs: ['nums', 'target'],
+        isProblemFunction: true,
+        children: [
+          {
+            id: 'p-two-sum-2',
+            type: 'comment',
+            commentText: 'Add blocks here to find two indices.',
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'hello',
     name: 'Hello, ByteBlocks!',
     description: 'Make a number, then say it',
@@ -88,11 +110,10 @@ export const PRESETS: PresetTemplate[] = [
       },
       {
         id: 'p-last-2',
-        type: 'var_set',
+        type: 'list_get',
         varName: 'latest',
-        valueKind: 'list_item',
-        valueList: 'scores',
-        valueIndex: 'last',
+        listName: 'scores',
+        valueIndexValue: '-1',
       },
       { id: 'p-last-3', type: 'print', value: 'latest', isText: false },
     ],

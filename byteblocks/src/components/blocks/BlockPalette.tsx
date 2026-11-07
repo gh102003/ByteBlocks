@@ -12,10 +12,12 @@ interface BlockPaletteProps {
 }
 
 const CATEGORIES: { id: BlockCategory; label: string }[] = [
-  { id: 'control', label: 'Repeat & Decide' },
   { id: 'variables', label: 'Variables & Math' },
-  { id: 'io', label: 'Say & Ask' },
-  { id: 'data', label: 'Lists & Collections' },
+  { id: 'data', label: 'Lists' },
+  { id: 'repeat', label: 'Repeat' },
+  { id: 'decisions', label: 'Decide' },
+  { id: 'functions', label: 'Functions' },
+  { id: 'io', label: 'Say' },
   { id: 'random', label: 'Random' },
   { id: 'stacks', label: 'Stacks' },
   { id: 'queues', label: 'Queues' },
@@ -27,15 +29,20 @@ const CATEGORIES: { id: BlockCategory; label: string }[] = [
 const BEGINNER_BLOCK_TYPES = new Set([
   'for_range',
   'for_in',
+  'while_loop',
   'if_condition',
   'if_else',
   'if_collection_contains',
+  'break_loop',
   'var_set',
   'var_change',
+  'var_decrement',
   'list_item_math',
   'print',
   'list_create',
   'list_append',
+  'list_get',
+  'list_remove',
   'dict_create',
   'dict_set',
   'dict_get',
@@ -66,7 +73,8 @@ export function BlockPalette({
   onLoadPreset,
   onClear,
 }: BlockPaletteProps) {
-  const [activeCategory, setActiveCategory] = useState<BlockCategory>('control')
+  const [activeCategory, setActiveCategory] =
+    useState<BlockCategory>('variables')
   const [search, setSearch] = useState('')
 
   const createBlockFromDef = (def: BlockDefinition): BlockItem => {

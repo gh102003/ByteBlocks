@@ -32,7 +32,8 @@ import {
 import type { BlockCategory, BlockType } from './types'
 
 const icons: Record<BlockType | BlockCategory, LucideIcon> = {
-  control: GitBranch,
+  repeat: Repeat,
+  decisions: GitBranch,
   variables: Variable,
   functions: Braces,
   io: Printer,
@@ -51,6 +52,7 @@ const icons: Record<BlockType | BlockCategory, LucideIcon> = {
   break_loop: CircleStop,
   var_set: Equal,
   var_change: Sigma,
+  var_decrement: ArrowDownToLine,
   list_item_math: Sigma,
   function_def: Braces,
   return_val: ArrowLeftToLine,
@@ -59,6 +61,8 @@ const icons: Record<BlockType | BlockCategory, LucideIcon> = {
   print_formatted: TextCursorInput,
   list_create: Brackets,
   list_append: ListPlus,
+  list_get: Search,
+  list_remove: Eraser,
   dict_create: Database,
   dict_set: Database,
   dict_get: Search,

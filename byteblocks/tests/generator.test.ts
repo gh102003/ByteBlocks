@@ -4,6 +4,81 @@ import { PRESETS } from '../src/components/blocks/presets'
 import type { BlockItem } from '../src/components/blocks/types'
 
 describe('Block Generator to Python', () => {
+  it('provides a Two Sum starter with the required function signature', () => {
+    const starter = PRESETS.find((preset) => preset.id === 'two-sum-function')
+    expect(starter).toBeDefined()
+    expect(generatePython(starter!.blocks)).toContain(
+      'def two_sum(nums, target):',
+    )
+    expect(starter!.blocks[0].isProblemFunction).toBe(true)
+    expect(generatePython(starter!.blocks)).toBe(
+      'def two_sum(nums, target):\n    # Add blocks here to find two indices.\n    pass',
+    )
+  })
+
+  it('generates a function from individual parameter slots', () => {
+    expect(
+      generatePython([
+        {
+          id: 'function',
+          type: 'function_def',
+          funcName: 'two_sum',
+          functionArgs: ['nums', 'target', ''],
+        },
+      ]),
+    ).toBe('def two_sum(nums, target):\n    pass')
+  })
+
+  it('saves a function return value when a result variable is provided', () => {
+    expect(
+      generatePython([
+        {
+          id: 'call',
+          type: 'function_call',
+          funcName: 'add',
+          funcArgs: '2, 3',
+          varName: 'total',
+        },
+      ]),
+    ).toBe('total = add(2, 3)')
+  })
+
+  it('adds pass when a container only contains empty code', () => {
+    expect(
+      generatePython([
+        {
+          id: 'function',
+          type: 'function_def',
+          funcName: 'example',
+          children: [{ id: 'empty', type: 'custom_code', customCode: '' }],
+        },
+        { id: 'list', type: 'list_create', varName: 'numbers' },
+      ]),
+    ).toBe('def example():\n    pass\nnumbers = []')
+  })
+
+  it('adds pass after a comment-only function body', () => {
+    expect(
+      generatePython([
+        {
+          id: 'function',
+          type: 'function_def',
+          funcName: 'two_sum',
+          children: [
+            {
+              id: 'comment',
+              type: 'comment',
+              commentText: 'Add blocks here to find two indices.',
+            },
+          ],
+        },
+        { id: 'list', type: 'list_create', varName: 'numbers' },
+      ]),
+    ).toBe(
+      'def two_sum():\n    # Add blocks here to find two indices.\n    pass\nnumbers = []',
+    )
+  })
+
   it('generates basic variable assignment and print', () => {
     const blocks: BlockItem[] = [
       { id: '1', type: 'var_set', varName: 'score', value: '100' },
@@ -11,6 +86,23 @@ describe('Block Generator to Python', () => {
     ]
     const code = generatePython(blocks)
     expect(code).toBe('score = 100\nprint(score)')
+  })
+
+  it('combines variables and supports increment and decrement blocks', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'var_set',
+          varName: 'total',
+          value: 'price',
+          operator: '+',
+          rightValue: 'tax',
+        },
+        { id: '2', type: 'var_change', varName: 'total', value: '1' },
+        { id: '3', type: 'var_decrement', varName: 'total', value: 'discount' },
+      ]),
+    ).toBe('total = price + tax\ntotal += 1\ntotal -= discount')
   })
 
   it('generates guided math and comparison controls as Python', () => {
@@ -54,22 +146,6 @@ describe('Block Generator to Python', () => {
     ).toBe('next_number = numbers[-1] + numbers[-2]')
   })
 
-  it('generates a selected list item as a value', () => {
-    expect(
-      generatePython([
-        { id: '1', type: 'list_create', varName: 'scores', value: '3, 8' },
-        {
-          id: '2',
-          type: 'var_set',
-          varName: 'latest',
-          valueKind: 'list_item',
-          valueList: 'scores',
-          valueIndex: 'last',
-        },
-      ]),
-    ).toBe('scores = [3, 8]\nlatest = scores[-1]')
-  })
-
   it('generates a list from individual value sockets', () => {
     expect(
       generatePython([
@@ -81,6 +157,34 @@ describe('Block Generator to Python', () => {
         },
       ]),
     ).toBe('scores = [3, 8]')
+  })
+
+  it('generates dedicated list get and remove blocks', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'list_get',
+          varName: 'picked',
+          listName: 'scores',
+          valueIndexValue: 'score_index',
+        },
+        {
+          id: '2',
+          type: 'list_remove',
+          listName: 'scores',
+          listRemoveMode: 'index',
+          value: '0',
+        },
+        {
+          id: '3',
+          type: 'list_remove',
+          listName: 'scores',
+          listRemoveMode: 'value',
+          value: 'target',
+        },
+      ]),
+    ).toBe('picked = scores[score_index]\nscores.pop(0)\nscores.remove(target)')
   })
 
   it('generates a collection-membership block', () => {

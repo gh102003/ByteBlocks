@@ -2,12 +2,14 @@ export type ExperienceLevel = 'beginner' | 'intermediate' | 'senior'
 export type FeedbackStyle = 'socratic' | 'direct' | 'detailed' | 'code-review'
 export type LearningGoal = 'interview' | 'pythonic' | 'algorithms' | 'general'
 export type GuidanceTone = 'encouraging' | 'pragmatic' | 'rigorous'
+export type AdviceFormat = 'text' | 'python' | 'blocks'
 
 export interface UserPreferences {
   level: ExperienceLevel
   feedbackStyle: FeedbackStyle
   goal: LearningGoal
   tone: GuidanceTone
+  adviceFormat: AdviceFormat
   customNotes?: string
   completedAt: string
 }
@@ -19,6 +21,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   feedbackStyle: 'socratic',
   goal: 'interview',
   tone: 'pragmatic',
+  adviceFormat: 'text',
   completedAt: new Date().toISOString(),
 }
 

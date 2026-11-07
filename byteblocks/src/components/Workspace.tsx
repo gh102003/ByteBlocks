@@ -1,6 +1,7 @@
 import { ThemeToggle } from './ThemeToggle'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
+import type { BlockItem } from './blocks/types'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
 import { GoalPanel, ComplexityPanel } from './Helpers'
@@ -75,6 +76,7 @@ export function Workspace({
   const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
+  const [blocks, setBlocks] = useState<BlockItem[]>([])
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
@@ -202,6 +204,7 @@ export function Workspace({
             code={code}
             onSelectMode={selectEditorTab}
             onPythonChange={updateCode}
+            onBlocksChange={setBlocks}
             onEditCode={(nextCode) => {
               updateCode(nextCode)
               setHasCodeEdits(true)
@@ -406,6 +409,7 @@ export function Workspace({
               code,
               execution: { status: runner.status, output: runner.output },
               preferences,
+              blocks,
               problem: `${CHALLENGES[challenge].title}: ${CHALLENGES[challenge].coachPrompt}`,
             }}
           />

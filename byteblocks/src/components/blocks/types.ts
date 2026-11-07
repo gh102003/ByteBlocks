@@ -8,6 +8,7 @@ export type BlockType =
   | 'break_loop'
   | 'var_set'
   | 'var_change'
+  | 'var_decrement'
   | 'list_item_math'
   | 'function_def'
   | 'return_val'
@@ -16,6 +17,8 @@ export type BlockType =
   | 'print_formatted'
   | 'list_create'
   | 'list_append'
+  | 'list_get'
+  | 'list_remove'
   | 'dict_create'
   | 'dict_set'
   | 'dict_get'
@@ -42,7 +45,8 @@ export type BlockType =
   | 'queue_clear'
 
 export type BlockCategory =
-  | 'control'
+  | 'repeat'
+  | 'decisions'
   | 'variables'
   | 'functions'
   | 'io'
@@ -61,10 +65,11 @@ export interface BlockItem {
   /** Guided math and comparison fields; raw values remain supported for advanced projects. */
   operator?: string
   rightValue?: string
-  valueKind?: 'number' | 'variable' | 'list_item'
+  valueKind?: 'number' | 'variable'
   valueVariable?: string
-  valueList?: string
-  valueIndex?: 'first' | 'last' | 'second_last'
+  /** A numeric list index or variable name used by the list-get block. */
+  valueIndexValue?: string
+  listRemoveMode?: 'index' | 'value'
   listValues?: string[]
   dictionaryEntries?: { key: string; value: string }[]
   startsEmpty?: boolean
@@ -82,6 +87,10 @@ export interface BlockItem {
   listName?: string
   itemVar?: string
   funcName?: string
+  /** Locks the required entry-point signature supplied by an exercise preset. */
+  isProblemFunction?: boolean
+  /** Individual function definition parameter slots. funcArgs is retained for saved projects. */
+  functionArgs?: string[]
   funcArgs?: string
   commentText?: string
   customCode?: string

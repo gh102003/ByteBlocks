@@ -3,6 +3,7 @@ import {
   type ExperienceLevel,
   type FeedbackStyle,
   type GuidanceTone,
+  type AdviceFormat,
   type LearningGoal,
   type UserPreferences,
   savePreferences,
@@ -105,6 +106,20 @@ const TONE_OPTIONS: Array<{
   { value: 'rigorous', label: '🔬 Rigorous & Challenging' },
 ]
 
+const ADVICE_FORMAT_OPTIONS: Array<{
+  value: AdviceFormat
+  label: string
+  desc: string
+}> = [
+  { value: 'text', label: 'Text', desc: 'Explanations and hints only.' },
+  { value: 'python', label: 'Python', desc: 'Show read-only Python examples.' },
+  {
+    value: 'blocks',
+    label: 'Blocks',
+    desc: 'Show read-only visual block examples.',
+  },
+]
+
 export function OnboardingModal({
   initialPreferences,
   onComplete,
@@ -123,6 +138,9 @@ export function OnboardingModal({
   const [tone, setTone] = useState<GuidanceTone>(
     initialPreferences?.tone ?? 'pragmatic',
   )
+  const [adviceFormat, setAdviceFormat] = useState<AdviceFormat>(
+    initialPreferences?.adviceFormat ?? 'text',
+  )
   const [customNotes, setCustomNotes] = useState(
     initialPreferences?.customNotes ?? '',
   )
@@ -134,6 +152,7 @@ export function OnboardingModal({
       feedbackStyle,
       goal,
       tone,
+      adviceFormat,
       customNotes: customNotes.trim() || undefined,
       completedAt: new Date().toISOString(),
     }
@@ -249,10 +268,32 @@ export function OnboardingModal({
             </div>
           </section>
 
+          <section className="onboarding-section">
+            <label className="onboarding-label">
+              <span className="step-num">5</span>
+              <span>How should the coach show examples?</span>
+            </label>
+            <div className="options-grid three-col">
+              {ADVICE_FORMAT_OPTIONS.map((opt) => (
+                <button
+                  type="button"
+                  key={opt.value}
+                  className={`choice-card ${adviceFormat === opt.value ? 'selected' : ''}`}
+                  onClick={() => setAdviceFormat(opt.value)}
+                >
+                  <div className="choice-header">
+                    <strong>{opt.label}</strong>
+                  </div>
+                  <p>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* Optional notes */}
           <section className="onboarding-section">
             <label className="onboarding-label" htmlFor="custom-notes-input">
-              <span className="step-num">5</span>
+              <span className="step-num">6</span>
               <span>Any special instructions for the AI coach? (Optional)</span>
             </label>
             <input

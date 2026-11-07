@@ -9,6 +9,7 @@ import { Icon } from '../Icon'
 
 interface VisualBlockEditorProps {
   onPythonChange: (code: string) => void
+  onBlocksChange?: (blocks: BlockItem[]) => void
   onRun: () => void
   mode: 'blocks' | 'code'
   highlightedLine?: number
@@ -123,6 +124,7 @@ function PythonPreview({ code }: { code: string }) {
 
 export function VisualBlockEditor({
   onPythonChange,
+  onBlocksChange,
   onRun,
   mode,
   code,
@@ -144,15 +146,23 @@ export function VisualBlockEditor({
   }, [mode, generatedCode, onPythonChange])
   const variables = useMemo(() => findVariableNames(blocks), [blocks])
 
+  useEffect(() => {
+    onBlocksChange?.(blocks)
+  }, [blocks, onBlocksChange])
+
   // Sync python code whenever blocks change
-  const updateBlocks = useCallback((newBlocks: BlockItem[]) => {
-    setBlocks(newBlocks)
-    try {
-      localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
-    } catch {
-      // ignore
-    }
-  }, [])
+  const updateBlocks = useCallback(
+    (newBlocks: BlockItem[]) => {
+      setBlocks(newBlocks)
+      onBlocksChange?.(newBlocks)
+      try {
+        localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
+      } catch {
+        // ignore
+      }
+    },
+    [onBlocksChange],
+  )
 
   const handleAddTopLevelBlock = (block: BlockItem) => {
     updateBlocks([...blocks, block])

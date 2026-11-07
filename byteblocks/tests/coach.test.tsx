@@ -1,8 +1,8 @@
 import { createRef } from 'react'
 import type { CoachHandle } from '../src/components/CoachPanel'
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { render } from 'vitest-browser-react'
+import { cleanup, render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
 import type { CoachContext } from '../src/ai/transport'
 import type { UserPreferences } from '../src/preferences'
@@ -105,6 +105,10 @@ function mockProvider() {
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+beforeEach(() => {
+  cleanup()
 })
 
 describe('AI coach', () => {

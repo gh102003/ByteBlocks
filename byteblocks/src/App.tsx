@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { HomePage } from './components/HomePage'
 import { Workspace } from './components/Workspace'
@@ -29,6 +29,7 @@ export default function App({ initialView }: AppProps = {}) {
     getPreferences(),
   )
   const [isEditingPreferences, setIsEditingPreferences] = useState(false)
+  const initialNavigationComplete = useRef(false)
 
   // Show onboarding if actively editing or if authenticated without completed preferences
   const showOnboarding =
@@ -55,6 +56,15 @@ export default function App({ initialView }: AppProps = {}) {
 
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
+  }, [isAuthenticated, isLoading, isTest])
+
+  useEffect(() => {
+    if (isTest || isLoading || initialNavigationComplete.current) return
+    initialNavigationComplete.current = true
+    if (window.location.hash) return
+    const destination = isAuthenticated ? 'workspace' : 'home'
+    window.history.replaceState(null, '', `#${destination}`)
+    setView(destination)
   }, [isAuthenticated, isLoading, isTest])
 
   const handleOpenWorkspace = () => {

@@ -61,6 +61,16 @@ function findVariableNames(blocks: BlockItem[]): {
     const trimmed = name?.trim()
     if (trimmed && /^[A-Za-z_]\w*$/.test(trimmed)) names.add(trimmed)
   }
+  const addFunctionParameter = (name: string | undefined) => {
+    const trimmed = name?.trim()
+    if (!trimmed || !/^[A-Za-z_]\w*$/.test(trimmed)) return
+    names.add(trimmed)
+    // Parameters do not carry runtime type information. Make them available to
+    // each collection picker so callers can pass a list, stack, or queue in.
+    lists.add(trimmed)
+    stacks.add(trimmed)
+    queues.add(trimmed)
+  }
   const visit = (items: BlockItem[]) =>
     items.forEach((block) => {
       addName(block.varName)
@@ -71,8 +81,8 @@ function findVariableNames(blocks: BlockItem[]): {
       if (block.type === 'queue_create' && block.varName?.trim())
         queues.add(block.varName.trim())
       addName(block.itemVar)
-      block.functionArgs?.forEach(addName)
-      block.funcArgs?.split(',').forEach(addName)
+      block.functionArgs?.forEach(addFunctionParameter)
+      block.funcArgs?.split(',').forEach(addFunctionParameter)
       if (block.children) visit(block.children)
       if (block.elseChildren) visit(block.elseChildren)
     })

@@ -2668,6 +2668,51 @@
   box-shadow: 0 0 0 2px var(--chunk-hover, rgba(56, 189, 248, 0.25));
 }
 
+.chunk-select {
+  appearance: auto;
+  background: #101216;
+  border: 1px solid #2b3240;
+  border-radius: 4px;
+  color: #f8fafc;
+  font-family: var(--mono);
+  font-size: 12px;
+  min-height: 25px;
+  padding: 2px 5px;
+  outline: none;
+}
+
+.chunk-select:focus {
+  border-color: var(--chunk-border, #38bdf8);
+}
+
+.operator-select {
+  color: #fbbf24;
+  font-weight: 700;
+  min-width: 42px;
+}
+
+.text-kind-select {
+  color: #86efac;
+}
+
+.item-position-select {
+  color: #c4b5fd;
+}
+
+.variable-picker {
+  color: #93c5fd;
+  max-width: 135px;
+}
+
+.value-kind-select {
+  color: #fbbf24;
+}
+
+.list-value-input {
+  width: 58px;
+  color: #c4b5fd;
+}
+
 .var-input {
   width: 65px;
   color: #93c5fd;

@@ -4,9 +4,11 @@ export type BlockType =
   | 'while_loop'
   | 'if_condition'
   | 'if_else'
+  | 'if_collection_contains'
   | 'break_loop'
   | 'var_set'
   | 'var_change'
+  | 'list_item_math'
   | 'function_def'
   | 'return_val'
   | 'function_call'
@@ -46,6 +48,22 @@ export interface BlockItem {
   type: BlockType
   varName?: string
   value?: string
+  /** Guided math and comparison fields; raw values remain supported for advanced projects. */
+  operator?: string
+  rightValue?: string
+  valueKind?: 'number' | 'variable' | 'list_item'
+  valueVariable?: string
+  valueList?: string
+  valueIndex?: 'first' | 'last' | 'second_last'
+  listValues?: string[]
+  sourceList?: string
+  collectionName?: string
+  firstItem?: 'first' | 'last' | 'second_last'
+  secondItem?: 'first' | 'last' | 'second_last'
+  conditionLeft?: string
+  conditionOperator?: string
+  conditionRight?: string
+  isText?: boolean
   condition?: string
   rangeCount?: string
   rangeStart?: string

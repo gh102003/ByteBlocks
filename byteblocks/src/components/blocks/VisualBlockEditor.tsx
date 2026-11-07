@@ -11,7 +11,8 @@ interface VisualBlockEditorProps {
   onRun?: () => void
 }
 
-const STORAGE_BLOCKS_KEY = 'byteblocks.visual.blocks'
+// Versioned so the beginner-friendly starter replaces the old FizzBuzz default.
+const STORAGE_BLOCKS_KEY = 'byteblocks.visual.blocks.v2'
 
 function loadSavedBlocks(): BlockItem[] {
   try {
@@ -38,6 +39,27 @@ function cloneWithNewIds(block: BlockItem): BlockItem {
   }
 }
 
+function findVariableNames(blocks: BlockItem[]): {
+  names: string[]
+  lists: string[]
+} {
+  const names = new Set<string>()
+  const lists = new Set<string>()
+  const visit = (items: BlockItem[]) =>
+    items.forEach((block) => {
+      if (block.varName?.trim() && /^[A-Za-z_]\w*$/.test(block.varName.trim()))
+        names.add(block.varName.trim())
+      if (block.type === 'list_create' && block.varName?.trim())
+        lists.add(block.varName.trim())
+      if (block.itemVar?.trim() && /^[A-Za-z_]\w*$/.test(block.itemVar.trim()))
+        names.add(block.itemVar.trim())
+      if (block.children) visit(block.children)
+      if (block.elseChildren) visit(block.elseChildren)
+    })
+  visit(blocks)
+  return { names: [...names].sort(), lists: [...lists].sort() }
+}
+
 export function VisualBlockEditor({
   onPythonChange,
   onRun,
@@ -51,6 +73,7 @@ export function VisualBlockEditor({
   const generatedCode = useMemo(() => {
     return generatePython(blocks)
   }, [blocks])
+  const variables = useMemo(() => findVariableNames(blocks), [blocks])
 
   // Sync python code whenever blocks change
   const updateBlocks = useCallback(
@@ -198,6 +221,11 @@ export function VisualBlockEditor({
 
   return (
     <div className="visual-block-editor">
+      <datalist id="byteblocks-variables">
+        {variables.names.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
       <BlockPalette
         onAddBlock={handleAddTopLevelBlock}
         onLoadPreset={(presetBlocks) => updateBlocks(presetBlocks)}
@@ -264,14 +292,14 @@ export function VisualBlockEditor({
                     className="quick-preset-btn"
                     onClick={() => updateBlocks(PRESETS[0].blocks)}
                   >
-                    Load FizzBuzz Demo
+                    Load Hello Starter
                   </button>
                   <button
                     type="button"
                     className="quick-preset-btn"
                     onClick={() => updateBlocks(PRESETS[1].blocks)}
                   >
-                    Load Two Sum Demo
+                    Load List Check
                   </button>
                 </div>
               </div>
@@ -285,6 +313,8 @@ export function VisualBlockEditor({
                     onDelete={() => handleDeleteBlock(idx)}
                     onDuplicate={() => handleDuplicate(idx)}
                     onDropBlock={handleDrop}
+                    variableNames={variables.names}
+                    listNames={variables.lists}
                   />
                 ))}
 

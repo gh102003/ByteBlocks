@@ -11,13 +11,28 @@ interface BlockPaletteProps {
 }
 
 const CATEGORIES: { id: BlockCategory; label: string }[] = [
-  { id: 'control', label: 'Control & Loops' },
+  { id: 'control', label: 'Repeat & Decide' },
   { id: 'variables', label: 'Variables & Math' },
-  { id: 'functions', label: 'Functions' },
-  { id: 'io', label: 'Print & I/O' },
-  { id: 'data', label: 'Lists & Maps' },
-  { id: 'structures', label: 'Stacks & Queues' },
+  { id: 'io', label: 'Say & Ask' },
+  { id: 'data', label: 'Lists & Collections' },
 ]
+
+// These are deliberately the blocks that can be completed without typing Python.
+// Older, expressive blocks remain readable in saved projects and in the Code tab.
+const BEGINNER_BLOCK_TYPES = new Set([
+  'for_range',
+  'for_in',
+  'if_condition',
+  'if_else',
+  'if_collection_contains',
+  'var_set',
+  'var_change',
+  'list_item_math',
+  'print',
+  'list_create',
+  'list_append',
+  'comment',
+])
 
 export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
   const [activeCategory, setActiveCategory] = useState<BlockCategory>('control')
@@ -40,6 +55,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
   }
 
   const filteredDefs = BLOCK_DEFINITIONS.filter((def) => {
+    if (!BEGINNER_BLOCK_TYPES.has(def.type)) return false
     const matchesSearch =
       search.trim() === '' ||
       def.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -71,7 +87,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
             <option value="" disabled>
               ⚡ Load Preset / Demo...
             </option>
-            {PRESETS.map((preset) => (
+            {PRESETS.filter((preset) => preset.beginner).map((preset) => (
               <option key={preset.id} value={preset.id}>
                 {preset.name}
               </option>

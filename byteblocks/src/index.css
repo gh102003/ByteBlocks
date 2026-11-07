@@ -1,3 +1,5 @@
+@import './theme.css';
+
 :root {
   font-family:
     Inter,
@@ -5,16 +7,12 @@
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #d8dce2;
-  background: #101115;
+  color: var(--theme-text);
+  background: var(--theme-surface-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: dark;
-  --accent: #b4e4c7;
-  --muted: #858d99;
-  --border: #292d35;
   --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 * {
@@ -74,10 +72,10 @@ code {
   font-size: 0.93em;
 }
 ::selection {
-  background: #3c5548;
-  color: #ecf6f0;
+  background: var(--theme-selection);
+  color: var(--theme-text);
 }
 * {
   scrollbar-width: thin;
-  scrollbar-color: #414650 transparent;
+  scrollbar-color: var(--theme-border-strong) transparent;
 }

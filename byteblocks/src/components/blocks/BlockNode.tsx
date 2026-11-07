@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { BlockItem } from './types'
 import { BLOCK_DEFINITIONS } from './definitions'
 import { Icon } from '../Icon'
+import { BlockIcon } from './BlockIcon'
 
 interface BlockNodeProps {
   block: BlockItem
@@ -494,6 +495,7 @@ export function BlockNode({
         >
           ⠿
         </span>
+        <BlockIcon kind={def.type} />
         <div className="chunk-body">{renderInputs()}</div>
         <div className="chunk-actions">
           {onDuplicate && (

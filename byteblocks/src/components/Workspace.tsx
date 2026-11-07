@@ -1,3 +1,4 @@
+import { ThemeToggle } from './ThemeToggle'
 import { useEffect, useRef, useState } from 'react'
 import { CodeEditor } from './CodeEditor'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
@@ -105,6 +106,7 @@ export function Workspace({
         )}
 
         <div className="header-right">
+          <ThemeToggle />
           <span className="private-label">
             <Icon name="shield" size={14} /> Runs in your browser
           </span>

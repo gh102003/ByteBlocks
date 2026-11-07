@@ -1,3 +1,4 @@
+import { ThemeToggle } from './ThemeToggle'
 import { useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { Icon } from './Icon'
@@ -87,6 +88,7 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
         </nav>
 
         <div className="home-header-right">
+          <ThemeToggle />
           <AuthNav />
           {isAuthenticated && (
             <button

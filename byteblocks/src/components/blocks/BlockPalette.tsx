@@ -3,19 +3,20 @@ import type { BlockCategory, BlockDefinition, BlockItem } from './types'
 import { BLOCK_DEFINITIONS } from './definitions'
 import { PRESETS } from './presets'
 import { Icon } from '../Icon'
+import { BlockIcon } from './BlockIcon'
 
 interface BlockPaletteProps {
   onAddBlock: (block: BlockItem) => void
   onLoadPreset: (blocks: BlockItem[]) => void
 }
 
-const CATEGORIES: { id: BlockCategory; label: string; icon: string }[] = [
-  { id: 'control', label: 'Control & Loops', icon: '🔀' },
-  { id: 'variables', label: 'Variables & Math', icon: '📦' },
-  { id: 'functions', label: 'Functions', icon: '⚙️' },
-  { id: 'io', label: 'Print & I/O', icon: '🖨️' },
-  { id: 'data', label: 'Lists & Maps', icon: '📋' },
-  { id: 'structures', label: 'Stacks & Queues', icon: '📚' },
+const CATEGORIES: { id: BlockCategory; label: string }[] = [
+  { id: 'control', label: 'Control & Loops' },
+  { id: 'variables', label: 'Variables & Math' },
+  { id: 'functions', label: 'Functions' },
+  { id: 'io', label: 'Print & I/O' },
+  { id: 'data', label: 'Lists & Maps' },
+  { id: 'structures', label: 'Stacks & Queues' },
 ]
 
 export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
@@ -106,7 +107,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
               className={`category-pill ${activeCategory === cat.id ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
             >
-              <span>{cat.icon}</span>
+              <BlockIcon kind={cat.id} />
               <span>{cat.label}</span>
             </button>
           ))}
@@ -131,7 +132,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
             title="Click to add or drag into workspace"
           >
             <div className="chunk-card-content">
-              <span className="chunk-card-notch" />
+              <BlockIcon kind={def.type} />
               <span className="chunk-card-label">{def.label}</span>
             </div>
             <button

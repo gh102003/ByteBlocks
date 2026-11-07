@@ -81,3 +81,16 @@ describe('Desktop coding workspace', () => {
     expect(document.querySelector('#panel-Output img')).toBeNull()
   })
 })
+
+test('switches themes and remembers the selection', async () => {
+  localStorage.setItem('byteblocks.theme', 'dark')
+  await render(<App />)
+  await page.getByRole('button', { name: 'Switch to light theme' }).click()
+  await expect
+    .element(page.getByRole('button', { name: 'Switch to dark theme' }))
+    .toBeVisible()
+  expect(document.documentElement.dataset.theme).toBe('light')
+  expect(localStorage.getItem('byteblocks.theme')).toBe('light')
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+  expect(document.documentElement.dataset.theme).toBe('dark')
+})

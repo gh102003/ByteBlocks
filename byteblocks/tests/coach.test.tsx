@@ -106,6 +106,29 @@ afterEach(() => {
 })
 
 describe('AI coach', () => {
+  test('selects a distinct assistant identity for each experience level', async () => {
+    const screen = await render(
+      <CoachPanel
+        context={{
+          ...context,
+          preferences: { ...blockPreferences, level: 'intermediate' },
+        }}
+        connector={connector}
+      />,
+    )
+    await expect.element(page.getByText('Bite', { exact: true })).toBeVisible()
+    await screen.rerender(
+      <CoachPanel
+        context={{
+          ...context,
+          preferences: { ...blockPreferences, level: 'senior' },
+        }}
+        connector={connector}
+      />,
+    )
+    await expect.element(page.getByText('Chop', { exact: true })).toBeVisible()
+  })
+
   test('streams Markdown and sends history with the latest code and output directly to the provider', async () => {
     const first = responseStream()
     const second = responseStream()

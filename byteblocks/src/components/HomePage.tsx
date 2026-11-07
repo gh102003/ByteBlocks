@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
 
 interface HomePageProps {
   onOpenWorkspace: () => void
@@ -54,6 +55,8 @@ const DEMO_RESPONSES: Record<
 export function HomePage({ onOpenWorkspace }: HomePageProps) {
   const { isAuthenticated, loginWithRedirect } = useAuth0()
   const [demoLevel, setDemoLevel] = useState<DemoLevel>('intermediate')
+  const demoMascot = mascotForLevel(demoLevel)
+  const demoAgentName = mascotName(demoMascot)
 
   const handlePrimaryAction = () => {
     if (isAuthenticated) {
@@ -250,8 +253,8 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
           <div className="demo-body">
             <div className="demo-chat-column">
               <div className="demo-chat-header">
-                <NibbleSprite size="small" />
-                <span>Nibble Simulation · Two Sum</span>
+                <NibbleSprite size="small" mascot={demoMascot} />
+                <span>{demoAgentName} Simulation · Two Sum</span>
                 <span className="demo-badge">
                   {DEMO_RESPONSES[demoLevel].roleTitle} Mode
                 </span>
@@ -266,11 +269,11 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
 
               <div className="demo-message coach-msg">
                 <span className="msg-avatar coach-avatar">
-                  <NibbleSprite size="small" />
+                  <NibbleSprite size="small" mascot={demoMascot} />
                 </span>
                 <div className="msg-bubble">
                   <div className="msg-meta">
-                    <strong>Nibble</strong>
+                    <strong>{demoAgentName}</strong>
                     <span>{DEMO_RESPONSES[demoLevel].feedbackStyle}</span>
                   </div>
                   <p>{DEMO_RESPONSES[demoLevel].coachReply}</p>

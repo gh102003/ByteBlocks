@@ -881,6 +881,52 @@
 .nibble-sprite-large {
   --nibble-unit: 10px;
 }
+.nibble-sprite-bite .nibble-face {
+  background: #ef7f3d;
+  box-shadow:
+    inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #ad3f24,
+    inset var(--nibble-unit) var(--nibble-unit) #ffae63;
+}
+.nibble-sprite-bite .nibble-eye {
+  background: #3a1820;
+}
+.bite-mouth {
+  position: absolute;
+  left: var(--nibble-unit);
+  bottom: var(--nibble-unit);
+  width: calc(var(--nibble-unit) * 4);
+  height: var(--nibble-unit);
+  background: #3a1820;
+}
+.nibble-sprite-chop .nibble-face {
+  background: #55ae65;
+  box-shadow:
+    inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #24724a,
+    inset var(--nibble-unit) var(--nibble-unit) #98db80;
+}
+.nibble-sprite-chop .nibble-eye {
+  background: #153f36;
+}
+.chop-spines {
+  position: absolute;
+  left: calc(var(--nibble-unit) * -1);
+  top: calc(var(--nibble-unit) * 2);
+  width: var(--nibble-unit);
+  height: calc(var(--nibble-unit) * 3);
+  background: #24724a;
+  box-shadow:
+    0 calc(var(--nibble-unit) * -1) #98db80,
+    0 calc(var(--nibble-unit) * 3) #24724a;
+}
+.chop-snout {
+  position: absolute;
+  right: calc(var(--nibble-unit) * -1);
+  bottom: 0;
+  width: calc(var(--nibble-unit) * 2);
+  height: calc(var(--nibble-unit) * 2);
+  background: #98db80;
+  box-shadow: inset 0 calc(var(--nibble-unit) * -1) #55ae65;
+}
 .nibble-ear,
 .nibble-face,
 .nibble-eye,

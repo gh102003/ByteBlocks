@@ -11,9 +11,12 @@ import type { UserPreferences } from '../preferences'
 import { Icon } from './Icon'
 import { AdviceBlocks } from './AdviceBlocks'
 import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
 
 function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
   const level = prefs?.level
+  const mascot = mascotForLevel(level)
+  const name = mascotName(mascot)
   const style = prefs?.feedbackStyle
   const levelLabel = level ? level.charAt(0).toUpperCase() + level.slice(1) : ''
   const styleLabel =
@@ -27,15 +30,14 @@ function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
             ? 'production code review'
             : ''
 
-  let welcomeText =
-    'Hi, I’m Nibble! Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.'
+  let welcomeText = `Hi, I’m ${name}! Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
 
   if (level === 'senior') {
-    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate Two Sum: inspect the dictionary approach, time/space amortized bounds, and edge cases with duplicates or memory overhead.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate Two Sum: inspect the dictionary approach, time/space amortized bounds, and edge cases with duplicates or memory overhead.`
   } else if (level === 'beginner') {
-    welcomeText = `Hi, I’m Nibble! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum step-by-step. Try running the code first to see how it works!`
+    welcomeText = `Hi, I’m ${name}! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum step-by-step. Try running the code first to see how it works!`
   } else if (level) {
-    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
   }
 
   return [
@@ -68,6 +70,8 @@ export function CoachPanel({
   connector?: ChatConnector
 }) {
   const effectivePreferences = context.preferences
+  const mascot = mascotForLevel(effectivePreferences?.level)
+  const agentName = mascotName(mascot)
   const connector = useMemo(
     () => suppliedConnector ?? getChatConnector(),
     [suppliedConnector],
@@ -108,8 +112,8 @@ export function CoachPanel({
     <section className="panel coach-panel" aria-label="AI coach">
       <div className="panel-toolbar coach-toolbar">
         <div className="coach-title">
-          <NibbleSprite size="small" />
-          <strong>Nibble</strong>
+          <NibbleSprite size="small" mascot={mascot} />
+          <strong>{agentName}</strong>
           <span className="coach-subtitle">
             {effectivePreferences
               ? `Calibrated for ${effectivePreferences.level} (${effectivePreferences.feedbackStyle})`
@@ -127,7 +131,7 @@ export function CoachPanel({
       <div
         className="coach-messages"
         role="log"
-        aria-label="Nibble conversation"
+        aria-label={`${agentName} conversation`}
         aria-live="polite"
         aria-busy={busy}
       >
@@ -145,14 +149,14 @@ export function CoachPanel({
               className={`message-avatar ${message.role === 'assistant' ? 'coach-message-avatar' : ''}`}
             >
               {message.role === 'assistant' ? (
-                <NibbleSprite size="small" />
+                <NibbleSprite size="small" mascot={mascot} />
               ) : (
                 'Y'
               )}
             </span>
             <div className="message-content">
               <div className="message-label">
-                {message.role === 'assistant' ? 'Nibble' : 'You'}
+                {message.role === 'assistant' ? agentName : 'You'}
                 {message.role === 'assistant' && effectivePreferences && (
                   <span className="calibrated-tag">
                     {effectivePreferences.feedbackStyle.toUpperCase()}
@@ -220,8 +224,8 @@ export function CoachPanel({
           <p className="coach-status" role="status">
             <span className="status-dot pulsing" />
             {status === 'submitted'
-              ? 'Nibble is thinking…'
-              : 'Nibble is nibbling on a reply…'}
+              ? `${agentName} is thinking…`
+              : `${agentName} is writing a reply…`}
           </p>
         )}
         {(connector.configurationError || error) && (
@@ -241,7 +245,7 @@ export function CoachPanel({
         <form className="coach-composer" onSubmit={submitMessage}>
           <textarea
             aria-label="Message the coach"
-            placeholder="Ask Nibble a question, or think out loud…"
+            placeholder={`Ask ${agentName} a question, or think out loud…`}
             maxLength={4000}
             rows={2}
             value={draft}

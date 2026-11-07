@@ -4,6 +4,7 @@ type IconName =
   | 'play'
   | 'stop'
   | 'check'
+  | 'cross'
   | 'clock'
   | 'info'
   | 'chevron'
@@ -30,6 +31,7 @@ const paths: Record<IconName, string> = {
   play: 'm9 5 11 7-11 7V5Z',
   stop: 'M6 6h12v12H6z',
   check: 'm5 12 4 4L19 6',
+  cross: 'M6 6l12 12M18 6 6 18',
   clock: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
   info: 'M12 11v5m0-9v.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
   chevron: 'm9 6 6 6-6 6',

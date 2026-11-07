@@ -1,3 +1,5 @@
+import { createRef } from 'react'
+import type { CoachHandle } from '../src/components/CoachPanel'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
@@ -106,6 +108,34 @@ afterEach(() => {
 })
 
 describe('AI coach', () => {
+  test('only applies a completed explicit assessment and hides the progress marker', async () => {
+    const assessment = vi.fn()
+    const ref = createRef<CoachHandle>()
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
+      <CoachPanel
+        context={{
+          ...context,
+          progression: { finalStage: true, bonus: false },
+        }}
+        connector={connector}
+        coachRef={ref}
+        onAssessment={assessment}
+      />,
+    )
+    ref.current!.checkWork()
+    await expect
+      .element(page.getByRole('button', { name: 'Stop response' }))
+      .toBeVisible()
+    reply.text('Good work! [[PROGRESS:bonus]]')
+    reply.finish()
+    await vi.waitFor(() => expect(assessment).toHaveBeenCalledWith('bonus'))
+    expect(
+      document.querySelector('.coach-messages')?.textContent,
+    ).not.toContain('[[PROGRESS:bonus]]')
+  })
+
   test('streams Markdown and sends history with the latest code and output directly to the provider', async () => {
     const first = responseStream()
     const second = responseStream()

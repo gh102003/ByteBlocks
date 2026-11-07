@@ -3,11 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import type { BlockItem } from './blocks/types'
 import { CoachPanel } from './CoachPanel'
+import type { CoachHandle } from './CoachPanel'
 import { Divider } from './Divider'
 import { GoalPanel, ComplexityPanel } from './Helpers'
 import { ExecutionVisualizer } from './ExecutionVisualizer'
 import { CHALLENGES } from './challenges'
-import type { ChallengeId } from './challenges'
+import { buildTestProgram, getChallengeTests } from './challengeTests'
+import type { TestResult } from './challengeTests'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
@@ -23,6 +25,33 @@ interface WorkspaceProps {
 type HelperTab = 'Goal' | 'Complexity' | 'Visualizer' | 'Output'
 const STORAGE_KEY = 'byteblocks.main.py'
 const EDITOR_MODE_KEY = 'byteblocks.editor.mode'
+type Progress = { stage: number; bonus: boolean; complete: boolean }
+const PROGRESS_KEY = 'byteblocks.challenge-progress.v1'
+const initialProgress = (): Progress[] => {
+  try {
+    const saved: unknown = JSON.parse(
+      localStorage.getItem(PROGRESS_KEY) ?? 'null',
+    )
+    if (
+      Array.isArray(saved) &&
+      saved.length === CHALLENGES.length &&
+      saved.every(
+        (item, i) =>
+          item &&
+          Number.isInteger(item.stage) &&
+          item.stage >= 0 &&
+          item.stage < CHALLENGES[i].stages.length &&
+          typeof item.bonus === 'boolean' &&
+          typeof item.complete === 'boolean',
+      )
+    )
+      return saved as Progress[]
+  } catch {
+    /* Start fresh when storage is unavailable or invalid. */
+  }
+  return CHALLENGES.map(() => ({ stage: 0, bonus: false, complete: false }))
+}
+
 const TABS: HelperTab[] = ['Goal', 'Complexity', 'Visualizer', 'Output']
 
 function readCode() {
@@ -72,7 +101,193 @@ export function Workspace({
   )
   const [activeTab, setActiveTab] = useState<HelperTab>('Visualizer')
   const [traceStep, setTraceStep] = useState(0)
-  const [challenge, setChallenge] = useState<ChallengeId>('two-sum')
+  const [progress, setProgress] = useState(initialProgress)
+  const unlocked = Math.min(
+    progress.findIndex((item) => !item.complete) === -1
+      ? CHALLENGES.length - 1
+      : progress.findIndex((item) => !item.complete),
+    CHALLENGES.length - 1,
+  )
+  const [challenge, setChallenge] = useState(() => {
+    const first = progress.findIndex((item) => !item.complete)
+    return first === -1 ? CHALLENGES.length - 1 : first
+  })
+  const coachRef = useRef<CoachHandle>(null)
+  const [coachBusy, setCoachBusy] = useState(false)
+  const [coachUnavailable, setCoachUnavailable] = useState(false)
+  const onAvailability = useCallback(
+    (isBusy: boolean, unavailable: boolean) => {
+      setCoachBusy(isBusy)
+      setCoachUnavailable(unavailable)
+    },
+    [],
+  )
+  const currentProgress = progress[challenge]
+  const currentChallenge = CHALLENGES[challenge]
+  const currentTask = currentProgress.bonus
+    ? currentChallenge.bonus
+    : currentChallenge.stages[currentProgress.stage]
+  const [checkAttempts, setCheckAttempts] = useState<number[]>(() => {
+    try {
+      const saved: unknown = JSON.parse(
+        localStorage.getItem('byteblocks.challenge-attempts.v1') ?? 'null',
+      )
+      if (
+        Array.isArray(saved) &&
+        saved.length === CHALLENGES.length &&
+        saved.every((value) => Number.isInteger(value) && value >= 0)
+      )
+        return saved as number[]
+    } catch {
+      /* Attempt history is optional. */
+    }
+    return CHALLENGES.map(() => 0)
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'byteblocks.challenge-attempts.v1',
+        JSON.stringify(checkAttempts),
+      )
+    } catch {
+      /* Continue without persistence. */
+    }
+  }, [checkAttempts])
+  const [stageScrollKey, setStageScrollKey] = useState(0)
+  const [testResults, setTestResults] = useState<TestResult[] | null>(null)
+  const [testError, setTestError] = useState('')
+  const [testedCode, setTestedCode] = useState('')
+  const testRunner = usePythonRunner()
+  const testBusy =
+    testRunner.status === 'loading' || testRunner.status === 'running'
+  const testRequest = useRef<{
+    program: string
+    source: string
+    challenge: number
+    stage: number
+    bonus: boolean
+  } | null>(null)
+  const passed =
+    testResults?.length === 15 &&
+    testResults.every((result) => result.passed) &&
+    testedCode === code
+  const suite = getChallengeTests(
+    currentChallenge.id,
+    currentProgress.stage,
+    currentProgress.bonus,
+  )
+  const checkWork = () => {
+    if (testBusy) return
+    setCheckAttempts((previous) =>
+      previous.map((count, index) => (index === challenge ? count + 1 : count)),
+    )
+    const program = buildTestProgram(
+      code,
+      currentChallenge.id,
+      currentProgress.stage,
+      currentProgress.bonus,
+    )
+    testRequest.current = {
+      program,
+      source: code,
+      challenge,
+      stage: currentProgress.stage,
+      bonus: currentProgress.bonus,
+    }
+    setTestResults(null)
+    setTestError('')
+    void testRunner.run(program)
+  }
+  // Synchronize the asynchronous sandbox result with the submitted stage.
+  /* oxlint-disable react/set-state-in-effect */
+  useEffect(() => {
+    const request = testRequest.current
+    if (
+      !request ||
+      testRunner.source !== request.program ||
+      !['success', 'error', 'stopped'].includes(testRunner.status)
+    )
+      return
+    testRequest.current = null
+    if (
+      request.challenge !== challenge ||
+      request.stage !== currentProgress.stage ||
+      request.bonus !== currentProgress.bonus
+    )
+      return
+    const text = testRunner.output.map((entry) => entry.text).join('')
+    const matches = [...text.matchAll(/BYTEBLOCKS_TEST_RESULTS:(\[[^\n]*\])/g)]
+    try {
+      const parsed: unknown = JSON.parse(matches.at(-1)?.[1] ?? 'null')
+      if (
+        testRunner.status !== 'success' ||
+        !Array.isArray(parsed) ||
+        parsed.length !== 15 ||
+        !parsed.every(
+          (item) =>
+            item &&
+            typeof item === 'object' &&
+            typeof item.passed === 'boolean' &&
+            (typeof item.actual === 'string' || item.actual === null),
+        )
+      )
+        throw new Error()
+      setTestResults(parsed as TestResult[])
+      setTestedCode(request.source)
+    } catch {
+      setTestError(
+        'Could not run the checks. Check your code for errors or an infinite loop, then try again.',
+      )
+    }
+  }, [
+    testRunner.status,
+    testRunner.source,
+    testRunner.output,
+    challenge,
+    currentProgress.stage,
+    currentProgress.bonus,
+  ])
+  /* oxlint-enable react/set-state-in-effect */
+  const continueChallenge = () => {
+    if (!passed) return
+    if (
+      !currentProgress.bonus &&
+      currentProgress.stage < currentChallenge.stages.length - 1
+    )
+      setStageScrollKey((key) => key + 1)
+    setProgress((previous) =>
+      previous.map((item, index) => {
+        if (index !== challenge || item.complete) return item
+        if (!item.bonus && item.stage < currentChallenge.stages.length - 1)
+          return { ...item, stage: item.stage + 1 }
+        return { ...item, complete: true }
+      }),
+    )
+    setTestResults(null)
+  }
+  const onAssessment = (result: 'advance' | 'bonus' | 'skip') => {
+    if (
+      result !== 'bonus' ||
+      !passed ||
+      currentProgress.bonus ||
+      currentProgress.stage !== currentChallenge.stages.length - 1
+    )
+      return
+    setStageScrollKey((key) => key + 1)
+    setProgress((previous) =>
+      previous.map((item, index) =>
+        index === challenge && !item.complete ? { ...item, bonus: true } : item,
+      ),
+    )
+    setTestResults(null)
+  }
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress))
+    } catch {
+      /* Progress remains available for this session. */
+    }
+  }, [progress])
   const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
@@ -316,7 +531,31 @@ export function Workspace({
               tabIndex={0}
             >
               {activeTab === 'Goal' && (
-                <GoalPanel selected={challenge} onSelect={setChallenge} />
+                <GoalPanel
+                  selected={challenge}
+                  scrollKey={stageScrollKey}
+                  unlocked={unlocked}
+                  stage={currentProgress.stage}
+                  bonus={currentProgress.bonus}
+                  complete={currentProgress.complete}
+                  onSelect={(index) => {
+                    if (!coachBusy && !testBusy) {
+                      setChallenge(index)
+                      setTestResults(null)
+                      setTestError('')
+                    }
+                  }}
+                  onCheck={checkWork}
+                  checking={testBusy}
+                  cases={suite.cases}
+                  results={testedCode === code ? testResults : null}
+                  testError={testError}
+                  passed={!!passed}
+                  onContinue={continueChallenge}
+                  onFeedback={() => coachRef.current?.checkWork()}
+                  feedbackBusy={coachBusy}
+                  unavailable={coachUnavailable}
+                />
               )}
               {activeTab === 'Complexity' && <ComplexityPanel />}
               {activeTab === 'Visualizer' && (
@@ -405,12 +644,24 @@ export function Workspace({
           />
 
           <CoachPanel
+            key={challenge}
+            coachRef={coachRef}
+            onAssessment={onAssessment}
+            onAvailability={onAvailability}
             context={{
               code,
               execution: { status: runner.status, output: runner.output },
               preferences,
               blocks,
-              problem: `${CHALLENGES[challenge].title}: ${CHALLENGES[challenge].coachPrompt}`,
+              problem: `${currentChallenge.title} — ${currentTask.title}: ${currentTask.detail} Example: ${currentTask.input} → ${currentTask.output}`,
+              testSummary: passed
+                ? `All 15 test cases passed. The learner has run checks ${checkAttempts[challenge]} time(s) on this challenge across its stages.`
+                : undefined,
+              progression: {
+                finalStage:
+                  currentProgress.stage === currentChallenge.stages.length - 1,
+                bonus: currentProgress.bonus,
+              },
             }}
           />
         </div>

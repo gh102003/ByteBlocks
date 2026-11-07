@@ -2,6 +2,8 @@ import { useChat } from '@ai-sdk/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import Markdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import type { UIMessage } from 'ai'
 import { getChatConnector } from '../ai/connector'
 import type { ChatConnector } from '../ai/connector'
@@ -161,30 +163,30 @@ export function CoachPanel({
               </div>
               {message.parts.map((part, index) =>
                 part.type === 'text' ? (
-                  message.role === 'assistant' ? (
-                    <div className="message-markdown" key={index}>
-                      <Markdown
-                        skipHtml
-                        disallowedElements={['img']}
-                        components={{
-                          a: ({ children, href }) => (
-                            <a href={href} target="_blank" rel="noreferrer">
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {effectivePreferences?.adviceFormat === 'blocks'
-                          ? withoutNonBlockCode(withoutAdviceBlocks(part.text))
-                          : part.text}
-                      </Markdown>
-                      {effectivePreferences?.adviceFormat === 'blocks' && (
+                  <div className="message-markdown" key={index}>
+                    <Markdown
+                      skipHtml
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      disallowedElements={['img']}
+                      components={{
+                        a: ({ children, href }) => (
+                          <a href={href} target="_blank" rel="noreferrer">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.role === 'assistant' &&
+                      effectivePreferences?.adviceFormat === 'blocks'
+                        ? withoutNonBlockCode(withoutAdviceBlocks(part.text))
+                        : part.text}
+                    </Markdown>
+                    {message.role === 'assistant' &&
+                      effectivePreferences?.adviceFormat === 'blocks' && (
                         <AdviceBlocks text={part.text} />
                       )}
-                    </div>
-                  ) : (
-                    <p key={index}>{part.text}</p>
-                  )
+                  </div>
                 ) : null,
               )}
             </div>

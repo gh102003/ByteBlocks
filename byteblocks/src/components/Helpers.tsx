@@ -1,47 +1,63 @@
 import { Icon } from './Icon'
+import { CHALLENGES } from './challenges'
+import type { ChallengeId } from './challenges'
 
-export function GoalPanel() {
+export function GoalPanel({
+  selected,
+  onSelect,
+}: {
+  selected: ChallengeId
+  onSelect: (challenge: ChallengeId) => void
+}) {
+  const challenge = CHALLENGES[selected]
   return (
     <div className="goal-content">
+      <label className="challenge-picker">
+        PRACTICE QUESTION
+        <select
+          value={selected}
+          onChange={(event) => onSelect(event.target.value as ChallengeId)}
+          aria-label="Choose a practice question"
+        >
+          {Object.entries(CHALLENGES).map(([id, item]) => (
+            <option key={id} value={id}>
+              {item.title}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="eyebrow">
         <span className="eyebrow-line" /> YOUR NEXT CHALLENGE{' '}
-        <span className="problem-number">01 / ARRAYS</span>
+        <span className="problem-number">
+          {String(Object.keys(CHALLENGES).indexOf(selected) + 1).padStart(
+            2,
+            '0',
+          )}{' '}
+          / {challenge.category}
+        </span>
       </div>
       <div className="challenge-heading">
         <h1>
-          Two Sum<span>.</span>
+          {challenge.title}
+          <span>.</span>
         </h1>
-        <span className="difficulty">Easy</span>
+        <span className="difficulty">{challenge.difficulty}</span>
       </div>
-      <p className="goal-description">
-        Find the two numbers that add up to a target.
-      </p>
-      <p className="goal-detail">
-        Given an array of integers <code>nums</code> and an integer{' '}
-        <code>target</code>, return the <strong>indices</strong> of the two
-        numbers whose sum equals the target.
-      </p>
+      <p className="goal-description">{challenge.summary}</p>
+      <p className="goal-detail">{challenge.detail}</p>
       <div className="example-card">
         <div className="example-label">
           EXAMPLE 01 <Icon name="arrow" size={14} />
         </div>
         <div className="example-row">
           <span>Input</span>
-          <code>nums = [2, 7, 11, 15], target = 9</code>
+          <code>{challenge.input}</code>
         </div>
         <div className="example-row">
           <span>Output</span>
-          <code className="example-result">[0, 1]</code>
+          <code className="example-result">{challenge.output}</code>
         </div>
-        <p>
-          Because <code>nums[0] + nums[1] = 9</code>.
-        </p>
-      </div>
-      <div className="goal-note">
-        <Icon name="info" size={15} />
-        <span>
-          Exactly one solution exists. You can’t use the same element twice.
-        </span>
+        <p>{challenge.note}</p>
       </div>
     </div>
   )

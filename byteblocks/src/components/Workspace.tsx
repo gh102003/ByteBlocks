@@ -4,6 +4,8 @@ import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
 import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
+import { CHALLENGES } from './challenges'
+import type { ChallengeId } from './challenges'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
@@ -28,21 +30,33 @@ function readCode() {
   }
 }
 
+function readEditorMode(): 'blocks' | 'code' {
+  try {
+    return localStorage.getItem('byteblocks.editor.mode') === 'code'
+      ? 'code'
+      : 'blocks'
+  } catch {
+    return 'blocks'
+  }
+}
+
 export function Workspace({
   onNavigateHome,
   onOpenPreferences,
   preferences,
 }: WorkspaceProps) {
   const [code, setCode] = useState(readCode)
-  const [editorTab, setEditorTab] = useState<'blocks' | 'code'>('blocks')
+  const [editorTab, setEditorTab] = useState(readEditorMode)
+  const [hasCodeEdits, setHasCodeEdits] = useState(false)
   const selectEditorTab = (mode: 'blocks' | 'code') => {
-    if (mode === 'blocks' && editorTab === 'code') {
+    if (mode === 'blocks' && editorTab === 'code' && hasCodeEdits) {
       const confirmed = window.confirm(
         'Switching back to blocks will replace your code edits with the generated code. Continue?',
       )
       if (!confirmed) return
     }
     setEditorTab(mode)
+    if (mode === 'blocks') setHasCodeEdits(false)
     try {
       localStorage.setItem('byteblocks.editor.mode', mode)
     } catch {
@@ -53,6 +67,7 @@ export function Workspace({
     'saving',
   )
   const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
+  const [challenge, setChallenge] = useState<ChallengeId>('two-sum')
   const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
@@ -159,7 +174,10 @@ export function Workspace({
             code={code}
             onSelectMode={selectEditorTab}
             onPythonChange={updateCode}
-            onEditCode={updateCode}
+            onEditCode={(nextCode) => {
+              updateCode(nextCode)
+              setHasCodeEdits(true)
+            }}
             onCursorChange={setCursor}
             onRun={run}
           />
@@ -266,7 +284,9 @@ export function Workspace({
               aria-labelledby={`tab-${activeTab}`}
               tabIndex={0}
             >
-              {activeTab === 'Goal' && <GoalPanel />}
+              {activeTab === 'Goal' && (
+                <GoalPanel selected={challenge} onSelect={setChallenge} />
+              )}
               {activeTab === 'Complexity' && <ComplexityPanel />}
               {activeTab === 'Dataflow' && <DataflowPanel />}
               {activeTab === 'Output' && (
@@ -349,6 +369,7 @@ export function Workspace({
               code,
               execution: { status: runner.status, output: runner.output },
               preferences,
+              problem: `${CHALLENGES[challenge].title}: ${CHALLENGES[challenge].coachPrompt}`,
             }}
           />
         </div>

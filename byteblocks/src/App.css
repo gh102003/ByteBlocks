@@ -406,6 +406,26 @@
   color: var(--theme-text-muted);
   letter-spacing: 1px;
 }
+.challenge-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  color: var(--theme-text-muted);
+  font: 8px var(--mono);
+  letter-spacing: 1.2px;
+}
+.challenge-picker select {
+  max-width: 55%;
+  padding: 7px 9px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  font: 11px var(--mono);
+  letter-spacing: normal;
+}
 .challenge-heading {
   display: flex;
   align-items: center;

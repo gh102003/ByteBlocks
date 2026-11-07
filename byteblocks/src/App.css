@@ -881,6 +881,43 @@
 .nibble-sprite-large {
   --nibble-unit: 10px;
 }
+.auto-mentor-sprite {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 42px;
+  flex: 0 0 auto;
+}
+.auto-mentor-antenna {
+  position: absolute;
+  left: 16px;
+  top: 1px;
+  width: 4px;
+  height: 9px;
+  background: #7c3aed;
+  box-shadow: 0 -3px #c4b5fd;
+}
+.auto-mentor-head {
+  position: absolute;
+  left: 3px;
+  bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 30px;
+  height: 28px;
+  border: 3px solid #32235b;
+  background: #8b5cf6;
+  box-shadow:
+    inset 3px 3px #c4b5fd,
+    3px 3px 0 #32235b;
+}
+.auto-mentor-head b {
+  width: 5px;
+  height: 5px;
+  background: #fff9dc;
+  box-shadow: 0 2px #32235b;
+}
 .nibble-sprite-bite .nibble-face {
   background: #ef7f3d;
   box-shadow:

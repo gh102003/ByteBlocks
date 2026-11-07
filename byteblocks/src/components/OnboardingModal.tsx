@@ -9,7 +9,7 @@ import {
   savePreferences,
 } from '../preferences'
 import { Icon } from './Icon'
-import { NibbleSprite } from './NibbleSprite'
+import { AutoMentorSprite, NibbleSprite } from './NibbleSprite'
 import { mascotForLevel, mascotName } from './mascot'
 
 interface OnboardingModalProps {
@@ -25,6 +25,12 @@ const LEVEL_OPTIONS: Array<{
   badge: string
   desc: string
 }> = [
+  {
+    value: 'auto',
+    label: 'Auto',
+    badge: 'Choose for me',
+    desc: 'Your runs help pick a mentor.',
+  },
   {
     value: 'beginner',
     label: 'Beginner',
@@ -186,27 +192,39 @@ export function OnboardingModal({
               <span className="step-num">1</span>
               <span>Pick your mentor</span>
             </label>
-            <div className="options-grid three-col">
-              {LEVEL_OPTIONS.map((opt) => (
-                <button
-                  type="button"
-                  key={opt.value}
-                  className={`choice-card level-choice ${level === opt.value ? 'selected' : ''}`}
-                  onClick={() => setLevel(opt.value)}
-                >
-                  <NibbleSprite
-                    size="medium"
-                    mascot={mascotForLevel(opt.value)}
-                  />
-                  <div className="choice-header">
-                    <strong>{mascotName(mascotForLevel(opt.value))}</strong>
-                    <span className="choice-tag">{opt.badge}</span>
-                  </div>
-                  <p>
-                    {opt.label} · {opt.desc}
-                  </p>
-                </button>
-              ))}
+            <div className="options-grid two-col">
+              {LEVEL_OPTIONS.map((opt) => {
+                const mascotLevel =
+                  opt.value === 'auto' ? 'beginner' : opt.value
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    className={`choice-card level-choice ${level === opt.value ? 'selected' : ''}`}
+                    onClick={() => setLevel(opt.value)}
+                  >
+                    {opt.value === 'auto' ? (
+                      <AutoMentorSprite />
+                    ) : (
+                      <NibbleSprite
+                        size="medium"
+                        mascot={mascotForLevel(mascotLevel)}
+                      />
+                    )}
+                    <div className="choice-header">
+                      <strong>
+                        {opt.value === 'auto'
+                          ? 'Auto'
+                          : mascotName(mascotForLevel(mascotLevel))}
+                      </strong>
+                      <span className="choice-tag">{opt.badge}</span>
+                    </div>
+                    <p>
+                      {opt.label} · {opt.desc}
+                    </p>
+                  </button>
+                )
+              })}
             </div>
           </section>
 

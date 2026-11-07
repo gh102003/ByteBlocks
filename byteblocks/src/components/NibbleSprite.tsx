@@ -56,3 +56,19 @@ export function NibbleSprite({
     </span>
   )
 }
+
+export function AutoMentorSprite() {
+  return (
+    <span
+      className="auto-mentor-sprite"
+      role="img"
+      aria-label="Auto mentor robot"
+    >
+      <i className="auto-mentor-antenna" />
+      <i className="auto-mentor-head">
+        <b />
+        <b />
+      </i>
+    </span>
+  )
+}

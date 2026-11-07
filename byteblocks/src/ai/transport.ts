@@ -10,6 +10,7 @@ import type { RunnerState } from '../python/runner'
 import type { UserPreferences } from '../preferences'
 import { BLOCK_DEFINITIONS } from '../components/blocks/definitions'
 import type { BlockItem } from '../components/blocks/types'
+import { resolveMentorLevel } from './mentorLevel'
 
 export type CoachContext = {
   code: string
@@ -169,8 +170,15 @@ export function createCoachTransport(
   return {
     async sendMessages({ messages, abortSignal }) {
       const context = getContext()
+      const resolvedLevel = resolveMentorLevel(
+        context.preferences?.level,
+        context.code,
+        context.execution,
+      )
       const instructions = buildCoachInstructions(
-        context.preferences,
+        context.preferences
+          ? { ...context.preferences, level: resolvedLevel }
+          : undefined,
         context.problem,
       )
       const result = streamText({

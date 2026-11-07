@@ -12,9 +12,12 @@ import { Icon } from './Icon'
 import { AdviceBlocks } from './AdviceBlocks'
 import { NibbleSprite } from './NibbleSprite'
 import { mascotForLevel, mascotName } from './mascot'
+import { resolveMentorLevel } from '../ai/mentorLevel'
 
-function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
-  const level = prefs?.level
+function getInitialCoachMessages(
+  prefs: UserPreferences | null | undefined,
+  level: Exclude<UserPreferences['level'], 'auto'>,
+): UIMessage[] {
   const mascot = mascotForLevel(level)
   const name = mascotName(mascot)
   const style = prefs?.feedbackStyle
@@ -72,7 +75,12 @@ export function CoachPanel({
   onOpenPreferences?: () => void
 }) {
   const effectivePreferences = context.preferences
-  const mascot = mascotForLevel(effectivePreferences?.level)
+  const resolvedLevel = resolveMentorLevel(
+    effectivePreferences?.level,
+    context.code,
+    context.execution,
+  )
+  const mascot = mascotForLevel(resolvedLevel)
   const agentName = mascotName(mascot)
   const connector = useMemo(
     () => suppliedConnector ?? getChatConnector(),
@@ -87,8 +95,8 @@ export function CoachPanel({
     [connector, context, effectivePreferences],
   )
   const initialMessages = useMemo(
-    () => getInitialCoachMessages(effectivePreferences),
-    [effectivePreferences],
+    () => getInitialCoachMessages(effectivePreferences, resolvedLevel),
+    [effectivePreferences, resolvedLevel],
   )
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
     transport,
@@ -118,7 +126,7 @@ export function CoachPanel({
           <strong>{agentName}</strong>
           <span className="coach-subtitle">
             {effectivePreferences
-              ? `Your ${effectivePreferences.level} mentor`
+              ? `Your ${resolvedLevel} mentor${effectivePreferences.level === 'auto' ? ' (auto)' : ''}`
               : 'Your pocket-sized Python guide.'}
           </span>
         </div>
@@ -202,17 +210,17 @@ export function CoachPanel({
             <button
               onClick={() =>
                 setDraft(
-                  effectivePreferences?.level === 'senior'
+                  resolvedLevel === 'senior'
                     ? 'Help me evaluate the memory tradeoffs.'
-                    : effectivePreferences?.level === 'beginner'
+                    : resolvedLevel === 'beginner'
                       ? 'Guide me step-by-step through the loop.'
                       : 'Help me understand the complexity.',
                 )
               }
             >
-              {effectivePreferences?.level === 'senior'
+              {resolvedLevel === 'senior'
                 ? 'Evaluate memory tradeoffs'
-                : effectivePreferences?.level === 'beginner'
+                : resolvedLevel === 'beginner'
                   ? 'Step-by-step guide'
                   : 'Explore the complexity'}
               <Icon name="arrow" size={13} />

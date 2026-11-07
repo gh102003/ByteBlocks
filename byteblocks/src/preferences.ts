@@ -1,4 +1,4 @@
-export type ExperienceLevel = 'beginner' | 'intermediate' | 'senior'
+export type ExperienceLevel = 'auto' | 'beginner' | 'intermediate' | 'senior'
 export type FeedbackStyle = 'socratic' | 'direct' | 'detailed' | 'code-review'
 export type LearningGoal = 'interview' | 'pythonic' | 'algorithms' | 'general'
 export type GuidanceTone = 'encouraging' | 'pragmatic' | 'rigorous'

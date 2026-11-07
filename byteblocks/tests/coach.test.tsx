@@ -4,6 +4,7 @@ import { render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
 import { buildCoachInstructions } from '../src/ai/transport'
 import type { CoachContext } from '../src/ai/transport'
+import { resolveMentorLevel } from '../src/ai/mentorLevel'
 import type { UserPreferences } from '../src/preferences'
 import { CoachPanel } from '../src/components/CoachPanel'
 import '../src/index.css'
@@ -140,6 +141,26 @@ describe('AI coach', () => {
     expect(
       buildCoachInstructions({ ...blockPreferences, level: 'senior' }),
     ).toContain('Chomp is calm, observant, and exact')
+  })
+
+  test('uses local run signals to select an auto mentor', () => {
+    const emptyRun = { output: [] }
+    expect(resolveMentorLevel('auto', 'print(', emptyRun)).toBe('beginner')
+    expect(
+      resolveMentorLevel('auto', 'for item in items:\n  print(item)', emptyRun),
+    ).toBe('intermediate')
+    expect(
+      resolveMentorLevel(
+        'auto',
+        'async def fetch() -> str:\n  return "ok"',
+        emptyRun,
+      ),
+    ).toBe('senior')
+    expect(
+      resolveMentorLevel('auto', 'print(1)', {
+        output: [{ kind: 'stderr', text: 'SyntaxError: invalid syntax' }],
+      }),
+    ).toBe('beginner')
   })
 
   test('streams Markdown and sends history with the latest code and output directly to the provider', async () => {

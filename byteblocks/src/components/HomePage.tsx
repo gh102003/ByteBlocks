@@ -140,7 +140,7 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               </span>
             </button>
             <a href="#demo" className="hero-secondary-btn">
-              <span>Meet Nibble</span>
+              <span>Meet the team</span>
               <Icon name="chevron" size={14} />
             </a>
           </div>

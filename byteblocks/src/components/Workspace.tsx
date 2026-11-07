@@ -377,9 +377,7 @@ export function Workspace({
       >
         <section className="panel editor-panel" aria-label="Python code editor">
           <div className="panel-toolbar editor-toolbar">
-            <div className="workspace-section-label">
-              <span /> BUILD YOUR PROGRAM
-            </div>
+            <div className="workspace-section-label">BUILD YOUR PROGRAM</div>
             <div className="editor-actions">
               <span className="language-label">Python 3</span>
               <button

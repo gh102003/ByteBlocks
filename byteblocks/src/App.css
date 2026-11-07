@@ -4001,16 +4001,6 @@
   font-size: 10px;
   white-space: nowrap;
 }
-.workspace-section-label span {
-  width: 10px;
-  height: 10px;
-  flex: none;
-  background: #ef9b87;
-  box-shadow:
-    11px 0 #f4c85f,
-    0 11px #82cdb9;
-  margin: 0 12px 11px 0;
-}
 .workspace .run-button {
   min-height: 32px;
   padding: 0 12px;

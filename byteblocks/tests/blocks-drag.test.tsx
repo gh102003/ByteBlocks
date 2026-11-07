@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { VisualBlockEditor } from '../src/components/blocks/VisualBlockEditor'
 
-const key = 'byteblocks.visual.blocks'
+const key = 'byteblocks.visual.blocks.v2'
 
 beforeEach(() => {
   localStorage.setItem(
@@ -10,7 +10,7 @@ beforeEach(() => {
     JSON.stringify([
       { id: 'a', type: 'comment', commentText: 'first' },
       { id: 'b', type: 'comment', commentText: 'second' },
-      { id: 'c', type: 'if', condition: 'True', children: [] },
+      { id: 'c', type: 'if_condition', condition: 'True', children: [] },
     ]),
   )
 })

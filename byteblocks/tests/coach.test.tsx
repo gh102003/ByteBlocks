@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
+import { buildCoachInstructions } from '../src/ai/transport'
 import type { CoachContext } from '../src/ai/transport'
 import type { UserPreferences } from '../src/preferences'
 import { CoachPanel } from '../src/components/CoachPanel'
@@ -126,7 +127,19 @@ describe('AI coach', () => {
         connector={connector}
       />,
     )
-    await expect.element(page.getByText('Chop', { exact: true })).toBeVisible()
+    await expect.element(page.getByText('Chomp', { exact: true })).toBeVisible()
+  })
+
+  test('gives each mentor a distinct response personality', () => {
+    expect(
+      buildCoachInstructions({ ...blockPreferences, level: 'beginner' }),
+    ).toContain('Nibble is gentle, curious, and cheerfully patient')
+    expect(
+      buildCoachInstructions({ ...blockPreferences, level: 'intermediate' }),
+    ).toContain('Bite is upbeat, brave, and motivating')
+    expect(
+      buildCoachInstructions({ ...blockPreferences, level: 'senior' }),
+    ).toContain('Chomp is calm, observant, and exact')
   })
 
   test('streams Markdown and sends history with the latest code and output directly to the provider', async () => {

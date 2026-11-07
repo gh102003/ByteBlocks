@@ -23,10 +23,10 @@ export function NibbleSprite({
           <span className="nibble-ear nibble-ear-right" />
         </>
       )}
-      {mascot === 'chop' && (
+      {mascot === 'chomp' && (
         <>
-          <span className="chop-neck" />
-          <span className="chop-spines" />
+          <span className="chomp-neck" />
+          <span className="chomp-spines" />
         </>
       )}
       <span className="nibble-face">
@@ -39,10 +39,10 @@ export function NibbleSprite({
           </>
         )}
         {mascot === 'bite' && <i className="bite-mouth" />}
-        {mascot === 'chop' && (
+        {mascot === 'chomp' && (
           <>
-            <i className="chop-snout" />
-            <i className="chop-mouth" />
+            <i className="chomp-snout" />
+            <i className="chomp-mouth" />
           </>
         )}
       </span>

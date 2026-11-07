@@ -1,10 +1,10 @@
 import type { ExperienceLevel } from '../preferences'
 
-export type Mascot = 'nibble' | 'bite' | 'chop'
+export type Mascot = 'nibble' | 'bite' | 'chomp'
 
 export function mascotForLevel(level?: ExperienceLevel): Mascot {
   if (level === 'intermediate') return 'bite'
-  if (level === 'senior') return 'chop'
+  if (level === 'senior') return 'chomp'
   return 'nibble'
 }
 

@@ -16,7 +16,13 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
 
       case 'var_set': {
         const name = block.varName?.trim() || 'x'
-        const val = block.value?.trim() || '0'
+        const baseValue = guidedValue(block)
+        const operator = block.operator?.trim()
+        const rightValue = block.rightValue?.trim()
+        const val =
+          operator && rightValue
+            ? `${baseValue} ${operator} ${rightValue}`
+            : baseValue
         lines.push(`${indent}${name} = ${val}`)
         break
       }
@@ -28,9 +34,21 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         break
       }
 
+      case 'list_item_math': {
+        const name = block.varName?.trim() || 'total'
+        const list = block.sourceList?.trim() || 'numbers'
+        const operator = block.operator?.trim() || '+'
+        lines.push(
+          `${indent}${name} = ${listItemExpression(list, block.firstItem)} ${operator} ${listItemExpression(list, block.secondItem)}`,
+        )
+        break
+      }
+
       case 'print': {
         const val = block.value !== undefined ? block.value : '"Hello World!"'
-        lines.push(`${indent}print(${val})`)
+        lines.push(
+          `${indent}print(${block.isText ? JSON.stringify(val) : val})`,
+        )
         break
       }
 
@@ -69,7 +87,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
       }
 
       case 'while_loop': {
-        const condition = block.condition?.trim() || 'True'
+        const condition = guidedCondition(block)
         lines.push(`${indent}while ${condition}:`)
 
         if (block.children && block.children.length > 0) {
@@ -81,7 +99,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
       }
 
       case 'if_condition': {
-        const condition = block.condition?.trim() || 'True'
+        const condition = guidedCondition(block)
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
@@ -93,7 +111,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
       }
 
       case 'if_else': {
-        const condition = block.condition?.trim() || 'True'
+        const condition = guidedCondition(block)
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
@@ -105,6 +123,18 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}else:`)
         if (block.elseChildren && block.elseChildren.length > 0) {
           lines.push(generatePython(block.elseChildren, indentLevel + 1))
+        } else {
+          lines.push(`${indent}    pass`)
+        }
+        break
+      }
+
+      case 'if_collection_contains': {
+        const value = block.valueVariable?.trim() || 'item'
+        const collection = block.collectionName?.trim() || 'items'
+        lines.push(`${indent}if ${value} in ${collection}:`)
+        if (block.children && block.children.length > 0) {
+          lines.push(generatePython(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -144,7 +174,9 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
 
       case 'list_create': {
         const name = block.varName?.trim() || 'my_list'
-        const val = block.value?.trim() || ''
+        const val = block.listValues
+          ? block.listValues.filter((value) => value.trim()).join(', ')
+          : block.value?.trim() || ''
         lines.push(`${indent}${name} = [${val}]`)
         break
       }
@@ -175,4 +207,38 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
   }
 
   return lines.join('\n')
+}
+
+function guidedCondition(block: BlockItem): string {
+  const left = block.conditionLeft?.trim()
+  const operator = block.conditionOperator?.trim()
+  const right = block.conditionRight?.trim()
+  return left && operator && right
+    ? `${left} ${operator} ${right}`
+    : block.condition?.trim() || 'True'
+}
+
+function listItemExpression(
+  list: string,
+  position: BlockItem['firstItem'],
+): string {
+  switch (position) {
+    case 'first':
+      return `${list}[0]`
+    case 'second_last':
+      return `${list}[-2]`
+    case 'last':
+    default:
+      return `${list}[-1]`
+  }
+}
+
+function guidedValue(block: BlockItem): string {
+  if (block.valueKind === 'variable') return block.valueVariable?.trim() || '0'
+  if (block.valueKind === 'list_item')
+    return listItemExpression(
+      block.valueList?.trim() || 'numbers',
+      block.valueIndex,
+    )
+  return block.value?.trim() || '0'
 }

@@ -13,6 +13,94 @@ describe('Block Generator to Python', () => {
     expect(code).toBe('score = 100\nprint(score)')
   })
 
+  it('generates guided math and comparison controls as Python', () => {
+    const blocks: BlockItem[] = [
+      {
+        id: '1',
+        type: 'var_set',
+        varName: 'total',
+        value: '4',
+        operator: '*',
+        rightValue: '3',
+      },
+      {
+        id: '2',
+        type: 'if_condition',
+        conditionLeft: 'total',
+        conditionOperator: '>=',
+        conditionRight: '12',
+        children: [{ id: '3', type: 'print', value: 'total' }],
+      },
+    ]
+
+    expect(generatePython(blocks)).toBe(
+      'total = 4 * 3\nif total >= 12:\n    print(total)',
+    )
+  })
+
+  it('generates list-item math without exposing list indexing in the block', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'list_item_math',
+          varName: 'next_number',
+          sourceList: 'numbers',
+          firstItem: 'last',
+          operator: '+',
+          secondItem: 'second_last',
+        },
+      ]),
+    ).toBe('next_number = numbers[-1] + numbers[-2]')
+  })
+
+  it('generates a selected list item as a value', () => {
+    expect(
+      generatePython([
+        { id: '1', type: 'list_create', varName: 'scores', value: '3, 8' },
+        {
+          id: '2',
+          type: 'var_set',
+          varName: 'latest',
+          valueKind: 'list_item',
+          valueList: 'scores',
+          valueIndex: 'last',
+        },
+      ]),
+    ).toBe('scores = [3, 8]\nlatest = scores[-1]')
+  })
+
+  it('generates a list from individual value sockets', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'list_create',
+          varName: 'scores',
+          listValues: ['3', '8', ''],
+        },
+      ]),
+    ).toBe('scores = [3, 8]')
+  })
+
+  it('generates a collection-membership block', () => {
+    expect(
+      generatePython([
+        { id: '1', type: 'list_create', varName: 'scores', listValues: ['5'] },
+        { id: '2', type: 'var_set', varName: 'target', value: '5' },
+        {
+          id: '3',
+          type: 'if_collection_contains',
+          valueVariable: 'target',
+          collectionName: 'scores',
+          children: [{ id: '4', type: 'print', value: 'Found!', isText: true }],
+        },
+      ]),
+    ).toBe(
+      'scores = [5]\ntarget = 5\nif target in scores:\n    print("Found!")',
+    )
+  })
+
   it('generates indented loop with body', () => {
     const blocks: BlockItem[] = [
       {

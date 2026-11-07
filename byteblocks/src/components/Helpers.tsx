@@ -1,47 +1,48 @@
 import { Icon } from './Icon'
+import type { ReactNode } from 'react'
 
-export function GoalPanel() {
+export type ChallengeId = 'two-sum' | 'bubble-sort' | 'binary-search'
+
+export const CHALLENGES: Record<ChallengeId, { title: string; category: string; difficulty: string; summary: string; coachPrompt: string; detail: ReactNode; input: string; output: string; note: string }> = {
+  'two-sum': { title: 'Two Sum', category: 'ARRAYS', difficulty: 'Easy', summary: 'Find the two numbers that add up to a target.', coachPrompt: 'Given integers nums and target, return the indices of two distinct elements whose sum is target. Exactly one solution exists.', detail: <>Given an array of integers <code>nums</code> and an integer <code>target</code>, return the <strong>indices</strong> of the two numbers whose sum equals the target.</>, input: 'nums = [2, 7, 11, 15], target = 9', output: '[0, 1]', note: 'Exactly one solution exists. You can’t use the same element twice.' },
+  'bubble-sort': { title: 'Bubble Sort', category: 'SORTING', difficulty: 'Medium', summary: 'Sort a list in place by repeatedly swapping adjacent values.', coachPrompt: 'Implement bubble_sort(nums) to sort integers in ascending order. Optimize by stopping after a pass with no swaps.', detail: <>Implement <code>bubble_sort(nums)</code> to sort integers in ascending order. Stop early when a full pass makes no swaps, and return the sorted list.</>, input: 'nums = [5, 1, 4, 2, 8]', output: '[1, 2, 4, 5, 8]', note: 'Consider an empty list, duplicates, and how many passes are needed.' },
+  'binary-search': { title: 'Binary Search', category: 'SEARCHING', difficulty: 'Medium', summary: 'Find a target in a sorted list in logarithmic time.', coachPrompt: 'Implement binary_search(nums, target) to return its index or -1 when absent. nums is sorted and the algorithm must run in O(log n) time.', detail: <>Implement <code>binary_search(nums, target)</code> to return the target’s index, or <code>-1</code> if it is absent. Your algorithm must run in <strong>O(log n)</strong> time.</>, input: 'nums = [-4, 0, 3, 9, 12], target = 9', output: '3', note: 'Maintain a correct search interval and handle empty input and missing targets.' },
+}
+
+export function GoalPanel({ selected, onSelect }: { selected: ChallengeId; onSelect: (challenge: ChallengeId) => void }) {
+  const challenge = CHALLENGES[selected]
   return (
     <div className="goal-content">
+      <label className="challenge-picker">PRACTICE QUESTION
+        <select value={selected} onChange={(event) => onSelect(event.target.value as ChallengeId)} aria-label="Choose a practice question">
+          {Object.entries(CHALLENGES).map(([id, item]) => <option key={id} value={id}>{item.title}</option>)}
+        </select>
+      </label>
       <div className="eyebrow">
         <span className="eyebrow-line" /> YOUR NEXT CHALLENGE{' '}
-        <span className="problem-number">01 / ARRAYS</span>
+        <span className="problem-number">{String(Object.keys(CHALLENGES).indexOf(selected) + 1).padStart(2, '0')} / {challenge.category}</span>
       </div>
       <div className="challenge-heading">
-        <h1>
-          Two Sum<span>.</span>
-        </h1>
-        <span className="difficulty">Easy</span>
+        <h1>{challenge.title}<span>.</span></h1>
+        <span className="difficulty">{challenge.difficulty}</span>
       </div>
-      <p className="goal-description">
-        Find the two numbers that add up to a target.
-      </p>
-      <p className="goal-detail">
-        Given an array of integers <code>nums</code> and an integer{' '}
-        <code>target</code>, return the <strong>indices</strong> of the two
-        numbers whose sum equals the target.
-      </p>
+      <p className="goal-description">{challenge.summary}</p>
+      <p className="goal-detail">{challenge.detail}</p>
       <div className="example-card">
         <div className="example-label">
           EXAMPLE 01 <Icon name="arrow" size={14} />
         </div>
         <div className="example-row">
           <span>Input</span>
-          <code>nums = [2, 7, 11, 15], target = 9</code>
+          <code>{challenge.input}</code>
         </div>
         <div className="example-row">
           <span>Output</span>
-          <code className="example-result">[0, 1]</code>
+          <code className="example-result">{challenge.output}</code>
         </div>
         <p>
-          Because <code>nums[0] + nums[1] = 9</code>.
+          {challenge.note}
         </p>
-      </div>
-      <div className="goal-note">
-        <Icon name="info" size={15} />
-        <span>
-          Exactly one solution exists. You can’t use the same element twice.
-        </span>
       </div>
     </div>
   )

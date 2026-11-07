@@ -11,12 +11,14 @@ import type { UserPreferences } from '../preferences'
 
 export type CoachContext = {
   code: string
+  problem?: string
   execution: Pick<RunnerState, 'status' | 'output'>
   preferences?: UserPreferences | null
 }
 
 export function buildCoachInstructions(
   preferences?: UserPreferences | null,
+  problem = 'Two Sum: given integers nums and target, return the indices of two distinct elements whose sum is target. Exactly one solution exists.',
 ): string {
   const level = preferences?.level ?? 'intermediate'
   const feedbackStyle = preferences?.feedbackStyle ?? 'socratic'
@@ -98,7 +100,7 @@ FEEDBACK STYLE: PRODUCTION CODE REVIEW
   }
 
   return `You are the ByteBlocks coach, an adaptive AI tutor inside an interactive Python editor.
-Help the learner solve Two Sum: given integers nums and target, return the indices of two distinct elements whose sum is target. Exactly one solution exists.
+Help the learner solve this practice question: ${problem}
 Use their current main.py and latest execution output to give specific guidance.
 Prefer a short explanation, a small hint, and one useful question. Give a full solution when asked.
 Use Markdown and fenced Python code blocks where helpful.
@@ -134,7 +136,7 @@ export function createCoachTransport(
   return {
     async sendMessages({ messages, abortSignal }) {
       const context = getContext()
-      const instructions = buildCoachInstructions(context.preferences)
+      const instructions = buildCoachInstructions(context.preferences, context.problem)
       const result = streamText({
         model: connector.createModel(),
         instructions,

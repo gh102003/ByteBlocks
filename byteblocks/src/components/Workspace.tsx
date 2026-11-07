@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
-import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
+import { GoalPanel, ComplexityPanel, DataflowPanel, CHALLENGES } from './Helpers'
+import type { ChallengeId } from './Helpers'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
@@ -53,6 +54,7 @@ export function Workspace({
     'saving',
   )
   const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
+  const [challenge, setChallenge] = useState<ChallengeId>('two-sum')
   const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
@@ -266,7 +268,7 @@ export function Workspace({
               aria-labelledby={`tab-${activeTab}`}
               tabIndex={0}
             >
-              {activeTab === 'Goal' && <GoalPanel />}
+              {activeTab === 'Goal' && <GoalPanel selected={challenge} onSelect={setChallenge} />}
               {activeTab === 'Complexity' && <ComplexityPanel />}
               {activeTab === 'Dataflow' && <DataflowPanel />}
               {activeTab === 'Output' && (
@@ -349,6 +351,7 @@ export function Workspace({
               code,
               execution: { status: runner.status, output: runner.output },
               preferences,
+              problem: `${CHALLENGES[challenge].title}: ${CHALLENGES[challenge].coachPrompt}`,
             }}
           />
         </div>

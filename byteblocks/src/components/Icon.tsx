@@ -15,6 +15,12 @@ type IconName =
   | 'shield'
   | 'code'
   | 'clear'
+  | 'puzzle'
+  | 'plus'
+  | 'trash'
+  | 'copy'
+  | 'eye'
+  | 'refresh'
 
 const paths: Record<IconName, string> = {
   play: 'm9 5 11 7-11 7V5Z',
@@ -33,6 +39,14 @@ const paths: Record<IconName, string> = {
   shield: 'M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Zm-4 9 3 3 5-6',
   code: 'm8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18',
   clear: 'M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6m4-6v6',
+  puzzle: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z',
+  plus: 'M12 5v14m-7-7h14',
+  trash:
+    'M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  copy: 'M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2zm-4 4h2v12h10v2H6a2 2 0 0 1-2-2V8z',
+  eye: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  refresh:
+    'M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15',
 }
 
 export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {

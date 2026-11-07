@@ -73,6 +73,14 @@
   align-items: center;
   gap: 10px;
 }
+.auth-profile-name {
+  max-width: 10rem;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .auth-avatar-img {
   object-fit: cover;
   padding: 0;

@@ -25,9 +25,15 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   completedAt: new Date().toISOString(),
 }
 
-export function getPreferences(): UserPreferences | null {
+function preferencesStorageKey(userId?: string): string {
+  return userId
+    ? `${PREFERENCES_STORAGE_KEY}.${userId}`
+    : PREFERENCES_STORAGE_KEY
+}
+
+export function getPreferences(userId?: string): UserPreferences | null {
   try {
-    const raw = sessionStorage.getItem(PREFERENCES_STORAGE_KEY)
+    const raw = sessionStorage.getItem(preferencesStorageKey(userId))
     if (!raw) return null
     return JSON.parse(raw) as UserPreferences
   } catch {
@@ -35,17 +41,17 @@ export function getPreferences(): UserPreferences | null {
   }
 }
 
-export function savePreferences(prefs: UserPreferences): void {
+export function savePreferences(prefs: UserPreferences, userId?: string): void {
   try {
-    sessionStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs))
+    sessionStorage.setItem(preferencesStorageKey(userId), JSON.stringify(prefs))
   } catch (err) {
     console.error('Failed to save preferences to sessionStorage:', err)
   }
 }
 
-export function clearPreferences(): void {
+export function clearPreferences(userId?: string): void {
   try {
-    sessionStorage.removeItem(PREFERENCES_STORAGE_KEY)
+    sessionStorage.removeItem(preferencesStorageKey(userId))
   } catch {
     // Ignore storage errors
   }

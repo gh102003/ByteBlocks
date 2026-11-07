@@ -6,7 +6,6 @@ import {
   type AdviceFormat,
   type LearningGoal,
   type UserPreferences,
-  savePreferences,
 } from '../preferences'
 import { Icon } from './Icon'
 import { NibbleSprite } from './NibbleSprite'
@@ -158,7 +157,6 @@ export function OnboardingModal({
       customNotes: customNotes.trim() || undefined,
       completedAt: new Date().toISOString(),
     }
-    savePreferences(prefs)
     onComplete(prefs)
   }
 

@@ -5,22 +5,32 @@ import App from './App'
 import 'katex/dist/katex.min.css'
 import './index.css'
 
-const domain =
-  import.meta.env.VITE_AUTH0_DOMAIN || 'dev-q7opyduoai7dkbn8.us.auth0.com'
-const clientId =
-  import.meta.env.VITE_AUTH0_CLIENT_ID || '2JqtI9GGIGVp3dj59RlvfvMIGOojLtFD'
+const domain = import.meta.env.VITE_AUTH0_DOMAIN
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID
+const root = createRoot(document.getElementById('root')!)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Auth0Provider
-      domain={domain}
-      clientId={clientId}
-      cacheLocation="localstorage"
-      authorizationParams={{
-        redirect_uri: window.location.origin,
-      }}
-    >
-      <App />
-    </Auth0Provider>
-  </StrictMode>,
-)
+if (!domain || !clientId) {
+  root.render(
+    <main className="auth-configuration-error">
+      <h1>Authentication needs configuration</h1>
+      <p>
+        Set <code>VITE_AUTH0_DOMAIN</code> and <code>VITE_AUTH0_CLIENT_ID</code>{' '}
+        before starting ByteBlocks.
+      </p>
+    </main>,
+  )
+} else {
+  root.render(
+    <StrictMode>
+      <Auth0Provider
+        domain={domain}
+        clientId={clientId}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+        }}
+      >
+        <App />
+      </Auth0Provider>
+    </StrictMode>,
+  )
+}

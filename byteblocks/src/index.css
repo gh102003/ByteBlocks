@@ -79,3 +79,9 @@ code {
   scrollbar-width: thin;
   scrollbar-color: var(--theme-border-strong) transparent;
 }
+.auth-configuration-error {
+  max-width: 34rem;
+  margin: 10vh auto;
+  padding: 2rem;
+  color: var(--theme-text);
+}

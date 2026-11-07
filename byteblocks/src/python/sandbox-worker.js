@@ -8,12 +8,21 @@ let initialized = false
 self.onmessage = async ({ data }) => {
   if (initialized) return
   initialized = true
-  const { code, assets } = data
+  const { code, assets, traceSource } = data
   let outputSize = 0
   let outputChunks = 0
   let outputLimited = false
   let pending = []
   let flushTimer
+  let traceSteps = []
+  let traceTruncated = false
+  const flushTrace = () => {
+    if (traceSteps.length || traceTruncated) {
+      send({ type: 'trace', steps: traceSteps, truncated: traceTruncated })
+      traceSteps = []
+      traceTruncated = false
+    }
+  }
 
   const flush = () => {
     clearTimeout(flushTimer)
@@ -108,14 +117,33 @@ self.onmessage = async ({ data }) => {
     send({ type: 'running' })
     const started = performance.now()
     try {
+      pyodide.runPython(traceSource)
+      const startTrace = pyodide.globals.get('_bb_start')
+      try {
+        startTrace(code, (payload) => {
+          const step = JSON.parse(payload)
+          if (step.truncated) traceTruncated = true
+          else traceSteps.push(step)
+          // Flush synchronously: Python can occupy the worker until it is
+          // terminated, so a JavaScript timer alone cannot preserve snapshots.
+          if (traceSteps.length >= 10 || traceTruncated) flushTrace()
+        })
+      } finally {
+        startTrace.destroy()
+      }
       // The filename gives useful source lines in errors. Top-level await is
       // supported as well as ordinary Python scripts.
       const result = await pyodide.runPythonAsync(code, {
         globals,
         filename: 'main.py',
         dedent: false,
+        // Execute as a script. Pyodide's default last-expression return uses a
+        // synthetic exception, which would otherwise appear in the recording.
+        return_mode: 'none',
       })
       result?.destroy?.()
+      pyodide.runPython('_bb_stop()')
+      flushTrace()
       pyodide.runPython('import sys; sys.stdout.flush(); sys.stderr.flush()')
       flush()
       if (!outputLimited)
@@ -124,6 +152,8 @@ self.onmessage = async ({ data }) => {
           duration: Math.round(performance.now() - started),
         })
     } catch (error) {
+      pyodide.runPython('_bb_stop()')
+      flushTrace()
       try {
         pyodide.runPython('import sys; sys.stdout.flush(); sys.stderr.flush()')
       } catch {

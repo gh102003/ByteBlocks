@@ -279,6 +279,45 @@ describe('AI coach', () => {
     ).not.toContain('target = 9')
   })
 
+  test('renders compact byteblocks payloads without exposing their JSON', async () => {
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
+      <CoachPanel
+        context={{ ...context, preferences: blockPreferences }}
+        connector={connector}
+      />,
+    )
+    await send('Make my two sum faster.')
+    reply.text(
+      'A lookup dictionary makes this O(n). byteblocks [{"type":"dict_create","varName":"lookup","startsEmpty":true}]',
+    )
+    reply.finish()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toMatchTextContent('create a dictionary')
+    expect(
+      document.querySelector('.message-markdown')?.textContent,
+    ).not.toContain('"type":"dict_create"')
+  })
+
+  test('shows an explicitly requested block diagram even with text advice selected', async () => {
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(<CoachPanel context={context} connector={connector} />)
+    await send('Can you send me a block diagram?')
+    reply.text(
+      'Use a lookup. ```byteblocks\n[{"type":"dict_create","varName":"lookup","startsEmpty":true}]\n```',
+    )
+    reply.finish()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toMatchTextContent('create a dictionary')
+    expect(
+      document.querySelector('.message-markdown')?.textContent,
+    ).not.toContain('"type":"dict_create"')
+  })
+
   test('stops an in-flight response, preserves partial text, and can send again', async () => {
     const partial = responseStream()
     const next = responseStream()

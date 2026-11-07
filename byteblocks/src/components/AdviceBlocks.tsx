@@ -1,6 +1,7 @@
 import { BLOCK_DEFINITIONS } from './blocks/definitions'
 import { BlockIcon } from './blocks/BlockIcon'
 import type { BlockItem, BlockType } from './blocks/types'
+import { findByteblocksPayload } from '../byteblocksText'
 
 const definitions = new Map(
   BLOCK_DEFINITIONS.filter(({ type }) => type !== 'custom_code').map(
@@ -9,10 +10,10 @@ const definitions = new Map(
 )
 
 function parseBlocks(text: string): BlockItem[] | null {
-  const match = text.match(/```byteblocks\s*([\s\S]*?)```/i)
-  if (!match) return null
+  const payload = findByteblocksPayload(text)
+  if (!payload) return null
   try {
-    const blocks = JSON.parse(match[1]) as unknown
+    const blocks = JSON.parse(payload.json) as unknown
     if (
       !Array.isArray(blocks) ||
       !blocks.every(

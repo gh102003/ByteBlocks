@@ -9,6 +9,7 @@ export type BlockType =
   | 'var_set'
   | 'var_change'
   | 'var_decrement'
+  | 'math_calculate'
   | 'list_item_math'
   | 'function_def'
   | 'return_val'
@@ -48,6 +49,8 @@ export type BlockCategory =
   | 'repeat'
   | 'decisions'
   | 'variables'
+  | 'maths'
+  | 'comments'
   | 'functions'
   | 'io'
   | 'data'
@@ -57,12 +60,19 @@ export type BlockCategory =
   | 'dictionaries'
   | 'presets'
 
+/** A beginner-friendly expression: either a literal number or a named variable. */
+export type ValueOperand =
+  { kind: 'number'; value: string } | { kind: 'variable'; name: string }
+
 export interface BlockItem {
   id: string
   type: BlockType
   varName?: string
   value?: string
-  /** Guided math and comparison fields; raw values remain supported for advanced projects. */
+  /** Typed operands used by the guided variable and maths blocks. */
+  valueOperand?: ValueOperand
+  rightOperand?: ValueOperand
+  /** Legacy fields retained so saved projects created before typed operands still load. */
   operator?: string
   rightValue?: string
   valueKind?: 'number' | 'variable'

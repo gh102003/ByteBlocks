@@ -2581,9 +2581,11 @@
 }
 
 .chunk-handle {
+  align-self: center;
   cursor: grab;
   color: var(--theme-text-subtle);
   font-size: 14px;
+  line-height: 1;
   user-select: none;
   padding: 0 2px;
 }
@@ -2756,6 +2758,12 @@
   color: #fbbf24;
 }
 
+.value-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .list-value-input {
   width: 58px;
   color: #c4b5fd;
@@ -2765,7 +2773,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #cbd5e1;
+  color: inherit;
   font-size: 11px;
   cursor: pointer;
 }

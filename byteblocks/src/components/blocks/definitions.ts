@@ -155,9 +155,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     bgHover: '#60a5fa1a',
     defaultValues: {
       varName: 'x',
-      value: '10',
-      operator: '',
-      rightValue: '',
+      valueOperand: { kind: 'number', value: '10' },
     },
   },
   {
@@ -169,7 +167,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     bgHover: '#3b82f61a',
     defaultValues: {
       varName: 'x',
-      value: '1',
+      valueOperand: { kind: 'number', value: '1' },
     },
   },
   {
@@ -181,12 +179,26 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     bgHover: '#3b82f61a',
     defaultValues: {
       varName: 'x',
-      value: '1',
+      valueOperand: { kind: 'number', value: '1' },
+    },
+  },
+  {
+    type: 'math_calculate',
+    category: 'maths',
+    label: 'calculate a value',
+    color: '#7c3aed',
+    borderColor: '#a78bfa',
+    bgHover: '#a78bfa1a',
+    defaultValues: {
+      varName: 'total',
+      valueOperand: { kind: 'number', value: '0' },
+      operator: '+',
+      rightOperand: { kind: 'number', value: '0' },
     },
   },
   {
     type: 'list_item_math',
-    category: 'variables',
+    category: 'maths',
     label: 'combine items from a list',
     color: '#1d4ed8',
     borderColor: '#3b82f6',
@@ -485,7 +497,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   // --- Utility ---
   {
     type: 'comment',
-    category: 'variables',
+    category: 'comments',
     label: '# add comment',
     color: '#475569',
     borderColor: '#94a3b8',

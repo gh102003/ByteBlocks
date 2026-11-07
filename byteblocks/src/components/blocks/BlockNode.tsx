@@ -71,6 +71,71 @@ export function BlockNode({
 
   const renderInputs = () => {
     switch (block.type) {
+      case 'stack_create':
+      case 'stack_add':
+      case 'stack_remove':
+      case 'stack_peek':
+      case 'stack_size':
+      case 'stack_empty':
+      case 'stack_clear':
+      case 'queue_create':
+      case 'queue_add':
+      case 'queue_remove':
+      case 'queue_peek':
+      case 'queue_size':
+      case 'queue_empty':
+      case 'queue_clear':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">{def.label}</span>
+            <input
+              aria-label={
+                block.type.endsWith('_create') ? 'Name' : 'Stack or queue'
+              }
+              className="chunk-input var-input"
+              value={
+                (block.type.endsWith('_create')
+                  ? block.varName
+                  : block.listName) ?? ''
+              }
+              onChange={(e) =>
+                handleUpdateField(
+                  block.type.endsWith('_create') ? 'varName' : 'listName',
+                  e.target.value,
+                )
+              }
+            />
+            {(block.type.endsWith('_create') ||
+              block.type.endsWith('_add')) && (
+              <input
+                aria-label={
+                  block.type.endsWith('_create') ? 'Initial values' : 'Item'
+                }
+                className="chunk-input expr-input"
+                placeholder={
+                  block.type.endsWith('_create')
+                    ? 'initial values, comma separated'
+                    : 'item'
+                }
+                value={block.value ?? ''}
+                onChange={(e) => handleUpdateField('value', e.target.value)}
+              />
+            )}
+            {['_remove', '_peek', '_size', '_empty'].some((suffix) =>
+              block.type.endsWith(suffix),
+            ) && (
+              <>
+                <span className="chunk-label">into</span>
+                <input
+                  aria-label="Result variable"
+                  className="chunk-input var-input"
+                  value={block.varName ?? ''}
+                  onChange={(e) => handleUpdateField('varName', e.target.value)}
+                />
+              </>
+            )}
+          </div>
+        )
       case 'comment':
         return (
           <div className="chunk-inputs">

@@ -58,9 +58,16 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         break
       }
 
+      case 'var_decrement': {
+        const name = block.varName?.trim() || 'x'
+        const val = block.value?.trim() || '1'
+        lines.push(`${indent}${name} -= ${val}`)
+        break
+      }
+
       case 'list_item_math': {
         const name = block.varName?.trim() || 'total'
-        const list = block.sourceList?.trim() || 'numbers'
+        const list = block.sourceList?.trim() || ''
         const operator = block.operator?.trim() || '+'
         lines.push(
           `${indent}${name} = ${listItemExpression(list, block.firstItem)} ${operator} ${listItemExpression(list, block.secondItem)}`,
@@ -89,11 +96,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const rangeExpr = start ? `${start}, ${count}` : count
         lines.push(`${indent}for ${varName} in range(${rangeExpr}):`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -102,11 +105,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const listName = block.listName?.trim() || 'items'
         lines.push(`${indent}for ${itemVar} in ${listName}:`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -114,11 +113,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const condition = guidedCondition(block)
         lines.push(`${indent}while ${condition}:`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -126,11 +121,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const condition = guidedCondition(block)
         lines.push(`${indent}if ${condition}:`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -138,18 +129,10 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const condition = guidedCondition(block)
         lines.push(`${indent}if ${condition}:`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
 
         lines.push(`${indent}else:`)
-        if (block.elseChildren && block.elseChildren.length > 0) {
-          lines.push(generatePythonBody(block.elseChildren, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.elseChildren, indentLevel))
         break
       }
 
@@ -157,11 +140,7 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const value = block.valueVariable?.trim() || 'item'
         const collection = block.collectionName?.trim() || 'items'
         lines.push(`${indent}if ${value} in ${collection}:`)
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -172,14 +151,12 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'function_def': {
         const name = block.funcName?.trim() || 'my_function'
-        const args = block.funcArgs?.trim() || ''
+        const args = block.functionArgs
+          ? block.functionArgs.filter((arg) => arg.trim()).join(', ')
+          : block.funcArgs?.trim() || ''
         lines.push(`${indent}def ${name}(${args}):`)
 
-        if (block.children && block.children.length > 0) {
-          lines.push(generatePythonBody(block.children, indentLevel + 1))
-        } else {
-          lines.push(`${indent}    pass`)
-        }
+        lines.push(containerBody(block.children, indentLevel))
         break
       }
 
@@ -192,7 +169,8 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
       case 'function_call': {
         const name = block.funcName?.trim() || 'my_function'
         const args = block.funcArgs?.trim() || ''
-        lines.push(`${indent}${name}(${args})`)
+        const result = block.varName?.trim()
+        lines.push(`${indent}${result ? `${result} = ` : ''}${name}(${args})`)
         break
       }
 
@@ -211,6 +189,22 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         const listName = block.listName?.trim() || 'my_list'
         const val = block.value?.trim() || 'item'
         lines.push(`${indent}${listName}.append(${val})`)
+        break
+      }
+
+      case 'list_get': {
+        const result = block.varName?.trim() || 'item'
+        const list = block.listName?.trim() || 'None'
+        const index = block.valueIndexValue?.trim() || '0'
+        lines.push(`${indent}${result} = ${list}[${index}]`)
+        break
+      }
+
+      case 'list_remove': {
+        const list = block.listName?.trim() || 'None'
+        const target = block.value?.trim() || '0'
+        const method = block.listRemoveMode === 'value' ? 'remove' : 'pop'
+        lines.push(`${indent}${list}.${method}(${target})`)
         break
       }
 
@@ -395,6 +389,23 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
   return lines.join('\n')
 }
 
+function containerBody(
+  children: BlockItem[] | undefined,
+  indentLevel: number,
+): string {
+  const body = children?.length
+    ? generatePythonBody(children, indentLevel + 1)
+    : ''
+  const nonEmptyLines = body.split('\n').filter((line) => line.trim())
+  const hasStatement = nonEmptyLines.some((line) => {
+    const trimmed = line.trim()
+    return trimmed && !trimmed.startsWith('#')
+  })
+  return hasStatement
+    ? body
+    : `${nonEmptyLines.length ? `${nonEmptyLines.join('\n')}\n` : ''}${'    '.repeat(indentLevel + 1)}pass`
+}
+
 function guidedCondition(block: BlockItem): string {
   const left = block.conditionLeft?.trim()
   const operator = block.conditionOperator?.trim()
@@ -408,6 +419,7 @@ function listItemExpression(
   list: string,
   position: BlockItem['firstItem'],
 ): string {
+  if (!list) return 'None'
   switch (position) {
     case 'first':
       return `${list}[0]`
@@ -421,10 +433,5 @@ function listItemExpression(
 
 function guidedValue(block: BlockItem): string {
   if (block.valueKind === 'variable') return block.valueVariable?.trim() || '0'
-  if (block.valueKind === 'list_item')
-    return listItemExpression(
-      block.valueList?.trim() || 'numbers',
-      block.valueIndex,
-    )
   return block.value?.trim() || '0'
 }

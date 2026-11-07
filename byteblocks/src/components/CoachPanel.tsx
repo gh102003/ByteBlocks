@@ -9,6 +9,7 @@ import { createCoachTransport } from '../ai/transport'
 import type { CoachContext } from '../ai/transport'
 import type { UserPreferences } from '../preferences'
 import { Icon } from './Icon'
+import { AdviceBlocks } from './AdviceBlocks'
 
 function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
   const level = prefs?.level
@@ -48,6 +49,14 @@ function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
       ],
     },
   ]
+}
+
+function withoutAdviceBlocks(text: string): string {
+  return text.replace(/```byteblocks\s*[\s\S]*?```/gi, '').trim()
+}
+
+function withoutNonBlockCode(text: string): string {
+  return text.replace(/```(?!byteblocks\b)[\s\S]*?```/gi, '').trim()
 }
 
 export function CoachPanel({
@@ -165,8 +174,13 @@ export function CoachPanel({
                           ),
                         }}
                       >
-                        {part.text}
+                        {effectivePreferences?.adviceFormat === 'blocks'
+                          ? withoutNonBlockCode(withoutAdviceBlocks(part.text))
+                          : part.text}
                       </Markdown>
+                      {effectivePreferences?.adviceFormat === 'blocks' && (
+                        <AdviceBlocks text={part.text} />
+                      )}
                     </div>
                   ) : (
                     <p key={index}>{part.text}</p>

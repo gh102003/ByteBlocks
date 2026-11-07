@@ -1,10 +1,10 @@
 import type { BlockDefinition } from './types'
 
 export const BLOCK_DEFINITIONS: BlockDefinition[] = [
-  // --- Control & Loops ---
+  // --- Repeat ---
   {
     type: 'for_range',
-    category: 'control',
+    category: 'repeat',
     label: 'repeat a number of times',
     color: '#e06c3a',
     borderColor: '#f97316',
@@ -19,7 +19,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'for_in',
-    category: 'control',
+    category: 'repeat',
     label: 'for every item in a list',
     color: '#d97706',
     borderColor: '#f59e0b',
@@ -33,7 +33,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'while_loop',
-    category: 'control',
+    category: 'repeat',
     label: 'repeat while true',
     color: '#b45309',
     borderColor: '#d97706',
@@ -49,7 +49,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'if_condition',
-    category: 'control',
+    category: 'decisions',
     label: 'if something is true',
     color: '#0284c7',
     borderColor: '#38bdf8',
@@ -65,7 +65,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'if_else',
-    category: 'control',
+    category: 'decisions',
     label: 'if / otherwise',
     color: '#0369a1',
     borderColor: '#0ea5e9',
@@ -83,7 +83,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'if_collection_contains',
-    category: 'control',
+    category: 'decisions',
     label: 'if a list has an item',
     color: '#0284c7',
     borderColor: '#38bdf8',
@@ -97,7 +97,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: 'break_loop',
-    category: 'control',
+    category: 'repeat',
     label: 'break out of loop',
     color: '#be123c',
     borderColor: '#f43f5e',
@@ -116,14 +116,14 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     isContainer: true,
     defaultValues: {
       funcName: 'calculate',
-      funcArgs: 'a, b',
+      functionArgs: ['a', 'b', ''],
       children: [],
     },
   },
   {
     type: 'return_val',
     category: 'functions',
-    label: 'return value',
+    label: 'return a value',
     color: '#6d28d9',
     borderColor: '#8b5cf6',
     bgHover: '#8b5cf61a',
@@ -141,6 +141,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     defaultValues: {
       funcName: 'print',
       funcArgs: '"done"',
+      varName: '',
     },
   },
 
@@ -148,14 +149,13 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'var_set',
     category: 'variables',
-    label: 'make a variable',
+    label: 'set a variable',
     color: '#2563eb',
     borderColor: '#60a5fa',
     bgHover: '#60a5fa1a',
     defaultValues: {
       varName: 'x',
       value: '10',
-      valueKind: 'number',
       operator: '',
       rightValue: '',
     },
@@ -163,7 +163,19 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'var_change',
     category: 'variables',
-    label: 'change a variable',
+    label: 'increment a variable',
+    color: '#1d4ed8',
+    borderColor: '#3b82f6',
+    bgHover: '#3b82f61a',
+    defaultValues: {
+      varName: 'x',
+      value: '1',
+    },
+  },
+  {
+    type: 'var_decrement',
+    category: 'variables',
+    label: 'decrement a variable',
     color: '#1d4ed8',
     borderColor: '#3b82f6',
     bgHover: '#3b82f61a',
@@ -238,6 +250,24 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
       listName: 'numbers',
       value: '5',
     },
+  },
+  {
+    type: 'list_get',
+    category: 'data',
+    label: 'get an item from a list',
+    color: '#4338ca',
+    borderColor: '#6366f1',
+    bgHover: '#6366f11a',
+    defaultValues: { varName: 'item', listName: '', valueIndexValue: '0' },
+  },
+  {
+    type: 'list_remove',
+    category: 'data',
+    label: 'remove an item from a list',
+    color: '#4338ca',
+    borderColor: '#6366f1',
+    bgHover: '#6366f11a',
+    defaultValues: { listName: '', listRemoveMode: 'index', value: '0' },
   },
   {
     type: 'dict_create',

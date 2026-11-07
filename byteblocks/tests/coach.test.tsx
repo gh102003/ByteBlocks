@@ -3,6 +3,7 @@ import { page, userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
 import type { CoachContext } from '../src/ai/transport'
+import type { UserPreferences } from '../src/preferences'
 import { CoachPanel } from '../src/components/CoachPanel'
 import '../src/index.css'
 import '../src/App.css'
@@ -18,6 +19,16 @@ const context: CoachContext = {
     status: 'success',
     output: [{ kind: 'stdout', text: '[0, 1]\n' }],
   },
+  blocks: [{ id: 'example-1', type: 'var_set', varName: 'target', value: '9' }],
+}
+
+const blockPreferences: UserPreferences = {
+  level: 'intermediate',
+  feedbackStyle: 'detailed',
+  goal: 'algorithms',
+  tone: 'pragmatic',
+  adviceFormat: 'blocks',
+  completedAt: '2026-01-01T00:00:00.000Z',
 }
 
 // Exercise the actual OpenAI connector and SDK parser without paid API calls.
@@ -138,6 +149,12 @@ describe('AI coach', () => {
     expect(body.store).toBe(false)
     expect(JSON.stringify(body.input)).toContain('print(two_sum([2, 7], 9))')
     expect(JSON.stringify(body.input)).toContain('[0, 1]')
+    expect(JSON.stringify(body.input)).toContain('example-1')
+    expect(JSON.stringify(body.input)).toContain('make a variable')
+    expect(JSON.stringify(body.input)).toContain('YOUR ROLE AND BOUNDARIES')
+    expect(JSON.stringify(body.input)).toContain(
+      'Do not answer unrelated requests',
+    )
     expect(body.tools ?? []).toEqual([])
 
     await screen.rerender(
@@ -204,6 +221,32 @@ describe('AI coach', () => {
         JSON.parse(requests.mock.calls[1][1]!.body as string).input,
       ),
     ).toContain('Explain my result.')
+  })
+
+  test('enforces the blocks preference in the rendered reply', async () => {
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
+      <CoachPanel
+        context={{ ...context, preferences: blockPreferences }}
+        connector={connector}
+      />,
+    )
+    await send('Show me how to set a target.')
+    reply.text(
+      'Use this block:\n\n```byteblocks\n[{"type":"var_set","varName":"target","value":"9"}]\n```\n\n```python\ntarget = 9\n```',
+    )
+    reply.finish()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toBeVisible()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toMatchTextContent('target = 9')
+    expect(document.querySelector('.message-markdown pre')).toBeNull()
+    expect(
+      document.querySelector('.message-markdown')?.textContent,
+    ).not.toContain('target = 9')
   })
 
   test('stops an in-flight response, preserves partial text, and can send again', async () => {

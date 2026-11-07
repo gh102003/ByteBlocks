@@ -10,6 +10,7 @@ import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
 import { STARTER_CODE } from '../starter'
 import type { UserPreferences } from '../preferences'
+import type { BlockItem } from './blocks/types'
 
 interface WorkspaceProps {
   onNavigateHome: () => void
@@ -43,6 +44,7 @@ export function Workspace({
   const [columnSplit, setColumnSplit] = useState(50)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
+  const [blocks, setBlocks] = useState<BlockItem[]>([])
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
@@ -182,6 +184,7 @@ export function Workspace({
                 setCode(nextCode)
                 setSaved('saving')
               }}
+              onBlocksChange={setBlocks}
               onRun={run}
             />
           ) : (
@@ -381,6 +384,7 @@ export function Workspace({
               code,
               execution: { status: runner.status, output: runner.output },
               preferences,
+              blocks,
             }}
           />
         </div>

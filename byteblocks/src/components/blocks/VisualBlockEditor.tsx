@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import type { BlockItem } from './types'
 import { generatePython } from './generator'
 import { BlockPalette } from './BlockPalette'
@@ -8,6 +8,7 @@ import { Icon } from '../Icon'
 
 interface VisualBlockEditorProps {
   onPythonChange: (code: string) => void
+  onBlocksChange?: (blocks: BlockItem[]) => void
   onRun?: () => void
 }
 
@@ -75,6 +76,7 @@ function findVariableNames(blocks: BlockItem[]): {
 
 export function VisualBlockEditor({
   onPythonChange,
+  onBlocksChange,
   onRun,
 }: VisualBlockEditorProps) {
   const [blocks, setBlocks] = useState<BlockItem[]>(loadSavedBlocks)
@@ -88,19 +90,26 @@ export function VisualBlockEditor({
   }, [blocks])
   const variables = useMemo(() => findVariableNames(blocks), [blocks])
 
+  useEffect(() => {
+    onBlocksChange?.(blocks)
+  }, [blocks, onBlocksChange])
+
+  useEffect(() => {
+    onPythonChange(generatedCode)
+  }, [generatedCode, onPythonChange])
+
   // Sync python code whenever blocks change
   const updateBlocks = useCallback(
     (newBlocks: BlockItem[]) => {
       setBlocks(newBlocks)
+      onBlocksChange?.(newBlocks)
       try {
         localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
       } catch {
         // ignore
       }
-      const py = generatePython(newBlocks)
-      onPythonChange(py)
     },
-    [onPythonChange],
+    [onBlocksChange],
   )
 
   const handleAddTopLevelBlock = (block: BlockItem) => {

@@ -107,8 +107,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-beforeEach(() => {
-  cleanup()
+beforeEach(async () => {
+  await cleanup()
 })
 
 describe('AI coach', () => {

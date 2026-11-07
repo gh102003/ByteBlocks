@@ -34,7 +34,12 @@ export function NibbleSprite({
           </>
         )}
         {mascot === 'bite' && <i className="bite-mouth" />}
-        {mascot === 'chop' && <i className="chop-snout" />}
+        {mascot === 'chop' && (
+          <>
+            <i className="chop-snout" />
+            <i className="chop-mouth" />
+          </>
+        )}
       </span>
       {standing && (
         <>

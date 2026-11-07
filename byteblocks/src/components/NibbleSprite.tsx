@@ -23,12 +23,7 @@ export function NibbleSprite({
           <span className="nibble-ear nibble-ear-right" />
         </>
       )}
-      {mascot === 'chomp' && (
-        <>
-          <span className="chomp-neck" />
-          <span className="chomp-spines" />
-        </>
-      )}
+      {mascot === 'chomp' && <span className="chomp-spines" />}
       <span className="nibble-face">
         <i className="nibble-eye nibble-eye-left" />
         <i className="nibble-eye nibble-eye-right" />

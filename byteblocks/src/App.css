@@ -899,48 +899,29 @@
   background: #3a1820;
 }
 .nibble-sprite-chomp .nibble-face {
-  left: var(--nibble-unit);
-  top: 0;
-  bottom: auto;
-  width: calc(var(--nibble-unit) * 5);
-  height: calc(var(--nibble-unit) * 4);
   background: #55ae65;
   box-shadow:
     inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #24724a,
     inset var(--nibble-unit) var(--nibble-unit) #98db80;
 }
 .nibble-sprite-chomp .nibble-eye {
-  top: var(--nibble-unit);
   background: #153f36;
-}
-.nibble-sprite-chomp .nibble-eye-left {
-  left: var(--nibble-unit);
-}
-.chomp-neck {
-  position: absolute;
-  left: calc(var(--nibble-unit) * 2);
-  top: calc(var(--nibble-unit) * 3);
-  width: calc(var(--nibble-unit) * 2);
-  height: calc(var(--nibble-unit) * 4);
-  background: #55ae65;
-  box-shadow:
-    inset var(--nibble-unit) 0 #98db80,
-    inset 0 calc(var(--nibble-unit) * -1) #24724a;
 }
 .chomp-spines {
   position: absolute;
+  z-index: 2;
   left: var(--nibble-unit);
-  top: calc(var(--nibble-unit) * 3);
-  width: var(--nibble-unit);
-  height: calc(var(--nibble-unit) * 4);
+  top: var(--nibble-unit);
+  width: calc(var(--nibble-unit) * 3);
+  height: var(--nibble-unit);
   background: #d94b42;
   box-shadow:
-    0 calc(var(--nibble-unit) * -1) #ff8573,
-    0 calc(var(--nibble-unit) * 4) #a62d36;
+    var(--nibble-unit) calc(var(--nibble-unit) * -1) #ff8573,
+    calc(var(--nibble-unit) * 2) 0 #a62d36;
 }
 .chomp-snout {
   position: absolute;
-  right: calc(var(--nibble-unit) * -1);
+  right: 0;
   bottom: 0;
   width: calc(var(--nibble-unit) * 2);
   height: calc(var(--nibble-unit) * 2);
@@ -949,8 +930,8 @@
 }
 .chomp-mouth {
   position: absolute;
-  right: calc(var(--nibble-unit) * -1);
-  bottom: calc(var(--nibble-unit) * -1);
+  right: 0;
+  bottom: 0;
   width: calc(var(--nibble-unit) * 2);
   height: var(--nibble-unit);
   background: #153f36;

@@ -2814,6 +2814,7 @@
   min-height: 0;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
 .blocks-canvas {
@@ -3534,46 +3535,140 @@
   filter: grayscale(1);
 }
 
+.python-editor-active {
+  position: absolute;
+  z-index: 3;
+  inset: 16px 16px 16px auto;
+  width: min(560px, calc(100% - 32px));
+  min-width: 280px;
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+}
+
 .preview-edit-trigger {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
   width: 100%;
   border: 0;
-  background: transparent;
   color: inherit;
   text-align: left;
   cursor: text;
 }
 
-.preview-edit-hint {
-  display: block;
-  padding: 8px 16px;
-  color: var(--theme-text-muted);
-  font-size: 11px;
+.preview-edit-trigger:hover .python-code-display {
+  color: var(--theme-text);
 }
 
-.python-editor-active {
-  flex: 1 1 55%;
-  width: auto;
-  min-width: 0;
-}
-
-.blocks-mode-overlay {
+.editor-dismiss-layer {
   position: absolute;
-  inset: 36px auto 0 0;
-  width: min(52%, 520px);
   z-index: 2;
+  inset: 0;
   border: 0;
   background: transparent;
-  color: transparent;
+  cursor: default;
+}
+
+.python-logo {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.code-discard-dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.code-discard-dialog {
+  width: min(440px, 100%);
+  padding: 22px;
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.code-discard-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--theme-text);
+}
+
+.code-discard-dialog p {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.code-discard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dialog-secondary-btn,
+.dialog-danger-btn {
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 650;
   cursor: pointer;
 }
 
-.blocks-mode-overlay:focus-visible {
-  outline: 2px solid var(--theme-info);
-  outline-offset: -4px;
+.dialog-secondary-btn {
+  border: 1px solid var(--theme-border-strong);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+}
+
+.dialog-danger-btn {
+  border: 1px solid var(--theme-danger);
+  background: var(--theme-danger);
+  color: white;
+}
+
+.block-delete-dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.block-delete-dialog {
+  width: min(360px, 100%);
+  padding: 22px;
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.block-delete-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--theme-text);
+}
+
+.block-delete-dialog p {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 13px;
+}
+
+.block-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
 }
 
 .palette-heading-row {

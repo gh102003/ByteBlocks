@@ -1,7 +1,15 @@
 import { useChat } from '@ai-sdk/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import type { FormEvent } from 'react'
 import Markdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import type { UIMessage } from 'ai'
 import { getChatConnector } from '../ai/connector'
 import type { ChatConnector } from '../ai/connector'
@@ -33,14 +41,14 @@ function getInitialCoachMessages(
             ? 'production code review'
             : ''
 
-  let welcomeText = `Hi, I’m ${name}! Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
+  let welcomeText = `Hi, I’m ${name}! Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
 
   if (level === 'senior') {
-    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate Two Sum: inspect the dictionary approach, time/space amortized bounds, and edge cases with duplicates or memory overhead.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate your current challenge and its tradeoffs.`
   } else if (level === 'beginner') {
-    welcomeText = `Hi, I’m ${name}! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum step-by-step. Try running the code first to see how it works!`
+    welcomeText = `Hi, I’m ${name}! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge step-by-step. Try running the code first to see how it works!`
   } else if (level) {
-    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
   }
 
   return [
@@ -65,13 +73,21 @@ function withoutNonBlockCode(text: string): string {
   return text.replace(/```(?!byteblocks\b)[\s\S]*?```/gi, '').trim()
 }
 
+export type CoachHandle = { checkWork: () => void }
+
 export function CoachPanel({
   context,
   connector: suppliedConnector,
+  coachRef,
+  onAssessment,
+  onAvailability,
   onOpenPreferences,
 }: {
   context: CoachContext
   connector?: ChatConnector
+  coachRef?: React.Ref<CoachHandle>
+  onAssessment?: (result: 'advance' | 'bonus' | 'skip') => void
+  onAvailability?: (busy: boolean, unavailable: boolean) => void
   onOpenPreferences?: () => void
 }) {
   const effectivePreferences = context.preferences
@@ -98,13 +114,47 @@ export function CoachPanel({
     () => getInitialCoachMessages(effectivePreferences, resolvedLevel),
     [effectivePreferences, resolvedLevel],
   )
+  const assessmentPending = useRef(false)
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
     transport,
     messages: initialMessages,
+    onFinish: ({ message, isAbort, isError }) => {
+      if (!assessmentPending.current) return
+      assessmentPending.current = false
+      if (isAbort || isError) return
+      const text = message.parts
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text)
+        .join('')
+      const result = text.match(/\[\[PROGRESS:(advance|bonus|skip)\]\]/)?.[1]
+      if (result === 'advance' || result === 'bonus' || result === 'skip')
+        onAssessment?.(result)
+    },
+    onError: () => {
+      assessmentPending.current = false
+    },
   })
   const [draft, setDraft] = useState('')
   const coachEnd = useRef<HTMLDivElement>(null)
   const busy = status === 'submitted' || status === 'streaming'
+
+  useImperativeHandle(
+    coachRef,
+    () => ({
+      checkWork: () => {
+        if (busy || connector.configurationError) return
+        assessmentPending.current = true
+        void sendMessage({
+          text: 'I passed the test cases. Please give me feedback on my solution and, if this is the final stage, decide whether to offer the bonus.',
+        })
+      },
+    }),
+    [busy, connector.configurationError, sendMessage],
+  )
+
+  useEffect(() => {
+    onAvailability?.(busy, !!connector.configurationError)
+  }, [busy, connector.configurationError, onAvailability])
 
   useEffect(() => {
     const container = coachEnd.current?.parentElement
@@ -172,30 +222,41 @@ export function CoachPanel({
               </div>
               {message.parts.map((part, index) =>
                 part.type === 'text' ? (
-                  message.role === 'assistant' ? (
-                    <div className="message-markdown" key={index}>
-                      <Markdown
-                        skipHtml
-                        disallowedElements={['img']}
-                        components={{
-                          a: ({ children, href }) => (
-                            <a href={href} target="_blank" rel="noreferrer">
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {effectivePreferences?.adviceFormat === 'blocks'
-                          ? withoutNonBlockCode(withoutAdviceBlocks(part.text))
-                          : part.text}
-                      </Markdown>
-                      {effectivePreferences?.adviceFormat === 'blocks' && (
+                  <div className="message-markdown" key={index}>
+                    <Markdown
+                      skipHtml
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                      disallowedElements={['img']}
+                      components={{
+                        a: ({ children, href }) => (
+                          <a href={href} target="_blank" rel="noreferrer">
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.role === 'assistant'
+                        ? effectivePreferences?.adviceFormat === 'blocks'
+                          ? withoutNonBlockCode(
+                              withoutAdviceBlocks(
+                                part.text.replace(
+                                  /\[\[PROGRESS:(?:advance|bonus|skip)\]\]/g,
+                                  '',
+                                ),
+                              ),
+                            )
+                          : part.text.replace(
+                              /\[\[PROGRESS:(?:advance|bonus|skip)\]\]/g,
+                              '',
+                            )
+                        : part.text}
+                    </Markdown>
+                    {message.role === 'assistant' &&
+                      effectivePreferences?.adviceFormat === 'blocks' && (
                         <AdviceBlocks text={part.text} />
                       )}
-                    </div>
-                  ) : (
-                    <p key={index}>{part.text}</p>
-                  )
+                  </div>
                 ) : null,
               )}
             </div>
@@ -203,8 +264,8 @@ export function CoachPanel({
         ))}
         {messages.length === 1 && (
           <div className="suggested-prompts">
-            <button onClick={() => setDraft('Why use a dictionary here?')}>
-              Why use a dictionary?
+            <button onClick={() => setDraft('How should I start this stage?')}>
+              How should I start?
               <Icon name="arrow" size={13} />
             </button>
             <button

@@ -1,10 +1,10 @@
+import { createRef } from 'react'
+import type { CoachHandle } from '../src/components/CoachPanel'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
-import { buildCoachInstructions } from '../src/ai/transport'
 import type { CoachContext } from '../src/ai/transport'
-import { resolveMentorLevel } from '../src/ai/mentorLevel'
 import type { UserPreferences } from '../src/preferences'
 import { CoachPanel } from '../src/components/CoachPanel'
 import '../src/index.css'
@@ -108,63 +108,32 @@ afterEach(() => {
 })
 
 describe('AI coach', () => {
-  test('selects a distinct assistant identity for each experience level', async () => {
-    const screen = await render(
+  test('only applies a completed explicit assessment and hides the progress marker', async () => {
+    const assessment = vi.fn()
+    const ref = createRef<CoachHandle>()
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
       <CoachPanel
         context={{
           ...context,
-          preferences: { ...blockPreferences, level: 'intermediate' },
+          progression: { finalStage: true, bonus: false },
         }}
         connector={connector}
+        coachRef={ref}
+        onAssessment={assessment}
       />,
     )
+    ref.current!.checkWork()
     await expect
-      .element(page.getByRole('strong', { name: 'Bite', exact: true }))
+      .element(page.getByRole('button', { name: 'Stop response' }))
       .toBeVisible()
-    await screen.rerender(
-      <CoachPanel
-        context={{
-          ...context,
-          preferences: { ...blockPreferences, level: 'senior' },
-        }}
-        connector={connector}
-      />,
-    )
-    await expect
-      .element(page.getByRole('strong', { name: 'Chomp', exact: true }))
-      .toBeVisible()
-  })
-
-  test('gives each mentor a distinct response personality', () => {
+    reply.text('Good work! [[PROGRESS:bonus]]')
+    reply.finish()
+    await vi.waitFor(() => expect(assessment).toHaveBeenCalledWith('bonus'))
     expect(
-      buildCoachInstructions({ ...blockPreferences, level: 'beginner' }),
-    ).toContain('Nibble is gentle, curious, and cheerfully patient')
-    expect(
-      buildCoachInstructions({ ...blockPreferences, level: 'intermediate' }),
-    ).toContain('Bite is upbeat, brave, and motivating')
-    expect(
-      buildCoachInstructions({ ...blockPreferences, level: 'senior' }),
-    ).toContain('Chomp is calm, observant, and exact')
-  })
-
-  test('uses local run signals to select an auto mentor', () => {
-    const emptyRun = { output: [] }
-    expect(resolveMentorLevel('auto', 'print(', emptyRun)).toBe('beginner')
-    expect(
-      resolveMentorLevel('auto', 'for item in items:\n  print(item)', emptyRun),
-    ).toBe('intermediate')
-    expect(
-      resolveMentorLevel(
-        'auto',
-        'async def fetch() -> str:\n  return "ok"',
-        emptyRun,
-      ),
-    ).toBe('senior')
-    expect(
-      resolveMentorLevel('auto', 'print(1)', {
-        output: [{ kind: 'stderr', text: 'SyntaxError: invalid syntax' }],
-      }),
-    ).toBe('beginner')
+      document.querySelector('.coach-messages')?.textContent,
+    ).not.toContain('[[PROGRESS:bonus]]')
   })
 
   test('streams Markdown and sends history with the latest code and output directly to the provider', async () => {

@@ -1,16 +1,18 @@
 import { ThemeToggle } from './ThemeToggle'
-import { useEffect, useRef, useState } from 'react'
-import { CodeEditor } from './CodeEditor'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
+import type { BlockItem } from './blocks/types'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
-import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
+import { GoalPanel, ComplexityPanel } from './Helpers'
+import { ExecutionVisualizer } from './ExecutionVisualizer'
+import { CHALLENGES } from './challenges'
+import type { ChallengeId } from './challenges'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
 import { STARTER_CODE } from '../starter'
 import type { UserPreferences } from '../preferences'
-import type { BlockItem } from './blocks/types'
 
 interface WorkspaceProps {
   onNavigateHome: () => void
@@ -18,9 +20,10 @@ interface WorkspaceProps {
   preferences: UserPreferences | null
 }
 
-type HelperTab = 'Goal' | 'Complexity' | 'Dataflow' | 'Output'
+type HelperTab = 'Goal' | 'Complexity' | 'Visualizer' | 'Output'
 const STORAGE_KEY = 'byteblocks.main.py'
-const TABS: HelperTab[] = ['Goal', 'Complexity', 'Dataflow', 'Output']
+const EDITOR_MODE_KEY = 'byteblocks.editor.mode'
+const TABS: HelperTab[] = ['Goal', 'Complexity', 'Visualizer', 'Output']
 
 function readCode() {
   try {
@@ -30,24 +33,61 @@ function readCode() {
   }
 }
 
+function readEditorMode(): 'blocks' | 'code' {
+  try {
+    const mode = localStorage.getItem(EDITOR_MODE_KEY)
+    if (mode === 'blocks' || mode === 'code') return mode
+    // Existing saved source must not be overwritten by the initial blocks.
+    return localStorage.getItem(STORAGE_KEY) === null ? 'blocks' : 'code'
+  } catch {
+    return 'blocks'
+  }
+}
+
 export function Workspace({
   onNavigateHome,
   onOpenPreferences,
   preferences,
 }: WorkspaceProps) {
   const [code, setCode] = useState(readCode)
-  const [editorTab, setEditorTab] = useState<'blocks' | 'code'>('blocks')
+  const [editorTab, setEditorTab] = useState(readEditorMode)
+  const [hasCodeEdits, setHasCodeEdits] = useState(false)
+  const selectEditorTab = (mode: 'blocks' | 'code') => {
+    if (mode === 'blocks' && editorTab === 'code' && hasCodeEdits) {
+      const confirmed = window.confirm(
+        'Switching back to blocks will replace your code edits with the generated code. Continue?',
+      )
+      if (!confirmed) return
+    }
+    setEditorTab(mode)
+    if (mode === 'blocks') setHasCodeEdits(false)
+    try {
+      localStorage.setItem('byteblocks.editor.mode', mode)
+    } catch {
+      /* Storage is optional. */
+    }
+  }
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unavailable'>(
     'saving',
   )
-  const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
-  const [columnSplit, setColumnSplit] = useState(50)
+  const [activeTab, setActiveTab] = useState<HelperTab>('Visualizer')
+  const [traceStep, setTraceStep] = useState(0)
+  const [challenge, setChallenge] = useState<ChallengeId>('two-sum')
+  const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
   const [blocks, setBlocks] = useState<BlockItem[]>([])
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(EDITOR_MODE_KEY, editorTab)
+    } catch {
+      // Editor mode can still be switched when storage is unavailable.
+    }
+  }, [editorTab])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,10 +106,25 @@ export function Workspace({
       outputEnd.current?.scrollIntoView({ block: 'nearest' })
   }, [runner.output, activeTab])
 
+  const updateCode = useCallback((nextCode: string) => {
+    setCode(nextCode)
+    setSaved('saving')
+  }, [])
+
   const run = () => {
     setActiveTab('Output')
+    setTraceStep(0)
     void runner.run(code)
   }
+
+  const visualize = () => {
+    setTraceStep(0)
+    void runner.run(code)
+  }
+  const highlightedLine =
+    activeTab === 'Visualizer' && runner.source === code
+      ? runner.trace.steps[traceStep]?.line
+      : undefined
 
   return (
     <div className="app-shell">
@@ -88,7 +143,9 @@ export function Workspace({
           ByteBlocks<span className="brand-dot">.</span>
         </button>
         <span className="header-divider" />
-        <span className="workspace-label">Practice workspace</span>
+        <span className="workspace-label">
+          Practice space <b> / 01</b>
+        </span>
 
         {preferences && (
           <button
@@ -124,38 +181,8 @@ export function Workspace({
       >
         <section className="panel editor-panel" aria-label="Python code editor">
           <div className="panel-toolbar editor-toolbar">
-            <div
-              className="editor-mode-nav"
-              role="tablist"
-              aria-label="Editor modes"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === 'blocks'}
-                className={`editor-nav-tab ${editorTab === 'blocks' ? 'active' : ''}`}
-                onClick={() => setEditorTab('blocks')}
-                title="Visual Scratch Chunks Builder"
-              >
-                <Icon name="puzzle" size={13} />
-                <span>Visual Blocks</span>
-                <span className="tab-pill">Scratch</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={editorTab === 'code'}
-                className={`editor-nav-tab ${editorTab === 'code' ? 'active' : ''}`}
-                onClick={() => setEditorTab('code')}
-                title="Python Source Code"
-              >
-                <span className="python-icon">Py</span>
-                <span>main.py</span>
-                <span
-                  className="file-dot"
-                  title={saved === 'saved' ? 'Saved locally' : 'Saving changes'}
-                />
-              </button>
+            <div className="workspace-section-label">
+              <span /> BUILD YOUR PROGRAM
             </div>
             <div className="editor-actions">
               <span className="language-label">Python 3</span>
@@ -171,33 +198,20 @@ export function Workspace({
               </button>
             </div>
           </div>
-          <div className="editor-breadcrumb">
-            <span>workspace</span>
-            <Icon name="chevron" size={12} />
-            <span>
-              {editorTab === 'blocks' ? 'Visual Scratch Chunks' : 'main.py'}
-            </span>
-          </div>
-          {editorTab === 'blocks' ? (
-            <VisualBlockEditor
-              onPythonChange={(nextCode) => {
-                setCode(nextCode)
-                setSaved('saving')
-              }}
-              onBlocksChange={setBlocks}
-              onRun={run}
-            />
-          ) : (
-            <CodeEditor
-              value={code}
-              onChange={(next) => {
-                setCode(next)
-                setSaved('saving')
-              }}
-              onCursorChange={setCursor}
-              onRun={run}
-            />
-          )}
+          <VisualBlockEditor
+            mode={editorTab}
+            highlightedLine={highlightedLine}
+            code={code}
+            onSelectMode={selectEditorTab}
+            onPythonChange={updateCode}
+            onBlocksChange={setBlocks}
+            onEditCode={(nextCode) => {
+              updateCode(nextCode)
+              setHasCodeEdits(true)
+            }}
+            onCursorChange={setCursor}
+            onRun={run}
+          />
           <footer className="editor-footer">
             <span className={saved === 'unavailable' ? 'save-warning' : ''}>
               <Icon
@@ -280,7 +294,7 @@ export function Workspace({
                           ? 'flag'
                           : tab === 'Complexity'
                             ? 'chart'
-                            : tab === 'Dataflow'
+                            : tab === 'Visualizer'
                               ? 'flow'
                               : 'terminal'
                       }
@@ -301,9 +315,20 @@ export function Workspace({
               aria-labelledby={`tab-${activeTab}`}
               tabIndex={0}
             >
-              {activeTab === 'Goal' && <GoalPanel />}
+              {activeTab === 'Goal' && (
+                <GoalPanel selected={challenge} onSelect={setChallenge} />
+              )}
               {activeTab === 'Complexity' && <ComplexityPanel />}
-              {activeTab === 'Dataflow' && <DataflowPanel />}
+              {activeTab === 'Visualizer' && (
+                <ExecutionVisualizer
+                  runner={runner}
+                  code={code}
+                  stepIndex={traceStep}
+                  onStepChange={setTraceStep}
+                  onRecord={visualize}
+                  onStop={runner.stop}
+                />
+              )}
               {activeTab === 'Output' && (
                 <>
                   <div className="output-toolbar">
@@ -385,19 +410,11 @@ export function Workspace({
               execution: { status: runner.status, output: runner.output },
               preferences,
               blocks,
+              problem: `${CHALLENGES[challenge].title}: ${CHALLENGES[challenge].coachPrompt}`,
             }}
           />
         </div>
       </main>
-      <footer className="app-footer">
-        <span>
-          <span className="tiny-dot" /> YOUR SPACE TO THINK IN CODE
-        </span>
-        <span>
-          One problem. One step at a time.
-          <span className="footer-spark">✳</span>
-        </span>
-      </footer>
     </div>
   )
 }

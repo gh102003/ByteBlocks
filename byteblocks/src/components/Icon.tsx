@@ -1,4 +1,6 @@
 type IconName =
+  | 'pause'
+  | 'first'
   | 'play'
   | 'stop'
   | 'check'
@@ -23,6 +25,8 @@ type IconName =
   | 'refresh'
 
 const paths: Record<IconName, string> = {
+  pause: 'M9 5v14M15 5v14',
+  first: 'M5 5v14M19 5l-9 7 9 7V5Z',
   play: 'm9 5 11 7-11 7V5Z',
   stop: 'M6 6h12v12H6z',
   check: 'm5 12 4 4L19 6',
@@ -43,7 +47,7 @@ const paths: Record<IconName, string> = {
   plus: 'M12 5v14m-7-7h14',
   trash:
     'M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
-  copy: 'M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2zm-4 4h2v12h10v2H6a2 2 0 0 1-2-2V8z',
+  copy: 'M8 8h11v12H8zM16 8V4H4v12h4',
   eye: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   refresh:
     'M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15',

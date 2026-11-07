@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { CodeEditor } from '../CodeEditor'
 import type { BlockItem } from './types'
 import { generatePython } from './generator'
 import { BlockPalette } from './BlockPalette'
@@ -9,7 +10,13 @@ import { Icon } from '../Icon'
 interface VisualBlockEditorProps {
   onPythonChange: (code: string) => void
   onBlocksChange?: (blocks: BlockItem[]) => void
-  onRun?: () => void
+  onRun: () => void
+  mode: 'blocks' | 'code'
+  highlightedLine?: number
+  code: string
+  onEditCode: (code: string) => void
+  onSelectMode: (mode: 'blocks' | 'code') => void
+  onCursorChange: (position: { lineNumber: number; column: number }) => void
 }
 
 // Versioned so the beginner-friendly starter replaces the old FizzBuzz default.
@@ -20,7 +27,7 @@ function loadSavedBlocks(): BlockItem[] {
     const raw = localStorage.getItem(STORAGE_BLOCKS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as BlockItem[]
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed
       }
     }
@@ -74,29 +81,74 @@ function findVariableNames(blocks: BlockItem[]): {
   }
 }
 
+function PythonPreview({ code }: { code: string }) {
+  const [highlighted, setHighlighted] = useState<{
+    code: string
+    html: string
+  }>()
+
+  useEffect(() => {
+    let cancelled = false
+    const highlight = () => {
+      void import('../../editor')
+        .then(({ colorizePython }) => colorizePython(code))
+        .then((html) => {
+          if (!cancelled) setHighlighted({ code, html })
+        })
+        .catch(() => {
+          if (!cancelled) setHighlighted(undefined)
+        })
+    }
+    highlight()
+    const observer = new MutationObserver(highlight)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+    return () => {
+      cancelled = true
+      observer.disconnect()
+    }
+  }, [code])
+
+  return (
+    <pre className="python-code-display">
+      {highlighted?.code === code ? (
+        <code dangerouslySetInnerHTML={{ __html: highlighted.html }} />
+      ) : (
+        <code>{code}</code>
+      )}
+    </pre>
+  )
+}
+
 export function VisualBlockEditor({
   onPythonChange,
   onBlocksChange,
   onRun,
+  mode,
+  code,
+  onEditCode,
+  onSelectMode,
+  onCursorChange,
+  highlightedLine,
 }: VisualBlockEditorProps) {
   const [blocks, setBlocks] = useState<BlockItem[]>(loadSavedBlocks)
   const [isMainDragOver, setIsMainDragOver] = useState(false)
-  const [showPythonPreview, setShowPythonPreview] = useState(true)
   const [copied, setCopied] = useState(false)
 
   // Generate python code
   const generatedCode = useMemo(() => {
     return generatePython(blocks)
   }, [blocks])
+  useEffect(() => {
+    if (mode === 'blocks') onPythonChange(generatedCode)
+  }, [mode, generatedCode, onPythonChange])
   const variables = useMemo(() => findVariableNames(blocks), [blocks])
 
   useEffect(() => {
     onBlocksChange?.(blocks)
   }, [blocks, onBlocksChange])
-
-  useEffect(() => {
-    onPythonChange(generatedCode)
-  }, [generatedCode, onPythonChange])
 
   // Sync python code whenever blocks change
   const updateBlocks = useCallback(
@@ -233,7 +285,9 @@ export function VisualBlockEditor({
 
   const handleCopyPython = async () => {
     try {
-      await navigator.clipboard.writeText(generatedCode)
+      await navigator.clipboard.writeText(
+        mode === 'code' ? code : generatedCode,
+      )
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -248,47 +302,23 @@ export function VisualBlockEditor({
           <option key={name} value={name} />
         ))}
       </datalist>
-      <BlockPalette
-        onAddBlock={handleAddTopLevelBlock}
-        onLoadPreset={(presetBlocks) => updateBlocks(presetBlocks)}
-      />
+      <div
+        className={`palette-mode ${mode === 'code' ? 'blocks-disabled' : ''}`}
+        inert={mode === 'code'}
+      >
+        <BlockPalette
+          onAddBlock={handleAddTopLevelBlock}
+          onLoadPreset={(presetBlocks) => updateBlocks(presetBlocks)}
+          onClear={handleClearAll}
+        />
+      </div>
 
       <div className="blocks-canvas-container">
-        <div className="canvas-toolbar">
-          <div className="canvas-stats">
-            <span className="stats-badge">
-              <Icon name="puzzle" size={13} />
-              <span>{blocks.length} root chunks</span>
-            </span>
-          </div>
-
-          <div className="canvas-actions">
-            <button
-              type="button"
-              className={`preview-toggle-btn ${showPythonPreview ? 'active' : ''}`}
-              onClick={() => setShowPythonPreview(!showPythonPreview)}
-              title="Toggle Live Python Preview"
-            >
-              <Icon name="code" size={13} />
-              <span>{showPythonPreview ? 'Hide Python' : 'Live Python'}</span>
-            </button>
-
-            <button
-              type="button"
-              className="canvas-btn-ghost"
-              onClick={handleClearAll}
-              title="Clear all chunks"
-            >
-              <Icon name="clear" size={13} />
-              <span>Clear</span>
-            </button>
-          </div>
-        </div>
-
         <div className="canvas-split-body">
           {/* Main Visual Blocks Workspace */}
           <div
-            className={`blocks-canvas ${isMainDragOver ? 'canvas-drag-over' : ''}`}
+            className={`blocks-canvas ${isMainDragOver ? 'canvas-drag-over' : ''} ${mode === 'code' ? 'blocks-disabled' : ''}`}
+            inert={mode === 'code'}
             onDragOver={(e) => {
               e.preventDefault()
               setIsMainDragOver(true)
@@ -300,6 +330,10 @@ export function VisualBlockEditor({
               handleDrop(e.dataTransfer, {})
             }}
           >
+            <div className="canvas-label" aria-hidden="true">
+              <span>BLOCKS / BUILD</span>
+              <span>01</span>
+            </div>
             {blocks.length === 0 ? (
               <div className="empty-canvas-state">
                 <div className="empty-icon">🧩</div>
@@ -360,13 +394,28 @@ export function VisualBlockEditor({
             )}
           </div>
 
+          {mode === 'code' && (
+            <button
+              type="button"
+              className="blocks-mode-overlay"
+              onClick={() => onSelectMode('blocks')}
+              aria-label="Edit blocks"
+            >
+              Click to edit blocks
+            </button>
+          )}
+
           {/* Live Generated Python Panel */}
-          {showPythonPreview && (
-            <div className="python-live-preview">
+          {
+            <div
+              className={`python-live-preview ${mode === 'code' ? 'python-editor-active' : ''}`}
+            >
               <div className="preview-header">
                 <div className="preview-label">
                   <span className="python-icon">Py</span>
-                  <span>Generated Python</span>
+                  <span>
+                    {mode === 'blocks' ? 'Generated Python' : 'Python editor'}
+                  </span>
                 </div>
                 <div className="preview-header-actions">
                   <button
@@ -380,13 +429,33 @@ export function VisualBlockEditor({
                   </button>
                 </div>
               </div>
-              <div className="preview-code-scroll">
-                <pre className="python-code-display">
-                  <code>{generatedCode || '# No code generated yet'}</code>
-                </pre>
-              </div>
+              {mode === 'blocks' ? (
+                <button
+                  type="button"
+                  className="preview-code-scroll preview-edit-trigger"
+                  onClick={() => onSelectMode('code')}
+                  aria-label="Edit Python code"
+                >
+                  <PythonPreview
+                    code={generatedCode || '# No code generated yet'}
+                  />
+                  <span className="preview-edit-hint">Click to edit code</span>
+                </button>
+              ) : (
+                <CodeEditor
+                  highlightedLine={highlightedLine}
+                  value={code}
+                  onChange={onEditCode}
+                  onCursorChange={onCursorChange}
+                  onRun={onRun}
+                />
+              )}
               <div className="preview-footer">
-                <span>⚡ Runs directly in browser with Pyodide</span>
+                <span>
+                  {mode === 'blocks'
+                    ? 'Editing code freezes blocks'
+                    : 'Editing blocks replaces code changes'}
+                </span>
                 {onRun && (
                   <button
                     type="button"
@@ -400,7 +469,7 @@ export function VisualBlockEditor({
                 )}
               </div>
             </div>
-          )}
+          }
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import workerSource from './sandbox-worker.js?raw'
+import traceSource from './trace.py?raw'
 
 export function createSandboxDocument() {
   const nonce = crypto.randomUUID().replaceAll('-', '')
@@ -22,7 +23,7 @@ export function createSandboxDocument() {
           worker.onmessage = (event) => { URL.revokeObjectURL(url); port.postMessage(event.data); };
           worker.onerror = (event) => { URL.revokeObjectURL(url); port.postMessage({ type: 'error', text: 'The Python worker failed: ' + (event.message || 'the browser could not load the isolated worker. Please try again.') }); };
           const { code, assets } = event.data;
-          worker.postMessage({ code, assets }, [assets.wasm, assets.stdlib]);
+          worker.postMessage({ code, assets, traceSource: ${JSON.stringify(traceSource)} }, [assets.wasm, assets.stdlib]);
         };
         port.start();
         port.postMessage({ type: 'ready' });

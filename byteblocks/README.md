@@ -33,9 +33,12 @@ Provider code lives in `src/ai/connectors/openai.ts`. To add another provider, i
 - Editing, undo, Python highlighting, indentation, find, and local autosave.
 - Real Python execution with Pyodide (CPython/WebAssembly), stdout/stderr, and source-line tracebacks.
 - Stop, a five-second execution watchdog, and output limits (64K characters / 2,000 writes).
-- Goal, Complexity, Dataflow, and Output tabs; a live AI coach with code/output context, streaming, Markdown, stop, and retry.
+- Goal, Complexity, Visualizer, and Output tabs; a live AI coach with code/output context, streaming, Markdown, stop, and retry.
+- Recorded Python execution with forward/backward steps, a timeline, playback speed, source highlighting, and function scopes. Lists, stacks, queues, tuples, sets, dictionaries, and scalar variables display their recorded values and changes.
 
-Complexity and dataflow illustrate the supplied Two Sum solution; they do not analyze edits. Interactive stdin is not connected. Most of the bundled standard library is available; optional Pyodide packages and network access from Python are unavailable. Code is retained locally; coach messages last only for the current page session.
+Open **Visualizer → Visualize code** to record the current blocks or Python source. Normal runs also record steps. A step shows state before its highlighted line, or at a return/exception; stepping backward replays snapshots without executing code again. Deques default to queue views. List views use stack names and `pop`/`popleft` usage as hints; use **View as** to choose the interpretation. Edits mark previous recordings as stale. Recordings are capped at 600 steps / 2 MB; Python continues after this cap. Snapshots show up to 40 variables per scope, 40 items per collection, 12 scopes, and 3 nested collection levels, with an additional snapshot size bound. Custom objects are shown by type. Replay is deterministic for a recording; programs using randomness or clocks can produce different recordings.
+
+Complexity illustrates the supplied Two Sum solution; it does not analyze edits. Interactive stdin is not connected. Most of the bundled standard library is available; optional Pyodide packages and network access from Python are unavailable. Code is retained locally; coach messages last only for the current page session.
 
 ## Execution isolation
 

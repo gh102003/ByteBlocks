@@ -1,17 +1,46 @@
 import { useEffect, useRef, useState } from 'react'
 import type { editor } from 'monaco-editor'
 
+function highlightLine(
+  instance: editor.IStandaloneCodeEditor | null,
+  decorations: editor.IEditorDecorationsCollection | null,
+  line?: number,
+) {
+  decorations?.set(
+    line
+      ? [
+          {
+            range: {
+              startLineNumber: line,
+              endLineNumber: line,
+              startColumn: 1,
+              endColumn: 1,
+            },
+            options: {
+              isWholeLine: true,
+              className: 'trace-editor-line',
+              linesDecorationsClassName: 'trace-editor-gutter',
+            },
+          },
+        ]
+      : [],
+  )
+  if (line) instance?.revealLineInCenterIfOutsideViewport(line)
+}
+
 type Props = {
   value: string
   onChange: (value: string) => void
   onCursorChange: (position: { lineNumber: number; column: number }) => void
   onRun: () => void
+  highlightedLine?: number
 }
 
 export function CodeEditor(props: Props) {
   const container = useRef<HTMLDivElement>(null)
   const instance = useRef<editor.IStandaloneCodeEditor | null>(null)
   const callbacks = useRef(props)
+  const decorations = useRef<editor.IEditorDecorationsCollection | null>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
@@ -35,6 +64,13 @@ export function CodeEditor(props: Props) {
           },
         )
         instance.current = editorInstance.editor
+        decorations.current =
+          editorInstance.editor.createDecorationsCollection()
+        highlightLine(
+          instance.current,
+          decorations.current,
+          callbacks.current.highlightedLine,
+        )
         dispose = editorInstance.dispose
       })
       .catch(() => {
@@ -44,6 +80,7 @@ export function CodeEditor(props: Props) {
       cancelled = true
       dispose?.()
       instance.current = null
+      decorations.current = null
     }
   }, [])
 
@@ -51,6 +88,10 @@ export function CodeEditor(props: Props) {
     if (instance.current && instance.current.getValue() !== props.value)
       instance.current.setValue(props.value)
   }, [props.value])
+
+  useEffect(() => {
+    highlightLine(instance.current, decorations.current, props.highlightedLine)
+  }, [props.highlightedLine])
 
   return (
     <div className="code-editor-container">

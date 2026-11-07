@@ -1,26 +1,26 @@
-/* Shared site palette, inspired by the blue, teal, violet and orange blocks. */
+/* Shared site palette. */
 :root {
   color-scheme: dark;
-  --theme-surface-base: #11151d;
-  --theme-surface: #181e29;
-  --theme-surface-raised: #222b39;
-  --theme-surface-hover: #303c4d;
-  --theme-surface-strong: #415269;
-  --theme-accent-surface: #2563a8;
-  --theme-accent-soft: #b6e2d4;
-  --theme-text: #eef4fa;
-  --theme-text-muted: #b2c1d1;
-  --theme-text-subtle: #98aabe;
-  --theme-ink: #142333;
-  --theme-border: #344256;
-  --theme-border-strong: #637891;
-  --theme-info: #80cffa;
-  --theme-success: #9de0be;
+  --theme-surface-base: #0f151a;
+  --theme-surface: #172127;
+  --theme-surface-raised: #213139;
+  --theme-surface-hover: #30444e;
+  --theme-surface-strong: #445e6a;
+  --theme-accent-surface: #27698c;
+  --theme-accent-soft: #b8e6db;
+  --theme-text: #f0f7fa;
+  --theme-text-muted: #bcced6;
+  --theme-text-subtle: #a3b8c2;
+  --theme-ink: #12242d;
+  --theme-border: #3b525d;
+  --theme-border-strong: #76919e;
+  --theme-info: #93dbed;
+  --theme-success: #a2e3cc;
   --theme-warm: #ffd09a;
   --theme-danger: #ffa6ad;
   --theme-violet: #d7b8fb;
-  --theme-selection: #365a58;
-  --accent: #9de0be;
+  --theme-selection: #345c5a;
+  --accent: #a2e3cc;
   --muted: var(--theme-text-muted);
   --border: var(--theme-border);
 }

@@ -17,7 +17,17 @@ beforeEach(() => {
 
 test('dragging reorders and moves blocks into and out of a container', async () => {
   const onPythonChange = vi.fn()
-  await render(<VisualBlockEditor onPythonChange={onPythonChange} />)
+  await render(
+    <VisualBlockEditor
+      onPythonChange={onPythonChange}
+      onRun={() => {}}
+      mode="blocks"
+      code=""
+      onEditCode={() => {}}
+      onSelectMode={() => {}}
+      onCursorChange={() => {}}
+    />,
+  )
   const chunks = () =>
     Array.from(document.querySelectorAll<HTMLElement>('.scratch-chunk'))
   const drag = (source: HTMLElement, target: HTMLElement, y = 0) => {
@@ -59,4 +69,31 @@ test('dragging reorders and moves blocks into and out of a container', async () 
     expect.stringContaining('# second'),
   )
   expect(document.querySelector('[title="Move Up"]')).toBeNull()
+})
+
+test('deleting a block requires confirmation', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  await render(
+    <VisualBlockEditor
+      onPythonChange={() => {}}
+      onRun={() => {}}
+      mode="blocks"
+      code=""
+      onEditCode={() => {}}
+      onSelectMode={() => {}}
+      onCursorChange={() => {}}
+    />,
+  )
+  const deleteButton = document.querySelector<HTMLButtonElement>(
+    '.scratch-chunk [title="Delete Block"]',
+  )!
+  deleteButton.click()
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(3)
+  confirm.mockReturnValue(true)
+  deleteButton.click()
+  await vi.waitFor(() =>
+    expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(2),
+  )
+  confirm.mockRestore()
 })

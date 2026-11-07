@@ -1209,7 +1209,13 @@ export function BlockNode({
           <button
             type="button"
             className="chunk-btn delete-btn"
-            onClick={onDelete}
+            onClick={() => {
+              if (
+                window.confirm('Delete this block and any blocks inside it?')
+              ) {
+                onDelete()
+              }
+            }}
             title="Delete Block"
           >
             <Icon name="trash" size={12} />

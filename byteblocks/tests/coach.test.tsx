@@ -150,7 +150,7 @@ describe('AI coach', () => {
     expect(JSON.stringify(body.input)).toContain('print(two_sum([2, 7], 9))')
     expect(JSON.stringify(body.input)).toContain('[0, 1]')
     expect(JSON.stringify(body.input)).toContain('example-1')
-    expect(JSON.stringify(body.input)).toContain('make a variable')
+    expect(JSON.stringify(body.input)).toContain('set a variable')
     expect(JSON.stringify(body.input)).toContain('YOUR ROLE AND BOUNDARIES')
     expect(JSON.stringify(body.input)).toContain(
       'Do not answer unrelated requests',

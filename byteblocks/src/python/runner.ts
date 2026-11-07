@@ -1,5 +1,6 @@
 import { createSandboxDocument } from './sandbox'
 import type { RuntimeAssets } from './assets'
+import { isTraceStep, type ExecutionTrace } from './trace'
 
 export type RunnerStatus =
   'idle' | 'loading' | 'running' | 'success' | 'error' | 'stopped'
@@ -8,11 +9,15 @@ export type RunnerState = {
   status: RunnerStatus
   output: OutputEntry[]
   duration: number | null
+  source: string | null
+  trace: ExecutionTrace
 }
 export const INITIAL_RUNNER_STATE: RunnerState = {
   status: 'idle',
   output: [],
   duration: null,
+  source: null,
+  trace: { steps: [], truncated: false },
 }
 const EXECUTION_TIMEOUT = 5000
 const INITIALIZATION_TIMEOUT = 60000
@@ -28,6 +33,7 @@ export class PythonRunner {
   private runId = 0
   private started = 0
   private outputSize = 0
+  private traceSize = 0
 
   constructor(onChange: (state: RunnerState) => void) {
     this.onChange = onChange
@@ -104,7 +110,14 @@ export class PythonRunner {
     const id = ++this.runId
     this.started = 0
     this.outputSize = 0
-    this.update({ status: 'loading', output: [], duration: null })
+    this.traceSize = 0
+    this.update({
+      status: 'loading',
+      output: [],
+      duration: null,
+      source: code,
+      trace: { steps: [], truncated: false },
+    })
     this.timer = setTimeout(() => {
       this.runId++
       this.finish(
@@ -161,6 +174,23 @@ export class PythonRunner {
           case 'output':
             this.append(data.entries)
             break
+          case 'trace': {
+            if (this.state.trace.truncated || !Array.isArray(data.steps)) break
+            const steps = [...this.state.trace.steps]
+            let truncated = data.truncated === true
+            for (const step of data.steps.slice(0, 10)) {
+              if (!isTraceStep(step)) continue
+              const size = JSON.stringify(step).length
+              if (steps.length >= 600 || this.traceSize + size > 2_000_000) {
+                truncated = true
+                break
+              }
+              this.traceSize += size
+              steps.push(step)
+            }
+            this.update({ trace: { steps, truncated } })
+            break
+          }
           case 'limit':
             this.finish('error', '\nOutput limit reached. Execution stopped.\n')
             break

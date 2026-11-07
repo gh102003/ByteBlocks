@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+.vitest/
+dist/
+coverage/
+test-results/
+playwright-report/
+tests/__screenshots__/
+package-lock.json
+src/assets/
+public/

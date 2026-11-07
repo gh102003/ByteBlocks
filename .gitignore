@@ -1,0 +1,3 @@
+# Local environment files, including files in nested apps.
+.env
+.env.*

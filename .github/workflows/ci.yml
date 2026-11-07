@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: byteblocks
+
+jobs:
+  checks:
+    name: Lint, types, formatting, and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: byteblocks/package-lock.json
+      - run: npm ci
+      - name: Oxlint
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Prettier
+        run: npm run format:check
+      - name: Production build
+        run: npm run build
+
+  tests:
+    name: Vitest (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      VITEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: byteblocks/package-lock.json
+      - run: npm ci
+      - name: Install test browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Vitest browser tests
+        run: npm test

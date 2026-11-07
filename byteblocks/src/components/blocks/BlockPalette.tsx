@@ -8,6 +8,7 @@ import { BlockIcon } from './BlockIcon'
 interface BlockPaletteProps {
   onAddBlock: (block: BlockItem) => void
   onLoadPreset: (blocks: BlockItem[]) => void
+  onClear: () => void
 }
 
 const CATEGORIES: { id: BlockCategory; label: string }[] = [
@@ -34,7 +35,11 @@ const BEGINNER_BLOCK_TYPES = new Set([
   'comment',
 ])
 
-export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
+export function BlockPalette({
+  onAddBlock,
+  onLoadPreset,
+  onClear,
+}: BlockPaletteProps) {
   const [activeCategory, setActiveCategory] = useState<BlockCategory>('control')
   const [search, setSearch] = useState('')
 
@@ -68,9 +73,20 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
   return (
     <aside className="blocks-palette">
       <div className="palette-header">
-        <div className="palette-title">
-          <Icon name="puzzle" size={14} />
-          <span>Block Chunks</span>
+        <div className="palette-heading-row">
+          <div className="palette-title">
+            <Icon name="puzzle" size={14} />
+            <span>Block Chunks</span>
+          </div>
+          <button
+            type="button"
+            className="canvas-btn-ghost"
+            onClick={onClear}
+            title="Clear all chunks"
+          >
+            <Icon name="clear" size={13} />
+            <span>Clear</span>
+          </button>
         </div>
         <div className="preset-selector-wrapper">
           <select

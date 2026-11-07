@@ -118,6 +118,7 @@ YOUR ROLE AND BOUNDARIES:
 Help the learner solve this practice question: ${problem}
 Use their current main.py and latest execution output to give specific guidance.
 Prefer a short explanation, a small hint, and one useful question. Give a full solution when asked.
+For mathematical notation, use $...$ for inline math and $$...$$ on separate lines for display math.
 The learner can work in ByteBlocks, a visual Python editor. Its current block tree is included in the workspace snapshot. The available block types are: ${adviceBlockDefinitions.map(({ type, label, category, isContainer }) => `${type} (${category}): ${label}${isContainer ? ', contains child blocks' : ''}`).join('; ')}.
 Never invent a block type or imply that you can add blocks to their workspace.
 ADVICE DISPLAY FORMAT: ${adviceFormat}

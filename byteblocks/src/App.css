@@ -575,7 +575,7 @@
   border-radius: 6px;
   padding: 14px;
 }
-.complexity-stats span {
+.complexity-stats > div > span {
   font-size: 8px;
   letter-spacing: 1px;
   color: var(--theme-text-muted);
@@ -958,6 +958,10 @@
 .message-markdown p {
   white-space: normal;
 }
+.message-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .message-markdown pre {
   margin: 10px 0;
   padding: 10px 12px;
@@ -1120,6 +1124,9 @@
   font-size: 11px;
   color: var(--theme-info);
   line-height: 1.6;
+  outline: none;
+}
+.coach-composer textarea:focus-visible {
   outline: none;
 }
 .coach-composer textarea::placeholder {
@@ -3861,4 +3868,48 @@
   .workspace .python-live-preview {
     width: 230px;
   }
+}
+
+.complexity-graphs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.complexity-graph {
+  min-width: 0;
+}
+.complexity-graph h3 {
+  font-size: 11px;
+  color: var(--theme-info);
+  margin: 0;
+}
+.complexity-graph .chart {
+  margin-top: 8px;
+}
+.complexity-graph .chart svg {
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+.chart .chart-axis {
+  stroke: var(--theme-text-muted);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.chart .chart-reference {
+  stroke: var(--theme-text-muted);
+  vector-effect: non-scaling-stroke;
+  opacity: 0.35;
+  stroke-width: 1.25;
+}
+.chart .chart-highlight {
+  stroke: var(--accent);
+  vector-effect: non-scaling-stroke;
+  stroke-width: 3;
+}
+.complexity-graph-note {
+  margin-top: 10px;
+  color: var(--theme-text-muted);
+  font-size: 9px;
+  line-height: 1.5;
 }

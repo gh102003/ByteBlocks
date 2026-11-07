@@ -1,4 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest'
+import { page } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 import { VisualBlockEditor } from '../src/components/blocks/VisualBlockEditor'
 
@@ -72,7 +73,6 @@ test('dragging reorders and moves blocks into and out of a container', async () 
 })
 
 test('deleting a block requires confirmation', async () => {
-  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   await render(
     <VisualBlockEditor
       onPythonChange={() => {}}
@@ -88,14 +88,16 @@ test('deleting a block requires confirmation', async () => {
     '.scratch-chunk [title="Delete Block"]',
   )!
   deleteButton.click()
-  expect(confirm).toHaveBeenCalledOnce()
+  await expect
+    .element(page.getByRole('alertdialog', { name: 'Delete this block?' }))
+    .toBeVisible()
+  await page.getByRole('button', { name: 'Cancel' }).click()
   expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(3)
-  confirm.mockReturnValue(true)
   deleteButton.click()
+  await page.getByRole('button', { name: 'Delete block' }).click()
   await vi.waitFor(() =>
     expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(2),
   )
-  confirm.mockRestore()
 })
 
 test('function parameters are available in collection pickers', async () => {

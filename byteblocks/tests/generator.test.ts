@@ -16,6 +16,14 @@ describe('Block Generator to Python', () => {
     )
   })
 
+  it('provides a runnable Two Sum solution demo', () => {
+    const solution = PRESETS.find((preset) => preset.id === 'two-sum-solution')
+    expect(solution).toBeDefined()
+    expect(generatePython(solution!.blocks)).toBe(
+      'def two_sum(nums, target):\n    # Try every pair of different positions.\n    for i in range(len(nums)):\n        for j in range(len(nums)):\n            if i != j and nums[i] + nums[j] == target:\n                return [i, j]\n    return []',
+    )
+  })
+
   it('generates a function from individual parameter slots', () => {
     expect(
       generatePython([
@@ -262,6 +270,43 @@ describe('Block Generator to Python', () => {
     expect(code).toBe('for i in range(1, 4):\n    print(i)')
   })
 
+  it('generates an indexed loop over a list and can continue', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'for_range',
+          rangeMode: 'length',
+          varName: 'i',
+          listName: 'nums',
+          children: [{ id: '2', type: 'continue_loop' }],
+        },
+      ]),
+    ).toBe('for i in range(len(nums)):\n    continue')
+  })
+
+  it('supports number, variable, and list-length range endpoints', () => {
+    expect(
+      generatePython([
+        { id: 'number', type: 'for_range', rangeCount: '3' },
+        {
+          id: 'variable',
+          type: 'for_range',
+          rangeMode: 'variable',
+          rangeCount: 'count',
+        },
+        {
+          id: 'length',
+          type: 'for_range',
+          rangeMode: 'length',
+          listName: 'nums',
+        },
+      ]),
+    ).toBe(
+      'for i in range(3):\n    pass\nfor i in range(count):\n    pass\nfor i in range(len(nums)):\n    pass',
+    )
+  })
+
   it('generates if / else with indentation', () => {
     const blocks: BlockItem[] = [
       {
@@ -275,6 +320,27 @@ describe('Block Generator to Python', () => {
     const code = generatePython(blocks)
     expect(code).toBe(
       'if x > 0:\n    print("positive")\nelse:\n    print("zero or negative")',
+    )
+  })
+
+  it('generates else-if chains from separate decision blocks', () => {
+    expect(
+      generatePython([
+        { id: 'if', type: 'if_condition', condition: 'score > 90' },
+        {
+          id: 'elif',
+          type: 'else_if',
+          condition: 'score > 70',
+          children: [{ id: 'print', type: 'print', value: '"good"' }],
+        },
+        {
+          id: 'else',
+          type: 'else_clause',
+          children: [{ id: 'fallback', type: 'print', value: '"try again"' }],
+        },
+      ]),
+    ).toBe(
+      'if score > 90:\n    pass\nelif score > 70:\n    print("good")\nelse:\n    print("try again")',
     )
   })
 

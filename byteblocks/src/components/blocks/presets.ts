@@ -33,6 +33,63 @@ export const PRESETS: PresetTemplate[] = [
     ],
   },
   {
+    id: 'two-sum-solution',
+    name: 'Two Sum Solution',
+    description: 'Find two different positions whose values add to target',
+    beginner: true,
+    blocks: [
+      {
+        id: 'p-two-sum-solution-1',
+        type: 'function_def',
+        funcName: 'two_sum',
+        functionArgs: ['nums', 'target'],
+        isProblemFunction: true,
+        children: [
+          {
+            id: 'p-two-sum-solution-2',
+            type: 'comment',
+            commentText: 'Try every pair of different positions.',
+          },
+          {
+            id: 'p-two-sum-solution-3',
+            type: 'for_range',
+            varName: 'i',
+            rangeMode: 'length',
+            listName: 'nums',
+            children: [
+              {
+                id: 'p-two-sum-solution-4',
+                type: 'for_range',
+                varName: 'j',
+                rangeMode: 'length',
+                listName: 'nums',
+                children: [
+                  {
+                    id: 'p-two-sum-solution-5',
+                    type: 'if_condition',
+                    condition: 'i != j and nums[i] + nums[j] == target',
+                    children: [
+                      {
+                        id: 'p-two-sum-solution-6',
+                        type: 'return_val',
+                        value: '[i, j]',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'p-two-sum-solution-7',
+            type: 'return_val',
+            value: '[]',
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'hello',
     name: 'Hello, ByteBlocks!',
     description: 'Make a number, then say it',

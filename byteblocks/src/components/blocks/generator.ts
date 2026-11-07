@@ -93,7 +93,10 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
       case 'for_range': {
         const varName = block.varName?.trim() || 'i'
         const start = block.rangeStart?.trim()
-        const count = block.rangeCount?.trim() || '5'
+        const count =
+          block.rangeMode === 'length'
+            ? `len(${block.listName?.trim() || 'items'})`
+            : block.rangeCount?.trim() || '5'
         const rangeExpr = start ? `${start}, ${count}` : count
         lines.push(`${indent}for ${varName} in range(${rangeExpr}):`)
 
@@ -137,6 +140,18 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
         break
       }
 
+      case 'else_if': {
+        lines.push(`${indent}elif ${guidedCondition(block)}:`)
+        lines.push(containerBody(block.children, indentLevel))
+        break
+      }
+
+      case 'else_clause': {
+        lines.push(`${indent}else:`)
+        lines.push(containerBody(block.children, indentLevel))
+        break
+      }
+
       case 'if_collection_contains': {
         const value = block.valueVariable?.trim() || 'item'
         const collection = block.collectionName?.trim() || 'items'
@@ -147,6 +162,11 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'break_loop': {
         lines.push(`${indent}break`)
+        break
+      }
+
+      case 'continue_loop': {
+        lines.push(`${indent}continue`)
         break
       }
 

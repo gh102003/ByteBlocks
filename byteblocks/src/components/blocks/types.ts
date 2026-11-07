@@ -4,8 +4,11 @@ export type BlockType =
   | 'while_loop'
   | 'if_condition'
   | 'if_else'
+  | 'else_if'
+  | 'else_clause'
   | 'if_collection_contains'
   | 'break_loop'
+  | 'continue_loop'
   | 'var_set'
   | 'var_change'
   | 'var_decrement'
@@ -95,6 +98,8 @@ export interface BlockItem {
   conditionBoolean?: 'True' | 'False'
   isText?: boolean
   condition?: string
+  /** Chooses whether a range ends at a literal number, variable, or list length. */
+  rangeMode?: 'number' | 'variable' | 'length'
   rangeCount?: string
   rangeStart?: string
   listName?: string

@@ -149,11 +149,11 @@ describe('Block Generator to Python', () => {
     ]
     expect(generatePython(blocks)).toBe(
       [
+        'from collections import deque',
         's = [1, 2]',
         's.append(3)',
         'top = s[-1]',
         'popped = s.pop()',
-        'from collections import deque',
         'q = deque([1, 2])',
         'q.append(3)',
         'front = q[0]',
@@ -163,6 +163,29 @@ describe('Block Generator to Python', () => {
         'q.clear()',
         's.clear()',
       ].join('\n'),
+    )
+  })
+
+  it('emits one top-level import for queues in nested branches and functions', () => {
+    const blocks: BlockItem[] = [
+      { id: '1', type: 'print', value: '"start"' },
+      {
+        id: '2',
+        type: 'if_else',
+        condition: 'ready',
+        children: [{ id: '3', type: 'queue_create', varName: 'first' }],
+        elseChildren: [
+          {
+            id: '4',
+            type: 'function_def',
+            funcName: 'make_queue',
+            children: [{ id: '5', type: 'queue_create', varName: 'second' }],
+          },
+        ],
+      },
+    ]
+    expect(generatePython(blocks)).toBe(
+      'from collections import deque\nprint("start")\nif ready:\n    first = deque([])\nelse:\n    def make_queue():\n        second = deque([])',
     )
   })
 

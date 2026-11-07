@@ -1,6 +1,27 @@
-import type { BlockItem } from './types'
+import type { BlockItem, BlockType } from './types'
+
+const BLOCK_IMPORTS: Partial<Record<BlockType, readonly string[]>> = {
+  queue_create: ['from collections import deque'],
+}
+
+function collectImports(blocks: BlockItem[], imports: Set<string>): void {
+  for (const block of blocks) {
+    for (const statement of BLOCK_IMPORTS[block.type] ?? [])
+      imports.add(statement)
+    if (block.children) collectImports(block.children, imports)
+    if (block.elseChildren) collectImports(block.elseChildren, imports)
+  }
+}
 
 export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
+  const body = generatePythonBody(blocks, indentLevel)
+  if (indentLevel > 0) return body
+  const imports = new Set<string>()
+  collectImports(blocks, imports)
+  return imports.size ? `${[...imports].join('\n')}\n${body}` : body
+}
+
+function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
   const indent = '    '.repeat(indentLevel)
   const lines: string[] = []
 
@@ -66,7 +87,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}for ${varName} in range(${rangeExpr}):`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -79,7 +100,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}for ${itemVar} in ${listName}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -91,7 +112,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}while ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -103,7 +124,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -115,14 +136,14 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}if ${condition}:`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
 
         lines.push(`${indent}else:`)
         if (block.elseChildren && block.elseChildren.length > 0) {
-          lines.push(generatePython(block.elseChildren, indentLevel + 1))
+          lines.push(generatePythonBody(block.elseChildren, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -152,7 +173,7 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         lines.push(`${indent}def ${name}(${args}):`)
 
         if (block.children && block.children.length > 0) {
-          lines.push(generatePython(block.children, indentLevel + 1))
+          lines.push(generatePythonBody(block.children, indentLevel + 1))
         } else {
           lines.push(`${indent}    pass`)
         }
@@ -238,7 +259,6 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
       case 'queue_create': {
         const name = block.varName?.trim() || 'queue'
         const values = block.value?.trim() || ''
-        lines.push(`${indent}from collections import deque`)
         lines.push(`${indent}${name} = deque([${values}])`)
         break
       }

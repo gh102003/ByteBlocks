@@ -5,17 +5,17 @@ import { Icon } from '../Icon'
 
 interface BlockNodeProps {
   block: BlockItem
-  index: number
-  total: number
   onUpdate: (updated: BlockItem) => void
   onDelete: () => void
-  onMoveUp?: () => void
-  onMoveDown?: () => void
   onDuplicate?: () => void
-  onDropInContainer: (
-    containerId: string,
-    slot: 'children' | 'elseChildren',
-    item: BlockItem,
+  onDropBlock: (
+    transfer: DataTransfer,
+    destination: {
+      targetId?: string
+      after?: boolean
+      containerId?: string
+      slot?: 'children' | 'elseChildren'
+    },
   ) => void
   variableNames?: string[]
   listNames?: string[]
@@ -36,14 +36,10 @@ const pythonOperator = (operator: string) =>
 
 export function BlockNode({
   block,
-  index,
-  total,
   onUpdate,
   onDelete,
-  onMoveUp,
-  onMoveDown,
   onDuplicate,
-  onDropInContainer,
+  onDropBlock,
   variableNames = [],
   listNames = [],
 }: BlockNodeProps) {
@@ -56,7 +52,7 @@ export function BlockNode({
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation()
     e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('application/json', JSON.stringify(block))
+    e.dataTransfer.setData('application/x-byteblocks-id', block.id)
   }
 
   const handleUpdateField = (field: keyof BlockItem, val: string) => {
@@ -163,6 +159,71 @@ export function BlockNode({
 
   const renderInputs = () => {
     switch (block.type) {
+      case 'stack_create':
+      case 'stack_add':
+      case 'stack_remove':
+      case 'stack_peek':
+      case 'stack_size':
+      case 'stack_empty':
+      case 'stack_clear':
+      case 'queue_create':
+      case 'queue_add':
+      case 'queue_remove':
+      case 'queue_peek':
+      case 'queue_size':
+      case 'queue_empty':
+      case 'queue_clear':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">{def.label}</span>
+            <input
+              aria-label={
+                block.type.endsWith('_create') ? 'Name' : 'Stack or queue'
+              }
+              className="chunk-input var-input"
+              value={
+                (block.type.endsWith('_create')
+                  ? block.varName
+                  : block.listName) ?? ''
+              }
+              onChange={(e) =>
+                handleUpdateField(
+                  block.type.endsWith('_create') ? 'varName' : 'listName',
+                  e.target.value,
+                )
+              }
+            />
+            {(block.type.endsWith('_create') ||
+              block.type.endsWith('_add')) && (
+              <input
+                aria-label={
+                  block.type.endsWith('_create') ? 'Initial values' : 'Item'
+                }
+                className="chunk-input expr-input"
+                placeholder={
+                  block.type.endsWith('_create')
+                    ? 'initial values, comma separated'
+                    : 'item'
+                }
+                value={block.value ?? ''}
+                onChange={(e) => handleUpdateField('value', e.target.value)}
+              />
+            )}
+            {['_remove', '_peek', '_size', '_empty'].some((suffix) =>
+              block.type.endsWith(suffix),
+            ) && (
+              <>
+                <span className="chunk-label">into</span>
+                <input
+                  aria-label="Result variable"
+                  className="chunk-input var-input"
+                  value={block.varName ?? ''}
+                  onChange={(e) => handleUpdateField('varName', e.target.value)}
+                />
+              </>
+            )}
+          </div>
+        )
       case 'comment':
         return (
           <div className="chunk-inputs">
@@ -626,35 +687,40 @@ export function BlockNode({
           '--chunk-hover': def.bgHover,
         } as React.CSSProperties
       }
-      draggable
-      onDragStart={handleDragStart}
     >
-      <div className="chunk-header">
-        <span className="chunk-handle" title="Drag chunk">
+      <div
+        className="chunk-header"
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          const rect = e.currentTarget.getBoundingClientRect()
+          e.currentTarget.dataset.dropPosition =
+            e.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
+        }}
+        onDragLeave={(e) => {
+          delete e.currentTarget.dataset.dropPosition
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          const rect = e.currentTarget.getBoundingClientRect()
+          delete e.currentTarget.dataset.dropPosition
+          onDropBlock(e.dataTransfer, {
+            targetId: block.id,
+            after: e.clientY >= rect.top + rect.height / 2,
+          })
+        }}
+      >
+        <span
+          className="chunk-handle"
+          title="Drag chunk"
+          draggable
+          onDragStart={handleDragStart}
+        >
           ⠿
         </span>
         <div className="chunk-body">{renderInputs()}</div>
         <div className="chunk-actions">
-          {onMoveUp && index > 0 && (
-            <button
-              type="button"
-              className="chunk-btn"
-              onClick={onMoveUp}
-              title="Move Up"
-            >
-              ▲
-            </button>
-          )}
-          {onMoveDown && index < total - 1 && (
-            <button
-              type="button"
-              className="chunk-btn"
-              onClick={onMoveDown}
-              title="Move Down"
-            >
-              ▼
-            </button>
-          )}
           {onDuplicate && (
             <button
               type="button"
@@ -689,15 +755,10 @@ export function BlockNode({
             e.preventDefault()
             e.stopPropagation()
             setIsDragOverChildren(false)
-            try {
-              const data = e.dataTransfer.getData('application/json')
-              if (data) {
-                const parsed = JSON.parse(data) as BlockItem
-                onDropInContainer(block.id, 'children', parsed)
-              }
-            } catch {
-              // Ignore invalid drag
-            }
+            onDropBlock(e.dataTransfer, {
+              containerId: block.id,
+              slot: 'children',
+            })
           }}
         >
           {block.children && block.children.length > 0 ? (
@@ -706,11 +767,9 @@ export function BlockNode({
                 <BlockNode
                   key={child.id}
                   block={child}
-                  index={cIdx}
-                  total={block.children!.length}
                   onUpdate={(up) => handleChildUpdate(cIdx, up)}
                   onDelete={() => handleChildDelete(cIdx)}
-                  onDropInContainer={onDropInContainer}
+                  onDropBlock={onDropBlock}
                   variableNames={variableNames}
                   listNames={listNames}
                 />
@@ -741,15 +800,10 @@ export function BlockNode({
               e.preventDefault()
               e.stopPropagation()
               setIsDragOverElse(false)
-              try {
-                const data = e.dataTransfer.getData('application/json')
-                if (data) {
-                  const parsed = JSON.parse(data) as BlockItem
-                  onDropInContainer(block.id, 'elseChildren', parsed)
-                }
-              } catch {
-                // Ignore invalid drag
-              }
+              onDropBlock(e.dataTransfer, {
+                containerId: block.id,
+                slot: 'elseChildren',
+              })
             }}
           >
             {block.elseChildren && block.elseChildren.length > 0 ? (
@@ -758,11 +812,9 @@ export function BlockNode({
                   <BlockNode
                     key={child.id}
                     block={child}
-                    index={cIdx}
-                    total={block.elseChildren!.length}
                     onUpdate={(up) => handleElseChildUpdate(cIdx, up)}
                     onDelete={() => handleElseChildDelete(cIdx)}
-                    onDropInContainer={onDropInContainer}
+                    onDropBlock={onDropBlock}
                     variableNames={variableNames}
                     listNames={listNames}
                   />

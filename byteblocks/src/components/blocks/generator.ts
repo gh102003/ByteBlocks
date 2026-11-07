@@ -188,6 +188,101 @@ export function generatePython(blocks: BlockItem[], indentLevel = 0): string {
         break
       }
 
+      case 'stack_create': {
+        const name = block.varName?.trim() || 'stack'
+        const values = block.value?.trim() || ''
+        lines.push(`${indent}${name} = [${values}]`)
+        break
+      }
+
+      case 'stack_add': {
+        const name = block.listName?.trim() || 'stack'
+        lines.push(`${indent}${name}.append(${block.value?.trim() || 'item'})`)
+        break
+      }
+
+      case 'stack_remove': {
+        const name = block.listName?.trim() || 'stack'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = ${name}.pop()`)
+        break
+      }
+
+      case 'stack_peek': {
+        const name = block.listName?.trim() || 'stack'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = ${name}[-1]`)
+        break
+      }
+
+      case 'stack_size': {
+        const name = block.listName?.trim() || 'stack'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = len(${name})`)
+        break
+      }
+
+      case 'stack_empty': {
+        const name = block.listName?.trim() || 'stack'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = not ${name}`)
+        break
+      }
+
+      case 'stack_clear': {
+        const name = block.listName?.trim() || 'stack'
+        lines.push(`${indent}${name}.clear()`)
+        break
+      }
+
+      case 'queue_create': {
+        const name = block.varName?.trim() || 'queue'
+        const values = block.value?.trim() || ''
+        lines.push(`${indent}from collections import deque`)
+        lines.push(`${indent}${name} = deque([${values}])`)
+        break
+      }
+
+      case 'queue_add': {
+        const name = block.listName?.trim() || 'queue'
+        lines.push(`${indent}${name}.append(${block.value?.trim() || 'item'})`)
+        break
+      }
+
+      case 'queue_remove': {
+        const name = block.listName?.trim() || 'queue'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = ${name}.popleft()`)
+        break
+      }
+
+      case 'queue_peek': {
+        const name = block.listName?.trim() || 'queue'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = ${name}[0]`)
+        break
+      }
+
+      case 'queue_size': {
+        const name = block.listName?.trim() || 'queue'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = len(${name})`)
+        break
+      }
+
+      case 'queue_empty': {
+        const name = block.listName?.trim() || 'queue'
+        const result = block.varName?.trim() || 'result'
+        lines.push(`${indent}${result} = not ${name}`)
+        break
+      }
+
+      case 'queue_clear': {
+        const name = block.listName?.trim() || 'queue'
+        lines.push(`${indent}${name}.clear()`)
+        break
+      }
+
       case 'dict_create': {
         const name = block.varName?.trim() || 'my_dict'
         const val = block.value?.trim() || ''

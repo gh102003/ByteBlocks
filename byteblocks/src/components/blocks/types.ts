@@ -19,9 +19,29 @@ export type BlockType =
   | 'dict_create'
   | 'comment'
   | 'custom_code'
+  | 'stack_create'
+  | 'stack_add'
+  | 'stack_remove'
+  | 'stack_peek'
+  | 'stack_size'
+  | 'stack_empty'
+  | 'stack_clear'
+  | 'queue_create'
+  | 'queue_add'
+  | 'queue_remove'
+  | 'queue_peek'
+  | 'queue_size'
+  | 'queue_empty'
+  | 'queue_clear'
 
 export type BlockCategory =
-  'control' | 'variables' | 'functions' | 'io' | 'data' | 'presets'
+  | 'control'
+  | 'variables'
+  | 'functions'
+  | 'io'
+  | 'data'
+  | 'structures'
+  | 'presets'
 
 export interface BlockItem {
   id: string

@@ -31,6 +31,7 @@ export function AuthNav() {
       .join('')
       .slice(0, 2)
       .toUpperCase() || 'YOU'
+  const displayName = user?.name || user?.email || 'Signed in learner'
 
   return (
     <div className="auth-profile">
@@ -42,10 +43,13 @@ export function AuthNav() {
           title={user.name || user.email || 'User'}
         />
       ) : (
-        <span className="avatar" title={user?.name || user?.email || 'User'}>
+        <span className="avatar" title={displayName}>
           {initials}
         </span>
       )}
+      <span className="auth-profile-name" title={displayName}>
+        {displayName}
+      </span>
       <button
         type="button"
         className="auth-logout-button"

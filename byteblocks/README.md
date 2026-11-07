@@ -26,6 +26,23 @@ Chat uses the Vercel AI SDK's `useChat` with a small browser transport calling `
 
 This prototype intentionally ships the API key in the browser bundle and sends code, output, and chat to the selected provider. Keep `.env` out of source control. The rest of the workspace still works without a key; the coach shows setup instructions.
 
+## Auth0 learning profiles
+
+Signing in protects the workspace. The onboarding choices are also saved as
+`user_metadata.byteblocks` on the signed-in Auth0 account, so a learner can
+resume their mentor settings on another device. The browser sends its Auth0
+access token only to the local `/api/auth/preferences` endpoint. That endpoint
+uses `/userinfo` to identify the caller, then uses a server-only
+Machine-to-Machine Management API credential to read or update that caller's
+metadata. Never expose `AUTH0_MANAGEMENT_CLIENT_SECRET` to the browser.
+
+Set the `VITE_AUTH0_*` and `AUTH0_*` values in `.env.local`; grant the
+Machine-to-Machine application `read:users` and `update:users` in the Auth0
+Management API. For a production/static deployment, provide an equivalent
+authenticated server endpoint—the Vite middleware exists only during `npm run dev`.
+Configure the exact application URL in Auth0's Allowed Callback URLs, Allowed
+Logout URLs, and Allowed Web Origins.
+
 Provider code lives in `src/ai/connectors/openai.ts`. To add another provider, implement `ChatConnector` using its AI SDK model factory and register it in `src/ai/connector.ts`, including any provider-specific credentials or defaults. Select it with `VITE_AI_PROVIDER`. The transport and UI depend only on the shared AI SDK model interface. A custom base URL must support the Responses API; a different API needs its own connector.
 
 ## What works

@@ -147,23 +147,6 @@ export function Workspace({
           Practice space <b> / 01</b>
         </span>
 
-        {preferences && (
-          <button
-            type="button"
-            className="ai-pref-badge"
-            onClick={onOpenPreferences}
-            title="Click to update AI Coach Calibration"
-          >
-            <Icon name="sparkle" size={13} />
-            <span>
-              {preferences.level.charAt(0).toUpperCase() +
-                preferences.level.slice(1)}{' '}
-              • {preferences.feedbackStyle}
-            </span>
-            <span className="edit-pill">Edit</span>
-          </button>
-        )}
-
         <div className="header-right">
           <ThemeToggle />
           <span className="private-label">
@@ -405,6 +388,7 @@ export function Workspace({
           />
 
           <CoachPanel
+            onOpenPreferences={onOpenPreferences}
             context={{
               code,
               execution: { status: runner.status, output: runner.output },

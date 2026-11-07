@@ -220,12 +220,32 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
       {/* Interactive AI Preview Section */}
       <section id="demo" className="demo-section">
         <div className="section-header">
-          <span className="section-eyebrow">Interactive Preview</span>
-          <h2>A coach that meets you where you are</h2>
-          <p>
-            Pick a level and see how the same problem gets a different kind of
-            hint.
-          </p>
+          <span className="section-eyebrow">Meet the mentors</span>
+          <h2>Start anywhere. Grow with your coach.</h2>
+          <p>Nibble, Bite, and Chomp each help in their own way.</p>
+        </div>
+
+        <div className="coach-roster" aria-label="ByteBlocks mentors">
+          {(['beginner', 'intermediate', 'senior'] as DemoLevel[]).map(
+            (level) => {
+              const mascot = mascotForLevel(level)
+              return (
+                <div className="coach-roster-card" key={level}>
+                  <NibbleSprite size="medium" mascot={mascot} />
+                  <div>
+                    <strong>{mascotName(mascot)}</strong>
+                    <span>
+                      {level === 'beginner'
+                        ? 'Start coding'
+                        : level === 'intermediate'
+                          ? 'Build confidence'
+                          : 'Think deeper'}
+                    </span>
+                  </div>
+                </div>
+              )
+            },
+          )}
         </div>
 
         <div className="demo-card">

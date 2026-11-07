@@ -65,9 +65,11 @@ function withoutNonBlockCode(text: string): string {
 export function CoachPanel({
   context,
   connector: suppliedConnector,
+  onOpenPreferences,
 }: {
   context: CoachContext
   connector?: ChatConnector
+  onOpenPreferences?: () => void
 }) {
   const effectivePreferences = context.preferences
   const mascot = mascotForLevel(effectivePreferences?.level)
@@ -116,17 +118,19 @@ export function CoachPanel({
           <strong>{agentName}</strong>
           <span className="coach-subtitle">
             {effectivePreferences
-              ? `Calibrated for ${effectivePreferences.level} (${effectivePreferences.feedbackStyle})`
+              ? `Your ${effectivePreferences.level} mentor`
               : 'Your pocket-sized Python guide.'}
           </span>
         </div>
-        <span className="sample-badge" title={connector.label}>
-          {connector.configurationError
-            ? 'Not connected'
-            : effectivePreferences
-              ? effectivePreferences.level.toUpperCase()
-              : 'Ready'}
-        </span>
+        {onOpenPreferences && (
+          <button
+            type="button"
+            className="coach-settings-button"
+            onClick={onOpenPreferences}
+          >
+            Change mentor
+          </button>
+        )}
       </div>
       <div
         className="coach-messages"
@@ -157,11 +161,6 @@ export function CoachPanel({
             <div className="message-content">
               <div className="message-label">
                 {message.role === 'assistant' ? agentName : 'You'}
-                {message.role === 'assistant' && effectivePreferences && (
-                  <span className="calibrated-tag">
-                    {effectivePreferences.feedbackStyle.toUpperCase()}
-                  </span>
-                )}
               </div>
               {message.parts.map((part, index) =>
                 part.type === 'text' ? (
@@ -264,9 +263,7 @@ export function CoachPanel({
           <div className="composer-bottom">
             <span>
               <Icon name="code" size={13} />
-              {effectivePreferences
-                ? `main.py + ${effectivePreferences.feedbackStyle} mode`
-                : 'main.py + latest output'}
+              main.py + latest output
             </span>
             {busy ? (
               <button

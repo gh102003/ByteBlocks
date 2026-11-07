@@ -15,6 +15,7 @@ const CATEGORIES: { id: BlockCategory; label: string; icon: string }[] = [
   { id: 'functions', label: 'Functions', icon: '⚙️' },
   { id: 'io', label: 'Print & I/O', icon: '🖨️' },
   { id: 'data', label: 'Lists & Maps', icon: '📋' },
+  { id: 'structures', label: 'Stacks & Queues', icon: '📚' },
 ]
 
 export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {

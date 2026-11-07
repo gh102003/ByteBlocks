@@ -11,6 +11,7 @@ interface VisualBlockEditorProps {
   onPythonChange: (code: string) => void
   onRun: () => void
   mode: 'blocks' | 'code'
+  highlightedLine?: number
   code: string
   onEditCode: (code: string) => void
   onSelectMode: (mode: 'blocks' | 'code') => void
@@ -128,6 +129,7 @@ export function VisualBlockEditor({
   onEditCode,
   onSelectMode,
   onCursorChange,
+  highlightedLine,
 }: VisualBlockEditorProps) {
   const [blocks, setBlocks] = useState<BlockItem[]>(loadSavedBlocks)
   const [isMainDragOver, setIsMainDragOver] = useState(false)
@@ -143,19 +145,14 @@ export function VisualBlockEditor({
   const variables = useMemo(() => findVariableNames(blocks), [blocks])
 
   // Sync python code whenever blocks change
-  const updateBlocks = useCallback(
-    (newBlocks: BlockItem[]) => {
-      setBlocks(newBlocks)
-      try {
-        localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
-      } catch {
-        // ignore
-      }
-      const py = generatePython(newBlocks)
-      onPythonChange(py)
-    },
-    [onPythonChange],
-  )
+  const updateBlocks = useCallback((newBlocks: BlockItem[]) => {
+    setBlocks(newBlocks)
+    try {
+      localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
+    } catch {
+      // ignore
+    }
+  }, [])
 
   const handleAddTopLevelBlock = (block: BlockItem) => {
     updateBlocks([...blocks, block])
@@ -432,6 +429,7 @@ export function VisualBlockEditor({
                 </button>
               ) : (
                 <CodeEditor
+                  highlightedLine={highlightedLine}
                   value={code}
                   onChange={onEditCode}
                   onCursorChange={onCursorChange}

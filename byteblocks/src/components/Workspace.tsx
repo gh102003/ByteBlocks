@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
 import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
-import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
+import { GoalPanel, ComplexityPanel } from './Helpers'
+import { ExecutionVisualizer } from './ExecutionVisualizer'
 import { CHALLENGES } from './challenges'
 import type { ChallengeId } from './challenges'
 import { Icon } from './Icon'
@@ -18,9 +19,10 @@ interface WorkspaceProps {
   preferences: UserPreferences | null
 }
 
-type HelperTab = 'Goal' | 'Complexity' | 'Dataflow' | 'Output'
+type HelperTab = 'Goal' | 'Complexity' | 'Visualizer' | 'Output'
 const STORAGE_KEY = 'byteblocks.main.py'
-const TABS: HelperTab[] = ['Goal', 'Complexity', 'Dataflow', 'Output']
+const EDITOR_MODE_KEY = 'byteblocks.editor.mode'
+const TABS: HelperTab[] = ['Goal', 'Complexity', 'Visualizer', 'Output']
 
 function readCode() {
   try {
@@ -32,9 +34,10 @@ function readCode() {
 
 function readEditorMode(): 'blocks' | 'code' {
   try {
-    return localStorage.getItem('byteblocks.editor.mode') === 'code'
-      ? 'code'
-      : 'blocks'
+    const mode = localStorage.getItem(EDITOR_MODE_KEY)
+    if (mode === 'blocks' || mode === 'code') return mode
+    // Existing saved source must not be overwritten by the initial blocks.
+    return localStorage.getItem(STORAGE_KEY) === null ? 'blocks' : 'code'
   } catch {
     return 'blocks'
   }
@@ -66,7 +69,8 @@ export function Workspace({
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unavailable'>(
     'saving',
   )
-  const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
+  const [activeTab, setActiveTab] = useState<HelperTab>('Visualizer')
+  const [traceStep, setTraceStep] = useState(0)
   const [challenge, setChallenge] = useState<ChallengeId>('two-sum')
   const [columnSplit, setColumnSplit] = useState(100 / 1.5)
   const [rowSplit, setRowSplit] = useState(50)
@@ -74,6 +78,14 @@ export function Workspace({
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(EDITOR_MODE_KEY, editorTab)
+    } catch {
+      // Editor mode can still be switched when storage is unavailable.
+    }
+  }, [editorTab])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,8 +111,18 @@ export function Workspace({
 
   const run = () => {
     setActiveTab('Output')
+    setTraceStep(0)
     void runner.run(code)
   }
+
+  const visualize = () => {
+    setTraceStep(0)
+    void runner.run(code)
+  }
+  const highlightedLine =
+    activeTab === 'Visualizer' && runner.source === code
+      ? runner.trace.steps[traceStep]?.line
+      : undefined
 
   return (
     <div className="app-shell">
@@ -171,6 +193,7 @@ export function Workspace({
           </div>
           <VisualBlockEditor
             mode={editorTab}
+            highlightedLine={highlightedLine}
             code={code}
             onSelectMode={selectEditorTab}
             onPythonChange={updateCode}
@@ -263,7 +286,7 @@ export function Workspace({
                           ? 'flag'
                           : tab === 'Complexity'
                             ? 'chart'
-                            : tab === 'Dataflow'
+                            : tab === 'Visualizer'
                               ? 'flow'
                               : 'terminal'
                       }
@@ -288,7 +311,16 @@ export function Workspace({
                 <GoalPanel selected={challenge} onSelect={setChallenge} />
               )}
               {activeTab === 'Complexity' && <ComplexityPanel />}
-              {activeTab === 'Dataflow' && <DataflowPanel />}
+              {activeTab === 'Visualizer' && (
+                <ExecutionVisualizer
+                  runner={runner}
+                  code={code}
+                  stepIndex={traceStep}
+                  onStepChange={setTraceStep}
+                  onRecord={visualize}
+                  onStop={runner.stop}
+                />
+              )}
               {activeTab === 'Output' && (
                 <>
                   <div className="output-toolbar">

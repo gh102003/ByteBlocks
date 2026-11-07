@@ -13,6 +13,7 @@ beforeEach(() => {
 describe('Desktop coding workspace', () => {
   test('switches helper tabs with the mouse and keyboard and labels sample analysis', async () => {
     await render(<App />)
+    await page.getByRole('tab', { name: 'Goal', exact: true }).click()
     await expect
       .element(page.getByRole('heading', { name: 'Two Sum.' }))
       .toBeVisible()
@@ -26,10 +27,10 @@ describe('Desktop coding workspace', () => {
       .toBeVisible()
     await userEvent.keyboard('{ArrowRight}')
     await expect
-      .element(page.getByRole('tab', { name: 'Dataflow', exact: true }))
+      .element(page.getByRole('tab', { name: 'Visualizer', exact: true }))
       .toHaveAttribute('aria-selected', 'true')
     await expect
-      .element(page.getByText('Live tracing comes later.', { exact: false }))
+      .element(page.getByRole('heading', { name: 'No execution recorded' }))
       .toBeVisible()
   })
 

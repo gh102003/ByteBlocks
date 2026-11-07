@@ -1,4 +1,6 @@
 type IconName =
+  | 'pause'
+  | 'first'
   | 'play'
   | 'stop'
   | 'check'
@@ -23,6 +25,8 @@ type IconName =
   | 'refresh'
 
 const paths: Record<IconName, string> = {
+  pause: 'M9 5v14M15 5v14',
+  first: 'M5 5v14M19 5l-9 7 9 7V5Z',
   play: 'm9 5 11 7-11 7V5Z',
   stop: 'M6 6h12v12H6z',
   check: 'm5 12 4 4L19 6',

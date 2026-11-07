@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import { CoachPanel } from './components/CoachPanel'
 import { CodeEditor } from './components/CodeEditor'
 import { Divider } from './components/Divider'
 import { GoalPanel, ComplexityPanel, DataflowPanel } from './components/Helpers'
@@ -9,15 +9,8 @@ import { STARTER_CODE } from './starter'
 import './App.css'
 
 type HelperTab = 'Goal' | 'Complexity' | 'Dataflow' | 'Output'
-type Message = { role: 'coach' | 'user'; text: string }
 const STORAGE_KEY = 'byteblocks.main.py'
 const TABS: HelperTab[] = ['Goal', 'Complexity', 'Dataflow', 'Output']
-const INITIAL_MESSAGES: Message[] = [
-  {
-    role: 'coach',
-    text: 'Hey! Let’s work through Two Sum. You already have a solution to explore. Try running it, then think about why keeping a record of earlier numbers helps.',
-  },
-]
 
 function readCode() {
   try {
@@ -36,9 +29,6 @@ function App() {
   const [columnSplit, setColumnSplit] = useState(50)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES)
-  const [draft, setDraft] = useState('')
-  const coachEnd = useRef<HTMLDivElement>(null)
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
@@ -55,9 +45,6 @@ function App() {
     return () => clearTimeout(timer)
   }, [code])
   useEffect(() => {
-    coachEnd.current?.scrollIntoView({ block: 'nearest' })
-  }, [messages])
-  useEffect(() => {
     if (activeTab === 'Output')
       outputEnd.current?.scrollIntoView({ block: 'nearest' })
   }, [runner.output, activeTab])
@@ -65,19 +52,6 @@ function App() {
   const run = () => {
     setActiveTab('Output')
     void runner.run(code)
-  }
-  const submitMessage = (event: FormEvent) => {
-    event.preventDefault()
-    if (!draft.trim()) return
-    setMessages((previous) => [
-      ...previous,
-      { role: 'user', text: draft.trim() },
-      {
-        role: 'coach',
-        text: 'This coach is a preview, so I can’t review your code yet. For the example solution, ask yourself: what does the seen dictionary let you avoid doing?',
-      },
-    ])
-    setDraft('')
   }
 
   return (
@@ -326,110 +300,12 @@ function App() {
             onChange={setRowSplit}
           />
 
-          <section className="panel coach-panel" aria-label="AI coach preview">
-            <div className="panel-toolbar coach-toolbar">
-              <div className="coach-title">
-                <span className="coach-mark">
-                  <Icon name="sparkle" size={17} />
-                </span>
-                <strong>AI coach</strong>
-                <span className="coach-subtitle">
-                  A little nudge goes a long way.
-                </span>
-              </div>
-              <span className="sample-badge">Preview</span>
-            </div>
-            <div
-              className="coach-messages"
-              role="log"
-              aria-label="Coach conversation"
-              aria-live="polite"
-            >
-              <div className="conversation-date">
-                <span />
-                LET’S FIGURE IT OUT
-                <span />
-              </div>
-              {messages.map((message, index) => (
-                <div className={`message message-${message.role}`} key={index}>
-                  <span
-                    className={`message-avatar ${message.role === 'coach' ? 'coach-message-avatar' : ''}`}
-                  >
-                    {message.role === 'coach' ? (
-                      <Icon name="sparkle" size={15} />
-                    ) : (
-                      'Y'
-                    )}
-                  </span>
-                  <div>
-                    <div className="message-label">
-                      {message.role === 'coach' ? 'ByteBlocks coach' : 'You'}
-                      {message.role === 'coach' && <span>DEMO</span>}
-                    </div>
-                    <p>{message.text}</p>
-                  </div>
-                </div>
-              ))}
-              {messages.length === 1 && (
-                <div className="suggested-prompts">
-                  <button
-                    onClick={() => setDraft('Why use a dictionary here?')}
-                  >
-                    Why use a dictionary?
-                    <Icon name="arrow" size={13} />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setDraft('Help me understand the complexity.')
-                    }
-                  >
-                    Explore the complexity
-                    <Icon name="arrow" size={13} />
-                  </button>
-                </div>
-              )}
-              <div ref={coachEnd} />
-            </div>
-            <div className="coach-compose-area">
-              <form className="coach-composer" onSubmit={submitMessage}>
-                <textarea
-                  aria-label="Message the coach"
-                  placeholder="Ask a question, or think out loud…"
-                  maxLength={4000}
-                  rows={2}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === 'Enter' &&
-                      !event.shiftKey &&
-                      !event.nativeEvent.isComposing
-                    ) {
-                      event.preventDefault()
-                      event.currentTarget.form?.requestSubmit()
-                    }
-                  }}
-                />
-                <div className="composer-bottom">
-                  <span>
-                    <Icon name="code" size={13} />
-                    Coach preview
-                  </span>
-                  <button
-                    type="submit"
-                    aria-label="Send message"
-                    disabled={!draft.trim()}
-                  >
-                    <Icon name="arrowUp" size={17} />
-                  </button>
-                </div>
-              </form>
-              <p className="coach-disclaimer">
-                <span className="tiny-dot" /> Sample responses · Live AI isn’t
-                connected yet
-              </p>
-            </div>
-          </section>
+          <CoachPanel
+            context={{
+              code,
+              execution: { status: runner.status, output: runner.output },
+            }}
+          />
         </div>
       </main>
       <footer className="app-footer">

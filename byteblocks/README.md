@@ -1,6 +1,6 @@
 # ByteBlocks
 
-A single-file Python practice workspace: Monaco on the left, tabbed helpers and a coach preview on the right. Built with React, TypeScript, and Vite.
+A single-file Python practice workspace: Monaco on the left, tabbed helpers and an AI coach on the right. Built with React, TypeScript, and Vite.
 
 ## Run locally
 
@@ -16,16 +16,26 @@ npm run build
 npm run preview
 ```
 
-The resulting `dist/` is a static website. Serve it over HTTP(S), rather than opening `index.html` as a local file. No Python execution server, external CDN, API key, or cross-origin-isolation headers are required.
+The resulting `dist/` is a static website. Serve it over HTTP(S), rather than opening `index.html` as a local file. Python execution needs no server, external CDN, API key, or cross-origin-isolation headers. The AI coach needs the configuration below.
+
+## AI coach
+
+Copy `.env.example` to `.env` and set `VITE_OPENAI_API_KEY`, then start (or restart) Vite. The defaults are `VITE_AI_PROVIDER=openai` and `VITE_AI_MODEL=gpt-4.1-mini`. `VITE_AI_BASE_URL` optionally overrides the OpenAI Responses API base URL. These values are read at build time; rebuild static deployments after changing them.
+
+Chat uses the Vercel AI SDK's `useChat` with a small browser transport calling `streamText` directly. There is no backend, agent harness, tool loop, or automatic code execution. Each turn includes the conversation history, current `main.py`, and latest Python execution status and output. Output may come from an earlier edit. Replies stream as Markdown, can be stopped, and failed turns can be retried. Messages last for the current page session.
+
+This prototype intentionally ships the API key in the browser bundle and sends code, output, and chat to the selected provider. Keep `.env` out of source control. The rest of the workspace still works without a key; the coach shows setup instructions.
+
+Provider code lives in `src/ai/connectors/openai.ts`. To add another provider, implement `ChatConnector` using its AI SDK model factory and register it in `src/ai/connector.ts`, including any provider-specific credentials or defaults. Select it with `VITE_AI_PROVIDER`. The transport and UI depend only on the shared AI SDK model interface. A custom base URL must support the Responses API; a different API needs its own connector.
 
 ## What works
 
 - Editing, undo, Python highlighting, indentation, find, and local autosave.
 - Real Python execution with Pyodide (CPython/WebAssembly), stdout/stderr, and source-line tracebacks.
 - Stop, a five-second execution watchdog, and output limits (64K characters / 2,000 writes).
-- Goal, Complexity, Dataflow, and Output tabs; a coach composer with explicitly labeled sample responses.
+- Goal, Complexity, Dataflow, and Output tabs; a live AI coach with code/output context, streaming, Markdown, stop, and retry.
 
-Complexity and dataflow illustrate the supplied Two Sum solution; they do not analyze edits. Live AI and interactive stdin are not connected. Most of the bundled standard library is available; optional Pyodide packages and network access are unavailable. Code is retained locally; coach messages last only for the current page session.
+Complexity and dataflow illustrate the supplied Two Sum solution; they do not analyze edits. Interactive stdin is not connected. Most of the bundled standard library is available; optional Pyodide packages and network access from Python are unavailable. Code is retained locally; coach messages last only for the current page session.
 
 ## Execution isolation
 
@@ -47,7 +57,7 @@ npm run typecheck
 npm run format:check
 ```
 
-Tests use **Vitest Browser Mode** with Playwright, running real Python in a real browser. They cover successful scripts, standard-library imports, Unicode, source-line errors, clean globals/files/modules, cancellation, timeouts, output flooding, opaque-origin DOM/storage isolation, blocked fetch/XHR/module imports, and the desktop editor, tabs, dividers, and coach composer. The isolation checks deliberately reach JavaScript through an indirect constructor to exercise CSP rather than merely relying on restricted imports.
+Tests use **Vitest Browser Mode** with Playwright, running real Python in a real browser. They cover successful scripts, standard-library imports, Unicode, source-line errors, clean globals/files/modules, cancellation, timeouts, output flooding, opaque-origin DOM/storage isolation, blocked fetch/XHR/module imports, and the desktop editor, tabs, dividers, and AI chat. Chat tests intercept provider requests and stream local fixtures; no real API credentials or paid requests are needed. The isolation checks deliberately reach JavaScript through an indirect constructor to exercise CSP rather than merely relying on restricted imports.
 
 `npm run test:watch` starts Vitest in watch mode. `VITEST_BROWSER=webkit npm test` selects WebKit after `npx playwright install webkit`. On Linux, Playwright may also need OS dependencies installed with `npx playwright install --with-deps chromium webkit`.
 

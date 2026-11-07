@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
 import { CodeEditor } from './CodeEditor'
 import { VisualBlockEditor } from './blocks/VisualBlockEditor'
+import { CoachPanel } from './CoachPanel'
 import { Divider } from './Divider'
 import { GoalPanel, ComplexityPanel, DataflowPanel } from './Helpers'
 import { Icon } from './Icon'
@@ -17,7 +17,6 @@ interface WorkspaceProps {
 }
 
 type HelperTab = 'Goal' | 'Complexity' | 'Dataflow' | 'Output'
-type Message = { role: 'coach' | 'user'; text: string }
 const STORAGE_KEY = 'byteblocks.main.py'
 const TABS: HelperTab[] = ['Goal', 'Complexity', 'Dataflow', 'Output']
 
@@ -27,38 +26,6 @@ function readCode() {
   } catch {
     return STARTER_CODE
   }
-}
-
-function getInitialMessages(prefs: UserPreferences | null): Message[] {
-  const levelLabel = prefs
-    ? prefs.level.charAt(0).toUpperCase() + prefs.level.slice(1)
-    : 'Intermediate'
-  const styleLabel = prefs ? prefs.feedbackStyle : 'Socratic hints'
-
-  if (prefs?.level === 'senior') {
-    return [
-      {
-        role: 'coach',
-        text: `Hey! I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate Two Sum: inspect the dictionary approach, time/space amortized bounds, and edge cases with duplicates or memory overhead.`,
-      },
-    ]
-  }
-
-  if (prefs?.level === 'beginner') {
-    return [
-      {
-        role: 'coach',
-        text: `Hey! Welcome to Python practice. I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum step-by-step. Try running the code first to see how it works!`,
-      },
-    ]
-  }
-
-  return [
-    {
-      role: 'coach',
-      text: `Hey! I'm calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through Two Sum. You already have a solution to explore. Try running it, then think about why keeping a record of earlier numbers helps.`,
-    },
-  ]
 }
 
 export function Workspace({
@@ -75,11 +42,6 @@ export function Workspace({
   const [columnSplit, setColumnSplit] = useState(50)
   const [rowSplit, setRowSplit] = useState(50)
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 })
-  const [messages, setMessages] = useState<Message[]>(() =>
-    getInitialMessages(preferences),
-  )
-  const [draft, setDraft] = useState('')
-  const coachEnd = useRef<HTMLDivElement>(null)
   const outputEnd = useRef<HTMLDivElement>(null)
   const runner = usePythonRunner()
   const busy = runner.status === 'loading' || runner.status === 'running'
@@ -97,10 +59,6 @@ export function Workspace({
   }, [code])
 
   useEffect(() => {
-    coachEnd.current?.scrollIntoView({ block: 'nearest' })
-  }, [messages])
-
-  useEffect(() => {
     if (activeTab === 'Output')
       outputEnd.current?.scrollIntoView({ block: 'nearest' })
   }, [runner.output, activeTab])
@@ -108,28 +66,6 @@ export function Workspace({
   const run = () => {
     setActiveTab('Output')
     void runner.run(code)
-  }
-
-  const submitMessage = (event: FormEvent) => {
-    event.preventDefault()
-    if (!draft.trim()) return
-
-    const coachResponse =
-      preferences?.level === 'senior'
-        ? `[Senior • ${preferences.feedbackStyle}] For this solution: consider what happens with hash collisions and whether trading memory for O(n) runtime is acceptable in high-throughput pipelines.`
-        : preferences?.level === 'beginner'
-          ? `[Beginner • ${preferences?.feedbackStyle || 'Socratic'}] Good question! Look at the loop: what does the seen dictionary let you avoid doing, and why don't we need an inner loop?`
-          : `[Intermediate • ${preferences?.feedbackStyle || 'Socratic'}] Good thought! For the example solution, ask yourself: what does the seen dictionary let you avoid doing? Think about the time complexity tradeoff.`
-
-    setMessages((previous) => [
-      ...previous,
-      { role: 'user', text: draft.trim() },
-      {
-        role: 'coach',
-        text: coachResponse,
-      },
-    ])
-    setDraft('')
   }
 
   return (
@@ -438,112 +374,13 @@ export function Workspace({
             onChange={setRowSplit}
           />
 
-          <section className="panel coach-panel" aria-label="AI coach preview">
-            <div className="panel-toolbar coach-toolbar">
-              <div className="coach-title">
-                <span className="coach-mark">
-                  <Icon name="sparkle" size={17} />
-                </span>
-                <strong>AI coach</strong>
-                <span className="coach-subtitle">
-                  {preferences
-                    ? `Calibrated for ${preferences.level} (${preferences.feedbackStyle})`
-                    : 'A little nudge goes a long way.'}
-                </span>
-              </div>
-              <span className="sample-badge">Preview</span>
-            </div>
-            <div
-              className="coach-messages"
-              role="log"
-              aria-label="Coach conversation"
-              aria-live="polite"
-            >
-              <div className="conversation-date">
-                <span />
-                LET’S FIGURE IT OUT
-                <span />
-              </div>
-              {messages.map((message, index) => (
-                <div className={`message message-${message.role}`} key={index}>
-                  <span
-                    className={`message-avatar ${message.role === 'coach' ? 'coach-message-avatar' : ''}`}
-                  >
-                    {message.role === 'coach' ? (
-                      <Icon name="sparkle" size={15} />
-                    ) : (
-                      'Y'
-                    )}
-                  </span>
-                  <div>
-                    <div className="message-label">
-                      {message.role === 'coach' ? 'ByteBlocks coach' : 'You'}
-                      {message.role === 'coach' && <span>CALIBRATED</span>}
-                    </div>
-                    <p>{message.text}</p>
-                  </div>
-                </div>
-              ))}
-              {messages.length === 1 && (
-                <div className="suggested-prompts">
-                  <button
-                    onClick={() => setDraft('Why use a dictionary here?')}
-                  >
-                    Why use a dictionary?
-                    <Icon name="arrow" size={13} />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setDraft('Help me understand the complexity.')
-                    }
-                  >
-                    Explore the complexity
-                    <Icon name="arrow" size={13} />
-                  </button>
-                </div>
-              )}
-              <div ref={coachEnd} />
-            </div>
-            <div className="coach-compose-area">
-              <form className="coach-composer" onSubmit={submitMessage}>
-                <textarea
-                  aria-label="Message the coach"
-                  placeholder="Ask a question, or think out loud…"
-                  maxLength={4000}
-                  rows={2}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === 'Enter' &&
-                      !event.shiftKey &&
-                      !event.nativeEvent.isComposing
-                    ) {
-                      event.preventDefault()
-                      event.currentTarget.form?.requestSubmit()
-                    }
-                  }}
-                />
-                <div className="composer-bottom">
-                  <span>
-                    <Icon name="code" size={13} />
-                    Coach preview
-                  </span>
-                  <button
-                    type="submit"
-                    aria-label="Send message"
-                    disabled={!draft.trim()}
-                  >
-                    <Icon name="arrowUp" size={17} />
-                  </button>
-                </div>
-              </form>
-              <p className="coach-disclaimer">
-                <span className="tiny-dot" /> Calibrated preview · Live AI
-                connector in progress
-              </p>
-            </div>
-          </section>
+          <CoachPanel
+            context={{
+              code,
+              execution: { status: runner.status, output: runner.output },
+              preferences,
+            }}
+          />
         </div>
       </main>
       <footer className="app-footer">

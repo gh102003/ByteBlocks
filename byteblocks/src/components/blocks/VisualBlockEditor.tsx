@@ -83,24 +83,6 @@ export function VisualBlockEditor({
     updateBlocks(next)
   }
 
-  const handleMoveUp = (index: number) => {
-    if (index === 0) return
-    const next = [...blocks]
-    const temp = next[index - 1]
-    next[index - 1] = next[index]
-    next[index] = temp
-    updateBlocks(next)
-  }
-
-  const handleMoveDown = (index: number) => {
-    if (index >= blocks.length - 1) return
-    const next = [...blocks]
-    const temp = next[index + 1]
-    next[index + 1] = next[index]
-    next[index] = temp
-    updateBlocks(next)
-  }
-
   const handleDuplicate = (index: number) => {
     const cloned = cloneWithNewIds(blocks[index])
     const next = [...blocks]
@@ -108,38 +90,93 @@ export function VisualBlockEditor({
     updateBlocks(next)
   }
 
-  const handleDropInContainer = useCallback(
-    (
-      containerId: string,
-      slot: 'children' | 'elseChildren',
-      item: BlockItem,
-    ) => {
-      const clonedItem = cloneWithNewIds(item)
+  const handleDrop = (
+    transfer: DataTransfer,
+    destination: {
+      targetId?: string
+      after?: boolean
+      containerId?: string
+      slot?: 'children' | 'elseChildren'
+    },
+  ) => {
+    try {
+      const sourceId = transfer.getData('application/x-byteblocks-id')
+      const raw = transfer.getData('application/json')
+      if (!sourceId && !raw) return
 
-      const insertRecursively = (list: BlockItem[]): BlockItem[] => {
-        return list.map((b) => {
-          if (b.id === containerId) {
-            const currentSlot = b[slot] ?? []
-            return {
-              ...b,
-              [slot]: [...currentSlot, clonedItem],
+      let moving: BlockItem | undefined
+      const remove = (list: BlockItem[]): BlockItem[] =>
+        list.flatMap((block) => {
+          if (block.id === sourceId) {
+            moving = block
+            return []
+          }
+          return [
+            {
+              ...block,
+              children: block.children && remove(block.children),
+              elseChildren: block.elseChildren && remove(block.elseChildren),
+            },
+          ]
+        })
+      const remaining = sourceId ? remove(blocks) : blocks
+      const item = sourceId
+        ? moving
+        : cloneWithNewIds(JSON.parse(raw) as BlockItem)
+      if (!item) return
+
+      // A container cannot be dropped into itself or any of its descendants.
+      const contains = (block: BlockItem, id: string): boolean =>
+        block.id === id ||
+        [...(block.children ?? []), ...(block.elseChildren ?? [])].some(
+          (child) => contains(child, id),
+        )
+      if (
+        (destination.targetId && contains(item, destination.targetId)) ||
+        (destination.containerId && contains(item, destination.containerId))
+      )
+        return
+
+      let inserted = false
+      const insert = (list: BlockItem[]): BlockItem[] => {
+        const result: BlockItem[] = []
+        for (const block of list) {
+          if (block.id === destination.targetId && !destination.after) {
+            result.push(item)
+            inserted = true
+          }
+          let next = block
+          if (block.id === destination.containerId && destination.slot) {
+            next = {
+              ...block,
+              [destination.slot]: [...(block[destination.slot] ?? []), item],
+            }
+            inserted = true
+          } else {
+            next = {
+              ...block,
+              children: block.children && insert(block.children),
+              elseChildren: block.elseChildren && insert(block.elseChildren),
             }
           }
-          return {
-            ...b,
-            children: b.children ? insertRecursively(b.children) : undefined,
-            elseChildren: b.elseChildren
-              ? insertRecursively(b.elseChildren)
-              : undefined,
+          result.push(next)
+          if (block.id === destination.targetId && destination.after) {
+            result.push(item)
+            inserted = true
           }
-        })
+        }
+        return result
       }
-
-      const next = insertRecursively(blocks)
-      updateBlocks(next)
-    },
-    [blocks, updateBlocks],
-  )
+      const next =
+        destination.targetId || destination.containerId
+          ? insert(remaining)
+          : [...remaining, item]
+      if (!destination.targetId && !destination.containerId) inserted = true
+      if (inserted) updateBlocks(next)
+    } catch {
+      // Ignore invalid drag data.
+    }
+  }
 
   const handleClearAll = () => {
     if (
@@ -210,15 +247,7 @@ export function VisualBlockEditor({
             onDrop={(e) => {
               e.preventDefault()
               setIsMainDragOver(false)
-              try {
-                const raw = e.dataTransfer.getData('application/json')
-                if (raw) {
-                  const parsed = JSON.parse(raw) as BlockItem
-                  handleAddTopLevelBlock(cloneWithNewIds(parsed))
-                }
-              } catch {
-                // Ignore
-              }
+              handleDrop(e.dataTransfer, {})
             }}
           >
             {blocks.length === 0 ? (
@@ -252,14 +281,10 @@ export function VisualBlockEditor({
                   <BlockNode
                     key={block.id}
                     block={block}
-                    index={idx}
-                    total={blocks.length}
                     onUpdate={(up) => handleUpdateBlock(idx, up)}
                     onDelete={() => handleDeleteBlock(idx)}
-                    onMoveUp={() => handleMoveUp(idx)}
-                    onMoveDown={() => handleMoveDown(idx)}
                     onDuplicate={() => handleDuplicate(idx)}
-                    onDropInContainer={handleDropInContainer}
+                    onDropBlock={handleDrop}
                   />
                 ))}
 
@@ -272,15 +297,7 @@ export function VisualBlockEditor({
                   onDrop={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
-                    try {
-                      const raw = e.dataTransfer.getData('application/json')
-                      if (raw) {
-                        const parsed = JSON.parse(raw) as BlockItem
-                        handleAddTopLevelBlock(cloneWithNewIds(parsed))
-                      }
-                    } catch {
-                      // ignore
-                    }
+                    handleDrop(e.dataTransfer, {})
                   }}
                 >
                   <span>+ Drag chunk here to append to bottom</span>

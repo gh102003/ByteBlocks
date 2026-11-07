@@ -18,6 +18,8 @@
     "@ai-sdk/openai": "^4.0.110",
     "@ai-sdk/react": "^4.0.168",
     "@auth0/auth0-react": "^2.30.0",
+    "@elevenlabs/elevenlabs-js": "^2.77.0",
+    "@elevenlabs/react": "^1.21.1",
     "ai": "^7.0.164",
     "katex": "^0.19.1",
     "lucide-react": "^1.70.0",

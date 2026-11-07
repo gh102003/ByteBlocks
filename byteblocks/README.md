@@ -40,6 +40,18 @@ Open **Visualizer → Visualize code** to record the current blocks or Python so
 
 Complexity illustrates the supplied Two Sum solution; it does not analyze edits. Interactive stdin is not connected. Most of the bundled standard library is available; optional Pyodide packages and network access from Python are unavailable. Code is retained locally; coach messages last only for the current page session.
 
+## Realtime voice coach
+
+Each new voice call uses the selected mentor's voice: Nibble uses Minty — The Holiday Elf (goofy, mischievous American, high-pitched and slightly raspy), Bite uses George (warm British, middle pitch), and Chomp uses Brian (deep American). Auto level uses the same resolver as the avatar. A running call keeps its voice until the next call. The shared mapping lives in `src/ai/mentorVoices.ts`; agent setup enables only the voice-ID override needed for this selection. Minty is a shared library voice: add it to the ElevenLabs account's My Voices before provisioning an agent in another account (voice ID `1lXLcaBSLzgfQ2dCVmRt`).
+
+Click **Start voice** in the coach composer, then grant microphone access. The private ElevenLabs agent uses `eleven_realtime_v1_mini` speech-to-speech over the ElevenLabs WebRTC client, with interruption handling and a mute/end control. Vercel AI SDK continues to handle text chat. Both coaches receive the current code, blocks, stage, execution output, preferences, and conversation history. Voice transcripts also appear in text chat; live workspace updates are debounced while connected.
+
+Voice tools can read the workspace, current stage and test cases, execution/trace, and test results; run the current editor contents; stop execution; and check the current stage. They accept no source code and have no editor setters or stage advancement. Runs use the existing isolated Python sandbox and its limits. Run/check tools start work; the coach reads results separately and checks whether their source matches current edits.
+
+The local voice endpoint loads `ELEVENLABS_API_KEY` and `ELEVENLABS_AGENT_ID` from `.env.local` at Vite startup and returns only a temporary conversation token. Restart Vite after changing configuration. To provision another private agent after onboarding, run `node --env-file=.env.local scripts/setup-voice-agent.mjs`; it appends the new agent ID locally and verifies realtime mode. The account must have realtime model access. No live audio test is run automatically.
+
+The token endpoint runs only with the Vite development server. Static builds and `vite preview` need a separately deployed, authenticated and rate-limited `/api/voice/session` POST endpoint returning `{ "conversationToken": "..." }` using the server-side SDK; never expose the ElevenLabs key as a `VITE_` variable. The local endpoint rejects cross-origin requests. Voice audio, transcripts, and workspace context are sent to ElevenLabs while connected; server-side voice recording is disabled on the provisioned agent.
+
 ## Execution isolation
 
 The app fetches its own bundled runtime assets on first Run, then passes copies into an iframe with `sandbox="allow-scripts"` (no `allow-same-origin`). That opaque-origin document creates a dedicated blob Worker; Python never executes in the app or the frame’s main thread. The bootstrap uses a classic Worker for WebKit compatibility and dynamically imports the Pyodide ESM runtime inside it.

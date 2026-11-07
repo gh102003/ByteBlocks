@@ -624,6 +624,46 @@ export function Workspace({
             onAssessment={onAssessment}
             onAvailability={onAvailability}
             onOpenPreferences={onOpenPreferences}
+            voiceAccess={{
+              readStage: () => ({
+                challenge: currentChallenge.title,
+                stage: currentProgress.stage + 1,
+                totalStages: currentChallenge.stages.length,
+                task: currentTask,
+                progress: currentProgress,
+                cases: suite.cases,
+              }),
+              readExecution: () => ({
+                status: runner.status,
+                output: runner.output,
+                source: runner.source,
+                matchesCurrentCode: runner.source === code,
+                trace: runner.trace,
+              }),
+              readTests: () => ({
+                status: testRunner.status,
+                results: testResults,
+                error: testError,
+                source: testedCode,
+                matchesCurrentCode: testedCode === code,
+                passed: !!passed,
+              }),
+              runCode: () => {
+                if (busy)
+                  return 'Python is already running. Read execution for status.'
+                run()
+                return 'Started current editor code. Read execution for results.'
+              },
+              stopExecution: () => {
+                runner.stop()
+                return 'Execution stopped.'
+              },
+              checkStage: () => {
+                if (testBusy) return 'Stage checks are already running.'
+                checkWork()
+                return 'Started current stage checks. Read test results for results.'
+              },
+            }}
             context={{
               code,
               execution: { status: runner.status, output: runner.output },

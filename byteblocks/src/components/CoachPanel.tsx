@@ -21,6 +21,8 @@ import { AdviceBlocks } from './AdviceBlocks'
 import { NibbleSprite } from './NibbleSprite'
 import { mascotForLevel, mascotName } from './mascot'
 import { resolveMentorLevel } from '../ai/mentorLevel'
+import { VoiceCoach } from './VoiceCoach'
+import type { VoiceAccess } from '../ai/voice'
 
 function getInitialCoachMessages(
   prefs: UserPreferences | null | undefined,
@@ -82,6 +84,7 @@ export function CoachPanel({
   onAssessment,
   onAvailability,
   onOpenPreferences,
+  voiceAccess,
 }: {
   context: CoachContext
   connector?: ChatConnector
@@ -89,6 +92,7 @@ export function CoachPanel({
   onAssessment?: (result: 'advance' | 'bonus' | 'skip') => void
   onAvailability?: (busy: boolean, unavailable: boolean) => void
   onOpenPreferences?: () => void
+  voiceAccess?: VoiceAccess
 }) {
   const effectivePreferences = context.preferences
   const resolvedLevel = resolveMentorLevel(
@@ -115,7 +119,15 @@ export function CoachPanel({
     [effectivePreferences, resolvedLevel],
   )
   const assessmentPending = useRef(false)
-  const { messages, sendMessage, regenerate, stop, status, error } = useChat({
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    regenerate,
+    stop,
+    status,
+    error,
+  } = useChat({
     transport,
     messages: initialMessages,
     onFinish: ({ message, isAbort, isError }) => {
@@ -310,6 +322,23 @@ export function CoachPanel({
         <div ref={coachEnd} />
       </div>
       <div className="coach-compose-area">
+        {voiceAccess && (
+          <VoiceCoach
+            context={context}
+            messages={messages}
+            access={voiceAccess}
+            onTranscript={(role, text) =>
+              setMessages((previous) => [
+                ...previous,
+                {
+                  id: crypto.randomUUID(),
+                  role,
+                  parts: [{ type: 'text', text }],
+                },
+              ])
+            }
+          />
+        )}
         <form className="coach-composer" onSubmit={submitMessage}>
           <textarea
             aria-label="Message the coach"

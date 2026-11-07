@@ -272,7 +272,7 @@ describe('AI coach', () => {
       .toBeVisible()
     await expect
       .element(page.getByLabelText('Read-only block example'))
-      .toMatchTextContent('target = 9')
+      .toMatchTextContent('set a variable')
     expect(document.querySelector('.message-markdown pre')).toBeNull()
     expect(
       document.querySelector('.message-markdown')?.textContent,

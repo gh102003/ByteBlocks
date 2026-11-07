@@ -358,26 +358,7 @@ export function Workspace({
           ByteBlocks<span className="brand-dot">.</span>
         </button>
         <span className="header-divider" />
-        <span className="workspace-label">
-          Practice space <b> / 01</b>
-        </span>
-
-        {preferences && (
-          <button
-            type="button"
-            className="ai-pref-badge"
-            onClick={onOpenPreferences}
-            title="Click to update AI Coach Calibration"
-          >
-            <Icon name="sparkle" size={13} />
-            <span>
-              {preferences.level.charAt(0).toUpperCase() +
-                preferences.level.slice(1)}{' '}
-              • {preferences.feedbackStyle}
-            </span>
-            <span className="edit-pill">Edit</span>
-          </button>
-        )}
+        <span className="workspace-label">Practice space</span>
 
         <div className="header-right">
           <ThemeToggle />

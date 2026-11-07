@@ -18,6 +18,7 @@ import {
 import type { VoiceAccess } from '../ai/voice'
 import { resolveMentorLevel } from '../ai/mentorLevel'
 import { mascotForLevel, mascotName } from './mascot'
+import { Icon } from './Icon'
 
 type Props = {
   context: CoachContext
@@ -34,6 +35,7 @@ function VoiceControls({ context, messages, access }: Props) {
   const { isMuted, setMuted } = useConversationInput()
   const [requesting, setRequesting] = useState(false)
   const [error, setError] = useState('')
+  const [speaking, setSpeaking] = useState(isSpeaking)
   const pending = useRef<AbortController | null>(null)
   const snapshot = voiceSnapshot(context, messages)
   const instructions = voiceInstructions(context)
@@ -54,6 +56,11 @@ function VoiceControls({ context, messages, access }: Props) {
     },
     [endSession],
   )
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSpeaking(isSpeaking), 300)
+    return () => clearTimeout(timer)
+  }, [isSpeaking])
 
   useEffect(() => {
     if (status !== 'connected') return
@@ -115,32 +122,49 @@ function VoiceControls({ context, messages, access }: Props) {
     }
   }
 
-  const active = status === 'connected' || status === 'connecting' || requesting
+  const connected = status === 'connected'
+  const connecting = status === 'connecting' || requesting
+  const stopVoice = () => {
+    pending.current?.abort()
+    pending.current = null
+    setRequesting(false)
+    endSession()
+  }
   return (
     <div className="voice-coach" aria-label="Realtime voice coach">
       <div className="voice-controls">
-        <button
-          type="button"
-          onClick={
-            active
-              ? () => {
-                  pending.current?.abort()
-                  pending.current = null
-                  setRequesting(false)
-                  endSession()
-                }
-              : () => void start()
-          }
-        >
-          {active ? 'End voice' : 'Start voice'}
-        </button>
-        {status === 'connected' && (
+        {connected ? (
           <button
             type="button"
             aria-pressed={isMuted}
+            aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+            title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+            className="voice-toggle"
             onClick={() => setMuted(!isMuted)}
           >
-            {isMuted ? 'Unmute mic' : 'Mute mic'}
+            <Icon name={isMuted ? 'micOff' : 'mic'} size={17} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="voice-toggle"
+            aria-label={connecting ? 'Voice connecting' : 'Start voice chat'}
+            title={connecting ? 'Voice connecting' : 'Start voice chat'}
+            disabled={connecting}
+            onClick={() => void start()}
+          >
+            <Icon name="mic" size={17} />
+          </button>
+        )}
+        {(connected || connecting) && (
+          <button
+            type="button"
+            className="voice-stop"
+            aria-label="Stop voice chat"
+            title="Stop voice chat"
+            onClick={stopVoice}
+          >
+            <Icon name="stop" size={15} />
           </button>
         )}
         <span role="status">
@@ -149,7 +173,7 @@ function VoiceControls({ context, messages, access }: Props) {
             : status === 'connected'
               ? isMuted
                 ? 'Mic muted'
-                : isSpeaking
+                : speaking
                   ? 'Speaking…'
                   : 'Listening…'
               : `Realtime voice · ${voice.name} · can read and run your work`}

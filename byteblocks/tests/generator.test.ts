@@ -105,6 +105,27 @@ describe('Block Generator to Python', () => {
     ).toBe('total = price + tax\ntotal += 1\ntotal -= discount')
   })
 
+  it('generates typed number and variable operands', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'var_set',
+          varName: 'total',
+          valueOperand: { kind: 'variable', name: 'price' },
+          operator: '*',
+          rightOperand: { kind: 'number', value: '2' },
+        },
+        {
+          id: '2',
+          type: 'var_change',
+          varName: 'total',
+          valueOperand: { kind: 'variable', name: 'bonus' },
+        },
+      ]),
+    ).toBe('total = price * 2\ntotal += bonus')
+  })
+
   it('generates guided math and comparison controls as Python', () => {
     const blocks: BlockItem[] = [
       {

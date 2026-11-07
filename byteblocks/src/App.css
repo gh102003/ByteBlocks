@@ -130,7 +130,6 @@
   display: grid;
   flex: 1;
   min-height: 0;
-  margin: 13px 14px 0;
 }
 .panel {
   min-width: 0;
@@ -139,6 +138,16 @@
   border: 1px solid var(--border);
   border-radius: 9px;
   overflow: hidden;
+}
+.editor-panel {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.helpers-panel {
+  border-top-right-radius: 0;
+}
+.coach-panel {
+  border-bottom-right-radius: 0;
 }
 .panel-toolbar {
   height: 51px;
@@ -1108,30 +1117,6 @@
   display: inline-block;
   flex-shrink: 0;
 }
-.app-footer {
-  height: 32px;
-  flex-shrink: 0;
-  padding: 0 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--theme-text-muted);
-  font-size: 8px;
-}
-.app-footer > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.app-footer > span:first-child {
-  letter-spacing: 1px;
-  font-size: 7px;
-}
-.footer-spark {
-  font-size: 15px;
-  color: var(--theme-text-muted);
-  margin-left: 8px;
-}
 
 @media (min-width: 1600px) {
   .goal-content,
@@ -1200,7 +1185,9 @@
     display: flex !important;
     flex-direction: column;
     gap: 10px;
-    margin: 10px;
+  }
+  .workspace .panel {
+    border-radius: 0;
   }
   .editor-panel {
     height: 520px;
@@ -1234,12 +1221,6 @@
   .coach-subtitle {
     display: inline;
     font-size: 8px;
-  }
-  .app-footer {
-    padding: 0 16px;
-  }
-  .app-footer > span:last-child {
-    font-size: 7px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

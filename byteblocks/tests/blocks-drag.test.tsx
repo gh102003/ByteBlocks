@@ -97,3 +97,40 @@ test('deleting a block requires confirmation', async () => {
   )
   confirm.mockRestore()
 })
+
+test('function parameters are available in collection pickers', async () => {
+  localStorage.setItem(
+    key,
+    JSON.stringify([
+      {
+        id: 'function',
+        type: 'function_def',
+        funcName: 'process',
+        functionArgs: ['items'],
+        children: [
+          { id: 'list', type: 'list_get', listName: 'items' },
+          { id: 'stack', type: 'stack_peek', listName: 'items' },
+          { id: 'queue', type: 'queue_peek', listName: 'items' },
+        ],
+      },
+    ]),
+  )
+
+  await render(
+    <VisualBlockEditor
+      onPythonChange={() => {}}
+      onRun={() => {}}
+      mode="blocks"
+      code=""
+      onEditCode={() => {}}
+      onSelectMode={() => {}}
+      onCursorChange={() => {}}
+    />,
+  )
+
+  expect(
+    Array.from(
+      document.querySelectorAll<HTMLOptionElement>('select option'),
+    ).filter((option) => option.value === 'items'),
+  ).toHaveLength(3)
+})

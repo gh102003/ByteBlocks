@@ -31,6 +31,17 @@
   position: relative;
   margin-right: 11px;
 }
+.brand-symbol::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  width: 8px;
+  height: 8px;
+  top: 8px;
+  right: -1px;
+  border-radius: 50%;
+  background: var(--theme-surface-base);
+}
 .brand-symbol i {
   position: absolute;
   width: 10px;

@@ -913,10 +913,10 @@
   top: calc(var(--nibble-unit) * 2);
   width: var(--nibble-unit);
   height: calc(var(--nibble-unit) * 3);
-  background: #24724a;
+  background: #d94b42;
   box-shadow:
-    0 calc(var(--nibble-unit) * -1) #98db80,
-    0 calc(var(--nibble-unit) * 3) #24724a;
+    0 calc(var(--nibble-unit) * -1) #ff8573,
+    0 calc(var(--nibble-unit) * 3) #a62d36;
 }
 .chop-snout {
   position: absolute;

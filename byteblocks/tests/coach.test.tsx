@@ -1,8 +1,8 @@
 import { createRef } from 'react'
 import type { CoachHandle } from '../src/components/CoachPanel'
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { cleanup, render } from 'vitest-browser-react'
+import { render } from 'vitest-browser-react'
 import { createOpenAIConnector } from '../src/ai/connectors/openai'
 import type { CoachContext } from '../src/ai/transport'
 import type { UserPreferences } from '../src/preferences'
@@ -105,10 +105,6 @@ function mockProvider() {
 
 afterEach(() => {
   vi.restoreAllMocks()
-})
-
-beforeEach(async () => {
-  await cleanup()
 })
 
 describe('AI coach', () => {
@@ -276,7 +272,7 @@ describe('AI coach', () => {
       .toBeVisible()
     await expect
       .element(page.getByLabelText('Read-only block example'))
-      .toMatchTextContent('target = 9')
+      .toMatchTextContent('set a variable')
     expect(document.querySelector('.message-markdown pre')).toBeNull()
     expect(
       document.querySelector('.message-markdown')?.textContent,

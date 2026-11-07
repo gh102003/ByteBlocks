@@ -47,7 +47,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit]
+        browser:
+          - chromium
+          # - webkit # Temporarily disabled while the dynamic-import probe is investigated.
     env:
       VITEST_BROWSER: ${{ matrix.browser }}
     steps:

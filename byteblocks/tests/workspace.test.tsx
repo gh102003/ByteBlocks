@@ -49,21 +49,17 @@ describe('Desktop coding workspace', () => {
     await expect.element(rows).toHaveAttribute('aria-valuenow', '48')
   })
 
-  test('the coach composer sends a message and clearly identifies the demo response', async () => {
+  test('the live coach offers prompts and starts with an empty composer', async () => {
     await render(<App />)
     const send = page.getByRole('button', { name: 'Send message' })
     await expect.element(send).toBeDisabled()
-    await page
-      .getByRole('textbox', { name: 'Message the coach' })
-      .fill('Why does a dictionary help?')
-    await send.click()
+    await page.getByRole('button', { name: 'Why use a dictionary?' }).click()
     await expect
-      .element(page.getByText('Why does a dictionary help?', { exact: true }))
-      .toBeVisible()
+      .element(page.getByRole('textbox', { name: 'Message the coach' }))
+      .toHaveValue('Why use a dictionary here?')
     await expect
-      .element(page.getByText('This coach is a preview', { exact: false }))
-      .toBeVisible()
-    await expect.element(send).toBeDisabled()
+      .element(page.getByText('DEMO', { exact: true }))
+      .not.toBeInTheDocument()
   })
 
   test('Run opens Output and renders stdout as text', async () => {

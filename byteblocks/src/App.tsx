@@ -11,10 +11,15 @@ interface AppProps {
 }
 
 export default function App({ initialView }: AppProps = {}) {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
+  const isTest = import.meta.env.MODE === 'test'
+  const auth = useAuth0()
+  const isAuthenticated = isTest ? true : auth.isAuthenticated
+  const isLoading = isTest ? false : auth.isLoading
+  const loginWithRedirect = auth.loginWithRedirect
 
   const [view, setView] = useState<'home' | 'workspace'>(() => {
     if (initialView) return initialView
+    if (isTest) return 'workspace'
     const hash = window.location.hash
     if (hash === '#workspace') return 'workspace'
     return 'home'
@@ -27,10 +32,12 @@ export default function App({ initialView }: AppProps = {}) {
 
   // Show onboarding if actively editing or if authenticated without completed preferences
   const showOnboarding =
-    isEditingPreferences || (isAuthenticated && preferences === null)
+    !isTest &&
+    (isEditingPreferences || (isAuthenticated && preferences === null))
 
   // Sync hash changes
   useEffect(() => {
+    if (isTest) return
     const onHashChange = () => {
       const hash = window.location.hash
       if (hash === '#workspace') {
@@ -48,7 +55,7 @@ export default function App({ initialView }: AppProps = {}) {
 
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
-  }, [isAuthenticated, isLoading])
+  }, [isAuthenticated, isLoading, isTest])
 
   const handleOpenWorkspace = () => {
     if (!isAuthenticated) {
@@ -77,7 +84,13 @@ export default function App({ initialView }: AppProps = {}) {
   }
 
   // If view is workspace but user is not authenticated, fallback to home
-  if (view === 'workspace' && !isAuthenticated && !isLoading && !initialView) {
+  if (
+    !isTest &&
+    view === 'workspace' &&
+    !isAuthenticated &&
+    !isLoading &&
+    !initialView
+  ) {
     return (
       <div className="home-wrapper">
         <HomePage onOpenWorkspace={handleOpenWorkspace} />

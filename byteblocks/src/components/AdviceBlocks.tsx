@@ -1,4 +1,5 @@
 import { BLOCK_DEFINITIONS } from './blocks/definitions'
+import { BlockIcon } from './blocks/BlockIcon'
 import type { BlockItem, BlockType } from './blocks/types'
 
 const definitions = new Map(
@@ -41,9 +42,37 @@ function parseBlocks(text: string): BlockItem[] | null {
   }
 }
 
+function operandDetail(operand: unknown): string {
+  if (!operand || typeof operand !== 'object') return ''
+  const value = operand as Record<string, unknown>
+  if (value.kind === 'variable')
+    return typeof value.name === 'string' ? value.name : ''
+  if (value.kind === 'number')
+    return typeof value.value === 'string' ? value.value : ''
+  return ''
+}
+
+function textDetail(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
 function blockDetail(block: BlockItem): string {
   if (block.type === 'var_set')
-    return `${block.varName ?? 'variable'} = ${block.value ?? ''}`
+    return `${block.varName ?? 'variable'} = ${
+      operandDetail(block.valueOperand) || textDetail(block.value) || 'value'
+    }`
+  if (block.type === 'math_calculate')
+    return `${block.varName ?? 'result'} = ${
+      operandDetail(block.valueOperand) || textDetail(block.value) || 'value'
+    } ${block.operator ?? '+'} ${
+      operandDetail(block.rightOperand) ||
+      textDetail(block.rightValue) ||
+      'value'
+    }`
+  if (block.type === 'var_change' || block.type === 'var_decrement')
+    return `${block.varName ?? 'variable'} by ${
+      operandDetail(block.valueOperand) || textDetail(block.value) || 'value'
+    }`
   if (block.type === 'print') return block.value ?? ''
   if (block.type === 'for_range')
     return `${block.varName ?? 'i'} from ${block.rangeStart ?? '0'} to ${block.rangeCount ?? '5'}`
@@ -60,6 +89,25 @@ function blockDetail(block: BlockItem): string {
     )
   if (block.type === 'list_create')
     return `${block.varName ?? 'list'}: [${block.listValues?.filter(Boolean).join(', ') ?? ''}]`
+  if (block.type === 'dict_create')
+    return `${block.varName ?? 'dictionary'}${
+      block.startsEmpty
+        ? ': {}'
+        : `: { ${
+            block.dictionaryEntries
+              ?.filter((entry) => entry.key || entry.value)
+              .map(
+                (entry) => `${entry.key || 'key'}: ${entry.value || 'value'}`,
+              )
+              .join(', ') ?? ''
+          } }`
+    }`
+  if (block.type === 'dict_set')
+    return `${block.listName ?? 'dictionary'}[${block.valueVariable ?? 'key'}] = ${
+      operandDetail(block.valueOperand) || textDetail(block.value) || 'value'
+    }`
+  if (block.type === 'dict_get')
+    return `${block.varName ?? 'result'} = ${block.listName ?? 'dictionary'}[${block.valueVariable ?? 'key'}]`
   return (
     block.value ??
     block.varName ??
@@ -75,14 +123,21 @@ function PreviewBlock({ block }: { block: BlockItem }) {
   if (!definition) return null
   return (
     <li
-      className="advice-block"
-      style={{
-        borderColor: definition.borderColor,
-        backgroundColor: `${definition.color}18`,
-      }}
+      className={`advice-block ${definition.isContainer ? 'advice-block-container' : ''}`}
+      style={
+        {
+          '--advice-block-color': definition.color,
+          '--advice-block-border': definition.borderColor,
+        } as React.CSSProperties
+      }
     >
-      <strong>{definition.label}</strong>
-      {blockDetail(block) && <span>{blockDetail(block)}</span>}
+      <div className="advice-block-header">
+        <BlockIcon kind={definition.type} />
+        <strong>{definition.label}</strong>
+        {blockDetail(block) && (
+          <span className="advice-block-value">{blockDetail(block)}</span>
+        )}
+      </div>
       {!!block.children?.length && (
         <ul className="advice-block-children">
           {block.children.map((child, index) => (

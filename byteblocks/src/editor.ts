@@ -16,37 +16,42 @@ import EditorWorker from 'monaco-editor/editor/editor.worker?worker'
 
 self.MonacoEnvironment = { getWorker: () => new EditorWorker() }
 
-monaco.editor.defineTheme('byteblocks', {
-  base: 'vs-dark',
-  inherit: true,
-  rules: [
-    { token: 'comment', foreground: '747E87', fontStyle: 'italic' },
-    { token: 'keyword', foreground: 'C8A4E4' },
-    { token: 'string', foreground: 'A8C78A' },
-    { token: 'number', foreground: 'E6BD86' },
-    { token: 'identifier', foreground: 'D5DBE2' },
-    { token: 'delimiter', foreground: '9FA9B6' },
-    { token: 'type.identifier', foreground: '8DBCD3' },
-  ],
-  colors: {
-    'editor.background': '#15171B',
-    'editor.foreground': '#D5DBE2',
-    'editorLineNumber.foreground': '#515760',
-    'editorLineNumber.activeForeground': '#B4BFC9',
-    'editor.lineHighlightBackground': '#1B1E24',
-    'editorCursor.foreground': '#B8E8CC',
-    'editor.selectionBackground': '#35483E',
-    'editor.inactiveSelectionBackground': '#2B3534',
-    'editorIndentGuide.background1': '#252A31',
-    'editorIndentGuide.activeBackground1': '#414951',
-    'editorWidget.background': '#20242B',
-    'editorSuggestWidget.background': '#20242B',
-    'editorSuggestWidget.border': '#333A43',
-    focusBorder: '#667D72',
-    'scrollbarSlider.background': '#5D667533',
-    'scrollbarSlider.hoverBackground': '#5D667555',
-  },
-})
+function applyTheme() {
+  const light = document.documentElement.dataset.theme === 'light'
+  const colors = getComputedStyle(document.documentElement)
+  const token = (name: string) => colors.getPropertyValue(name).trim()
+  monaco.editor.defineTheme('byteblocks', {
+    base: light ? 'vs' : 'vs-dark',
+    inherit: true,
+    rules: [
+      {
+        token: 'comment',
+        foreground: token('--theme-text-subtle').slice(1),
+        fontStyle: 'italic',
+      },
+      { token: 'keyword', foreground: token('--theme-violet').slice(1) },
+      { token: 'string', foreground: token('--theme-success').slice(1) },
+      { token: 'number', foreground: token('--theme-warm').slice(1) },
+    ],
+    colors: {
+      'editor.background': token('--theme-surface'),
+      'editor.foreground': token('--theme-text'),
+      'editorLineNumber.foreground': token('--theme-text-subtle'),
+      'editorLineNumber.activeForeground': token('--theme-text'),
+      'editor.lineHighlightBackground': token('--theme-surface-raised'),
+      'editorCursor.foreground': token('--theme-info'),
+      'editor.selectionBackground': token('--theme-selection'),
+      'editor.inactiveSelectionBackground': token('--theme-surface-hover'),
+      'editorIndentGuide.background1': token('--theme-border'),
+      'editorIndentGuide.activeBackground1': token('--theme-border-strong'),
+      'editorWidget.background': token('--theme-surface-raised'),
+      'editorSuggestWidget.background': token('--theme-surface-raised'),
+      'editorSuggestWidget.border': token('--theme-border'),
+      focusBorder: token('--theme-info'),
+    },
+  })
+  monaco.editor.setTheme('byteblocks')
+}
 
 export function createEditor(
   element: HTMLElement,
@@ -57,6 +62,12 @@ export function createEditor(
     onRun: () => void
   },
 ) {
+  applyTheme()
+  const themeObserver = new MutationObserver(applyTheme)
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
   const model = monaco.editor.createModel(value, 'python')
   model.updateOptions({ tabSize: 4, insertSpaces: true })
   const instance = monaco.editor.create(element, {
@@ -108,6 +119,7 @@ export function createEditor(
   return {
     editor: instance,
     dispose: () => {
+      themeObserver.disconnect()
       contentListener.dispose()
       cursorListener.dispose()
       instance.dispose()

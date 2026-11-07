@@ -3,17 +3,18 @@ import type { BlockCategory, BlockDefinition, BlockItem } from './types'
 import { BLOCK_DEFINITIONS } from './definitions'
 import { PRESETS } from './presets'
 import { Icon } from '../Icon'
+import { BlockIcon } from './BlockIcon'
 
 interface BlockPaletteProps {
   onAddBlock: (block: BlockItem) => void
   onLoadPreset: (blocks: BlockItem[]) => void
 }
 
-const CATEGORIES: { id: BlockCategory; label: string; icon: string }[] = [
-  { id: 'control', label: 'Repeat & Decide', icon: '🔀' },
-  { id: 'variables', label: 'Variables & Math', icon: '📦' },
-  { id: 'io', label: 'Say & Ask', icon: '🖨️' },
-  { id: 'data', label: 'Lists & Collections', icon: '📋' },
+const CATEGORIES: { id: BlockCategory; label: string }[] = [
+  { id: 'control', label: 'Repeat & Decide' },
+  { id: 'variables', label: 'Variables & Math' },
+  { id: 'io', label: 'Say & Ask' },
+  { id: 'data', label: 'Lists & Collections' },
 ]
 
 // These are deliberately the blocks that can be completed without typing Python.
@@ -122,7 +123,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
               className={`category-pill ${activeCategory === cat.id ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
             >
-              <span>{cat.icon}</span>
+              <BlockIcon kind={cat.id} />
               <span>{cat.label}</span>
             </button>
           ))}
@@ -147,7 +148,7 @@ export function BlockPalette({ onAddBlock, onLoadPreset }: BlockPaletteProps) {
             title="Click to add or drag into workspace"
           >
             <div className="chunk-card-content">
-              <span className="chunk-card-notch" />
+              <BlockIcon kind={def.type} />
               <span className="chunk-card-label">{def.label}</span>
             </div>
             <button

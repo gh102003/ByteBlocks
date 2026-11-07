@@ -42,22 +42,35 @@ function cloneWithNewIds(block: BlockItem): BlockItem {
 function findVariableNames(blocks: BlockItem[]): {
   names: string[]
   lists: string[]
+  stacks: string[]
+  queues: string[]
 } {
   const names = new Set<string>()
   const lists = new Set<string>()
+  const stacks = new Set<string>()
+  const queues = new Set<string>()
   const visit = (items: BlockItem[]) =>
     items.forEach((block) => {
       if (block.varName?.trim() && /^[A-Za-z_]\w*$/.test(block.varName.trim()))
         names.add(block.varName.trim())
       if (block.type === 'list_create' && block.varName?.trim())
         lists.add(block.varName.trim())
+      if (block.type === 'stack_create' && block.varName?.trim())
+        stacks.add(block.varName.trim())
+      if (block.type === 'queue_create' && block.varName?.trim())
+        queues.add(block.varName.trim())
       if (block.itemVar?.trim() && /^[A-Za-z_]\w*$/.test(block.itemVar.trim()))
         names.add(block.itemVar.trim())
       if (block.children) visit(block.children)
       if (block.elseChildren) visit(block.elseChildren)
     })
   visit(blocks)
-  return { names: [...names].sort(), lists: [...lists].sort() }
+  return {
+    names: [...names].sort(),
+    lists: [...lists].sort(),
+    stacks: [...stacks].sort(),
+    queues: [...queues].sort(),
+  }
 }
 
 export function VisualBlockEditor({
@@ -315,6 +328,8 @@ export function VisualBlockEditor({
                     onDropBlock={handleDrop}
                     variableNames={variables.names}
                     listNames={variables.lists}
+                    stackNames={variables.stacks}
+                    queueNames={variables.queues}
                   />
                 ))}
 

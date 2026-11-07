@@ -211,7 +211,9 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'stack_create': {
         const name = block.varName?.trim() || 'stack'
-        const values = block.value?.trim() || ''
+        const values = block.listValues
+          ? block.listValues.filter((value) => value.trim()).join(', ')
+          : block.value?.trim() || ''
         lines.push(`${indent}${name} = [${values}]`)
         break
       }
@@ -258,7 +260,9 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'queue_create': {
         const name = block.varName?.trim() || 'queue'
-        const values = block.value?.trim() || ''
+        const values = block.listValues
+          ? block.listValues.filter((value) => value.trim()).join(', ')
+          : block.value?.trim() || ''
         lines.push(`${indent}${name} = deque([${values}])`)
         break
       }

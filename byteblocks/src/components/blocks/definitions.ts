@@ -255,16 +255,16 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stack_create',
     category: 'structures',
-    label: 'create stack',
+    label: 'make a stack',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
-    defaultValues: { varName: 'stack', value: '' },
+    defaultValues: { varName: 'stack', listValues: [''] },
   },
   {
     type: 'stack_add',
     category: 'structures',
-    label: 'push onto stack',
+    label: 'add to a stack',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -273,7 +273,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stack_remove',
     category: 'structures',
-    label: 'pop from stack',
+    label: 'take top item from stack',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -282,7 +282,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stack_peek',
     category: 'structures',
-    label: 'peek at stack',
+    label: 'look at top stack item',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -291,7 +291,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stack_size',
     category: 'structures',
-    label: 'size of stack',
+    label: 'count stack items',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -300,7 +300,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'stack_empty',
     category: 'structures',
-    label: 'is empty stack',
+    label: 'check if stack is empty',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -318,16 +318,16 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'queue_create',
     category: 'structures',
-    label: 'create queue',
+    label: 'make a queue',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
-    defaultValues: { varName: 'queue', value: '' },
+    defaultValues: { varName: 'queue', listValues: [''] },
   },
   {
     type: 'queue_add',
     category: 'structures',
-    label: 'enqueue into queue',
+    label: 'add to a queue',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -336,7 +336,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'queue_remove',
     category: 'structures',
-    label: 'dequeue from queue',
+    label: 'take first item from queue',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -345,7 +345,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'queue_peek',
     category: 'structures',
-    label: 'peek at queue',
+    label: 'look at first queue item',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -354,7 +354,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'queue_size',
     category: 'structures',
-    label: 'size of queue',
+    label: 'count queue items',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',
@@ -363,7 +363,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'queue_empty',
     category: 'structures',
-    label: 'is empty queue',
+    label: 'check if queue is empty',
     color: '#0f766e',
     borderColor: '#14b8a6',
     bgHover: '#14b8a61a',

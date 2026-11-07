@@ -63,8 +63,7 @@ export default function App({ initialView }: AppProps = {}) {
     initialNavigationComplete.current = true
     if (window.location.hash) return
     const destination = isAuthenticated ? 'workspace' : 'home'
-    window.history.replaceState(null, '', `#${destination}`)
-    setView(destination)
+    window.location.replace(`#${destination}`)
   }, [isAuthenticated, isLoading, isTest])
 
   const handleOpenWorkspace = () => {

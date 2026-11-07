@@ -48,7 +48,9 @@ describe('homepage authentication redirect', () => {
     auth.isLoading = false
     await screen.rerender(<App />)
 
-    await expect.element(page.getByText('Workspace page')).toBeVisible()
+    await expect
+      .element(page.getByRole('button', { name: 'Go home' }))
+      .toBeVisible()
     await expect.element(page.getByText('Onboarding')).toBeVisible()
     expect(window.location.hash).toBe('#workspace')
 

@@ -38,6 +38,12 @@ function VoiceControls({ context, messages, access }: Props) {
   const snapshot = voiceSnapshot(context, messages)
   const instructions = voiceInstructions(context)
   const voice = mentorVoice(context)
+  const level = resolveMentorLevel(
+    context.preferences?.level,
+    context.code,
+    context.execution,
+  )
+  const mentorName = mascotName(mascotForLevel(level))
   const tools = createVoiceTools(() => snapshot, access)
   useConversationClientTool('read_workspace', tools.read_workspace)
   useConversationClientTool('read_challenge_stage', tools.read_challenge_stage)
@@ -91,15 +97,7 @@ function VoiceControls({ context, messages, access }: Props) {
         connectionType: 'webrtc',
         overrides: { tts: { voiceId: voice.voiceId } },
         dynamicVariables: {
-          mentor_name: mascotName(
-            mascotForLevel(
-              resolveMentorLevel(
-                context.preferences?.level,
-                context.code,
-                context.execution,
-              ),
-            ),
-          ),
+          mentor_name: mentorName,
           coach_instructions: instructions,
           workspace_context: snapshot,
         },
@@ -152,7 +150,7 @@ function VoiceControls({ context, messages, access }: Props) {
                 : isSpeaking
                   ? 'Speaking…'
                   : 'Listening…'
-              : `Realtime voice · ${voice.name} · can read and run your work`}
+              : `Realtime voice · ${mentorName} · can read and run your work`}
         </span>
       </div>
       {error && (

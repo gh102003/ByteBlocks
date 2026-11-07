@@ -3334,6 +3334,13 @@
   color: var(--theme-text-muted);
 }
 
+.preview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .copy-py-btn {
   background: var(--theme-surface-raised);
   border: 1px solid var(--theme-border-strong);

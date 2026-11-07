@@ -3,6 +3,7 @@ import { buildCoachInstructions } from './transport'
 import type { CoachContext } from './transport'
 import { resolveMentorLevel } from './mentorLevel'
 import { MENTOR_VOICES } from './mentorVoices'
+import { withoutByteblocksPayload } from '../byteblocksText'
 
 export function mentorVoice(context: CoachContext) {
   return MENTOR_VOICES[
@@ -43,7 +44,9 @@ export function voiceSnapshot(context: CoachContext, messages: UIMessage[]) {
       role,
       text: parts
         .filter((part) => part.type === 'text')
-        .map((part) => part.text)
+        // Block JSON is a visual artifact. Supplying it to the voice model can
+        // cause it to read the payload aloud instead of coaching naturally.
+        .map((part) => withoutByteblocksPayload(part.text))
         .join(''),
     })),
   })

@@ -23,6 +23,7 @@ import { mascotForLevel, mascotName } from './mascot'
 import { resolveMentorLevel } from '../ai/mentorLevel'
 import { VoiceCoach } from './VoiceCoach'
 import type { VoiceAccess } from '../ai/voice'
+import { withoutByteblocksPayload } from '../byteblocksText'
 
 function getInitialCoachMessages(
   prefs: UserPreferences | null | undefined,
@@ -68,7 +69,7 @@ function getInitialCoachMessages(
 }
 
 function withoutAdviceBlocks(text: string): string {
-  return text.replace(/```byteblocks\s*[\s\S]*?```/gi, '').trim()
+  return withoutByteblocksPayload(text)
 }
 
 function withoutNonBlockCode(text: string): string {
@@ -258,16 +259,17 @@ export function CoachPanel({
                                 ),
                               ),
                             )
-                          : part.text.replace(
-                              /\[\[PROGRESS:(?:advance|bonus|skip)\]\]/g,
-                              '',
+                          : withoutAdviceBlocks(
+                              part.text.replace(
+                                /\[\[PROGRESS:(?:advance|bonus|skip)\]\]/g,
+                                '',
+                              ),
                             )
                         : part.text}
                     </Markdown>
-                    {message.role === 'assistant' &&
-                      effectivePreferences?.adviceFormat === 'blocks' && (
-                        <AdviceBlocks text={part.text} />
-                      )}
+                    {message.role === 'assistant' && (
+                      <AdviceBlocks text={part.text} />
+                    )}
                   </div>
                 ) : null,
               )}

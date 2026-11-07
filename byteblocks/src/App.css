@@ -2713,6 +2713,30 @@
   color: #c4b5fd;
 }
 
+.empty-collection-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #cbd5e1;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.empty-collection-toggle input {
+  accent-color: var(--chunk-color, #38bdf8);
+}
+
+.dictionary-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dictionary-key-input {
+  width: 72px;
+  color: #fcd34d;
+}
+
 .var-input {
   width: 65px;
   color: #93c5fd;

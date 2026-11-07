@@ -40,7 +40,9 @@ export type BlockCategory =
   | 'functions'
   | 'io'
   | 'data'
-  | 'structures'
+  | 'stacks'
+  | 'queues'
+  | 'dictionaries'
   | 'presets'
 
 export interface BlockItem {
@@ -56,6 +58,8 @@ export interface BlockItem {
   valueList?: string
   valueIndex?: 'first' | 'last' | 'second_last'
   listValues?: string[]
+  dictionaryEntries?: { key: string; value: string }[]
+  startsEmpty?: boolean
   sourceList?: string
   collectionName?: string
   firstItem?: 'first' | 'last' | 'second_last'

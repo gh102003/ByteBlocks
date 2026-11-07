@@ -71,6 +71,33 @@ export function BlockNode({
     onUpdate({ ...block, listValues: values })
   }
 
+  const handleDictionaryEntryChange = (
+    index: number,
+    field: 'key' | 'value',
+    value: string,
+  ) => {
+    const entries = [...(block.dictionaryEntries ?? [{ key: '', value: '' }])]
+    entries[index] = { ...entries[index], [field]: value }
+    if (
+      index === entries.length - 1 &&
+      entries[index].key &&
+      entries[index].value
+    )
+      entries.push({ key: '', value: '' })
+    onUpdate({ ...block, dictionaryEntries: entries })
+  }
+
+  const EmptyToggle = () => (
+    <label className="empty-collection-toggle">
+      <input
+        type="checkbox"
+        checked={block.startsEmpty ?? false}
+        onChange={(e) => onUpdate({ ...block, startsEmpty: e.target.checked })}
+      />
+      start empty
+    </label>
+  )
+
   const VariableInput = ({
     value,
     field,
@@ -201,17 +228,19 @@ export function BlockNode({
               field="varName"
               placeholder={`${kind} name`}
             />
-            <span className="chunk-label">with</span>
-            {(block.listValues ?? ['']).map((value, index) => (
-              <input
-                key={index}
-                type="number"
-                className="chunk-input list-value-input"
-                value={value}
-                onChange={(e) => handleListValueChange(index, e.target.value)}
-                placeholder={`item ${index + 1}`}
-              />
-            ))}
+            <EmptyToggle />
+            {!block.startsEmpty && <span className="chunk-label">with</span>}
+            {!block.startsEmpty &&
+              (block.listValues ?? ['']).map((value, index) => (
+                <input
+                  key={index}
+                  type="number"
+                  className="chunk-input list-value-input"
+                  value={value}
+                  onChange={(e) => handleListValueChange(index, e.target.value)}
+                  placeholder={`item ${index + 1}`}
+                />
+              ))}
           </div>
         )
       }
@@ -675,18 +704,20 @@ export function BlockNode({
               onChange={(e) => handleUpdateField('varName', e.target.value)}
               placeholder="my_list"
             />
-            <span className="chunk-label">with</span>
-            {(block.listValues ?? ['']).map((value, index) => (
-              <input
-                key={index}
-                type="number"
-                className="chunk-input list-value-input"
-                value={value}
-                onChange={(e) => handleListValueChange(index, e.target.value)}
-                placeholder={`item ${index + 1}`}
-                aria-label={`List item ${index + 1}`}
-              />
-            ))}
+            <EmptyToggle />
+            {!block.startsEmpty && <span className="chunk-label">with</span>}
+            {!block.startsEmpty &&
+              (block.listValues ?? ['']).map((value, index) => (
+                <input
+                  key={index}
+                  type="number"
+                  className="chunk-input list-value-input"
+                  value={value}
+                  onChange={(e) => handleListValueChange(index, e.target.value)}
+                  placeholder={`item ${index + 1}`}
+                  aria-label={`List item ${index + 1}`}
+                />
+              ))}
           </div>
         )
 
@@ -709,7 +740,7 @@ export function BlockNode({
       case 'dict_create':
         return (
           <div className="chunk-inputs">
-            <span className="chunk-keyword">dict</span>
+            <span className="chunk-keyword">make dictionary</span>
             <input
               type="text"
               className="chunk-input var-input"
@@ -717,15 +748,43 @@ export function BlockNode({
               onChange={(e) => handleUpdateField('varName', e.target.value)}
               placeholder="my_dict"
             />
-            <span className="chunk-operator">= {'{'}</span>
-            <input
-              type="text"
-              className="chunk-input expr-input"
-              value={block.value ?? ''}
-              onChange={(e) => handleUpdateField('value', e.target.value)}
-              placeholder="'key': 'value'"
-            />
-            <span className="chunk-bracket">{'}'}</span>
+            <EmptyToggle />
+            {!block.startsEmpty &&
+              (block.dictionaryEntries ?? [{ key: '', value: '' }]).map(
+                (entry, index) => (
+                  <span className="dictionary-entry" key={index}>
+                    <input
+                      type="text"
+                      className="chunk-input dictionary-key-input"
+                      value={entry.key}
+                      onChange={(e) =>
+                        handleDictionaryEntryChange(
+                          index,
+                          'key',
+                          e.target.value,
+                        )
+                      }
+                      placeholder="key"
+                      aria-label={`Dictionary key ${index + 1}`}
+                    />
+                    <span className="chunk-label">is</span>
+                    <input
+                      type="number"
+                      className="chunk-input list-value-input"
+                      value={entry.value}
+                      onChange={(e) =>
+                        handleDictionaryEntryChange(
+                          index,
+                          'value',
+                          e.target.value,
+                        )
+                      }
+                      placeholder="value"
+                      aria-label={`Dictionary value ${index + 1}`}
+                    />
+                  </span>
+                ),
+              )}
           </div>
         )
 

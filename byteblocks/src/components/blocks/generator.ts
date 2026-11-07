@@ -195,9 +195,11 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'list_create': {
         const name = block.varName?.trim() || 'my_list'
-        const val = block.listValues
-          ? block.listValues.filter((value) => value.trim()).join(', ')
-          : block.value?.trim() || ''
+        const val = block.startsEmpty
+          ? ''
+          : block.listValues
+            ? block.listValues.filter((value) => value.trim()).join(', ')
+            : block.value?.trim() || ''
         lines.push(`${indent}${name} = [${val}]`)
         break
       }
@@ -211,9 +213,11 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'stack_create': {
         const name = block.varName?.trim() || 'stack'
-        const values = block.listValues
-          ? block.listValues.filter((value) => value.trim()).join(', ')
-          : block.value?.trim() || ''
+        const values = block.startsEmpty
+          ? ''
+          : block.listValues
+            ? block.listValues.filter((value) => value.trim()).join(', ')
+            : block.value?.trim() || ''
         lines.push(`${indent}${name} = [${values}]`)
         break
       }
@@ -260,9 +264,11 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'queue_create': {
         const name = block.varName?.trim() || 'queue'
-        const values = block.listValues
-          ? block.listValues.filter((value) => value.trim()).join(', ')
-          : block.value?.trim() || ''
+        const values = block.startsEmpty
+          ? ''
+          : block.listValues
+            ? block.listValues.filter((value) => value.trim()).join(', ')
+            : block.value?.trim() || ''
         lines.push(`${indent}${name} = deque([${values}])`)
         break
       }
@@ -309,7 +315,14 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
 
       case 'dict_create': {
         const name = block.varName?.trim() || 'my_dict'
-        const val = block.value?.trim() || ''
+        const val = block.startsEmpty
+          ? ''
+          : block.dictionaryEntries
+            ? block.dictionaryEntries
+                .filter((entry) => entry.key.trim() && entry.value.trim())
+                .map((entry) => `${JSON.stringify(entry.key)}: ${entry.value}`)
+                .join(', ')
+            : block.value?.trim() || ''
         lines.push(`${indent}${name} = {${val}}`)
         break
       }

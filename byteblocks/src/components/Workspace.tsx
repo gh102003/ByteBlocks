@@ -385,15 +385,6 @@ export function Workspace({
           />
         </div>
       </main>
-      <footer className="app-footer">
-        <span>
-          <span className="tiny-dot" /> YOUR SPACE TO THINK IN CODE
-        </span>
-        <span>
-          One problem. One step at a time.
-          <span className="footer-spark">✳</span>
-        </span>
-      </footer>
     </div>
   )
 }

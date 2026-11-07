@@ -899,6 +899,9 @@
   background: #3a1820;
 }
 .nibble-sprite-chop .nibble-face {
+  left: calc(var(--nibble-unit) * -1);
+  width: calc(var(--nibble-unit) * 7);
+  height: calc(var(--nibble-unit) * 4);
   background: #55ae65;
   box-shadow:
     inset calc(var(--nibble-unit) * -1) calc(var(--nibble-unit) * -1) #24724a,
@@ -906,6 +909,9 @@
 }
 .nibble-sprite-chop .nibble-eye {
   background: #153f36;
+}
+.nibble-sprite-chop .nibble-eye-left {
+  left: calc(var(--nibble-unit) * 2);
 }
 .chop-spines {
   position: absolute;

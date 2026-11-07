@@ -8,7 +8,8 @@ export function resolveMentorLevel(
   code: string,
   execution: Pick<RunnerState, 'output'>,
 ): ResolvedMentorLevel {
-  if (selectedLevel && selectedLevel !== 'auto') return selectedLevel
+  if (!selectedLevel) return 'beginner'
+  if (selectedLevel !== 'auto') return selectedLevel
 
   const output = execution.output.map(({ text }) => text).join('\n')
   if (/SyntaxError|IndentationError|TabError|unexpected indent/i.test(output))

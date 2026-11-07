@@ -118,7 +118,9 @@ describe('AI coach', () => {
         connector={connector}
       />,
     )
-    await expect.element(page.getByText('Bite', { exact: true })).toBeVisible()
+    await expect
+      .element(page.getByRole('strong', { name: 'Bite', exact: true }))
+      .toBeVisible()
     await screen.rerender(
       <CoachPanel
         context={{
@@ -128,7 +130,9 @@ describe('AI coach', () => {
         connector={connector}
       />,
     )
-    await expect.element(page.getByText('Chomp', { exact: true })).toBeVisible()
+    await expect
+      .element(page.getByRole('strong', { name: 'Chomp', exact: true }))
+      .toBeVisible()
   })
 
   test('gives each mentor a distinct response personality', () => {

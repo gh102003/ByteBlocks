@@ -3581,13 +3581,19 @@
   opacity: 1 !important;
 }
 .brand-symbol i:nth-child(1) {
-  background: #ef806d;
+  left: 0;
+  top: 8px;
+  background: color-mix(in srgb, var(--accent) 72%, var(--theme-text));
 }
 .brand-symbol i:nth-child(2) {
-  background: #f4c85f;
+  left: 8px;
+  top: 0;
+  background: var(--accent);
 }
 .brand-symbol i:nth-child(3) {
-  background: #82cdb9;
+  left: 16px;
+  top: 8px;
+  background: color-mix(in srgb, var(--accent) 84%, var(--theme-text));
 }
 .brand {
   font-weight: 750;

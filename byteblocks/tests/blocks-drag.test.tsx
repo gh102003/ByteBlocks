@@ -1,0 +1,62 @@
+import { beforeEach, expect, test, vi } from 'vitest'
+import { render } from 'vitest-browser-react'
+import { VisualBlockEditor } from '../src/components/blocks/VisualBlockEditor'
+
+const key = 'byteblocks.visual.blocks'
+
+beforeEach(() => {
+  localStorage.setItem(
+    key,
+    JSON.stringify([
+      { id: 'a', type: 'comment', commentText: 'first' },
+      { id: 'b', type: 'comment', commentText: 'second' },
+      { id: 'c', type: 'if', condition: 'True', children: [] },
+    ]),
+  )
+})
+
+test('dragging reorders and moves blocks into and out of a container', async () => {
+  const onPythonChange = vi.fn()
+  await render(<VisualBlockEditor onPythonChange={onPythonChange} />)
+  const chunks = () =>
+    Array.from(document.querySelectorAll<HTMLElement>('.scratch-chunk'))
+  const drag = (source: HTMLElement, target: HTMLElement, y = 0) => {
+    const dataTransfer = new DataTransfer()
+    source
+      .querySelector<HTMLElement>('.chunk-handle')!
+      .dispatchEvent(
+        new DragEvent('dragstart', { bubbles: true, dataTransfer }),
+      )
+    target.dispatchEvent(
+      new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientY: y,
+      }),
+    )
+  }
+  drag(chunks()[1], chunks()[0].querySelector<HTMLElement>('.chunk-header')!)
+  await vi.waitFor(() =>
+    expect(
+      JSON.parse(localStorage.getItem(key)!).map((b: { id: string }) => b.id),
+    ).toEqual(['b', 'a', 'c']),
+  )
+  drag(
+    chunks()[0],
+    chunks()[2].querySelector<HTMLElement>('.chunk-nested-slot')!,
+  )
+  await vi.waitFor(() =>
+    expect(JSON.parse(localStorage.getItem(key)!)[1].children[0].id).toBe('b'),
+  )
+  drag(chunks()[2], chunks()[0].querySelector<HTMLElement>('.chunk-header')!)
+  await vi.waitFor(() =>
+    expect(
+      JSON.parse(localStorage.getItem(key)!).map((b: { id: string }) => b.id),
+    ).toEqual(['b', 'a', 'c']),
+  )
+  expect(onPythonChange).toHaveBeenLastCalledWith(
+    expect.stringContaining('# second'),
+  )
+  expect(document.querySelector('[title="Move Up"]')).toBeNull()
+})

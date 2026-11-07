@@ -40,10 +40,8 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     bgHover: '#d977061a',
     isContainer: true,
     defaultValues: {
-      condition: 'count < 10',
-      conditionLeft: 'count',
-      conditionOperator: '<',
-      conditionRight: '10',
+      conditionKind: 'boolean',
+      conditionBoolean: 'True',
       children: [],
     },
   },

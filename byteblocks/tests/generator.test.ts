@@ -151,6 +151,27 @@ describe('Block Generator to Python', () => {
     )
   })
 
+  it('generates boolean predicates for loops and conditionals', () => {
+    expect(
+      generatePython([
+        {
+          id: '1',
+          type: 'while_loop',
+          conditionKind: 'boolean',
+          conditionBoolean: 'True',
+          children: [{ id: '2', type: 'break_loop' }],
+        },
+        {
+          id: '3',
+          type: 'if_condition',
+          conditionKind: 'boolean',
+          conditionBoolean: 'False',
+          children: [{ id: '4', type: 'print', value: 'unreachable' }],
+        },
+      ]),
+    ).toBe('while True:\n    break\nif False:\n    print(unreachable)')
+  })
+
   it('generates list-item math without exposing list indexing in the block', () => {
     expect(
       generatePython([

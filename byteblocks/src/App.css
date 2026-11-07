@@ -28,39 +28,8 @@
 .brand-symbol {
   width: 25px;
   height: 25px;
-  position: relative;
+  display: block;
   margin-right: 11px;
-}
-.brand-symbol::after {
-  content: '';
-  position: absolute;
-  z-index: 1;
-  width: 12px;
-  height: 12px;
-  top: 6px;
-  right: -3px;
-  border-radius: 50%;
-  background: var(--theme-surface-base);
-}
-.brand-symbol i {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-.brand-symbol i:nth-child(1) {
-  left: 0;
-  top: 0;
-  opacity: 0.5;
-}
-.brand-symbol i:nth-child(2) {
-  left: 13px;
-  top: 0;
-}
-.brand-symbol i:nth-child(3) {
-  left: 0;
-  top: 13px;
 }
 .header-divider {
   height: 19px;
@@ -3575,26 +3544,6 @@
   gap: 8px;
 }
 
-/* A small, geometric visual language shared by the landing page and workspace. */
-.brand-symbol i {
-  border-radius: 0;
-  opacity: 1 !important;
-}
-.brand-symbol i:nth-child(1) {
-  left: 0;
-  top: 0;
-  background: #ef806d;
-}
-.brand-symbol i:nth-child(2) {
-  left: 13px;
-  top: 0;
-  background: #f4c85f;
-}
-.brand-symbol i:nth-child(3) {
-  left: 0;
-  top: 13px;
-  background: #82cdb9;
-}
 .brand {
   font-weight: 750;
   letter-spacing: -0.9px;

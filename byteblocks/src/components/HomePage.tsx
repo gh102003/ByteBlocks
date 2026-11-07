@@ -71,11 +71,7 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
       {/* Navigation Header */}
       <header className="home-header">
         <div className="brand" aria-label="ByteBlocks home">
-          <span className="brand-symbol">
-            <i />
-            <i />
-            <i />
-          </span>
+          <img className="brand-symbol" src="/favicon.svg" alt="" />
           ByteBlocks<span className="brand-dot">.</span>
         </div>
 

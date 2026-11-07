@@ -350,11 +350,7 @@ export function Workspace({
           onClick={onNavigateHome}
           title="Return to Home"
         >
-          <span className="brand-symbol">
-            <i />
-            <i />
-            <i />
-          </span>
+          <img className="brand-symbol" src="/favicon.svg" alt="" />
           ByteBlocks<span className="brand-dot">.</span>
         </button>
         <span className="header-divider" />

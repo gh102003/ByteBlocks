@@ -9,6 +9,8 @@ import {
   savePreferences,
 } from '../preferences'
 import { Icon } from './Icon'
+import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
 
 interface OnboardingModalProps {
   initialPreferences?: UserPreferences | null
@@ -26,20 +28,20 @@ const LEVEL_OPTIONS: Array<{
   {
     value: 'beginner',
     label: 'Beginner',
-    badge: 'Foundations',
-    desc: 'New to Python or algorithms. Focus on core syntax, step-by-step logic, and gentle hints.',
+    badge: 'Start here',
+    desc: 'Core Python, one step at a time.',
   },
   {
     value: 'intermediate',
     label: 'Intermediate',
-    badge: 'DSA & Patterns',
-    desc: 'Comfortable writing code. Practicing common algorithmic patterns, edge cases, and Big-O efficiency.',
+    badge: 'Build speed',
+    desc: 'Patterns, edge cases, and Big-O.',
   },
   {
     value: 'senior',
     label: 'Senior',
-    badge: 'Systems & Idioms',
-    desc: 'Experienced engineer. Focus on optimal complexity, subtle memory tradeoffs, and production Python idioms.',
+    badge: 'Go deep',
+    desc: 'Tradeoffs, performance, and clean code.',
   },
 ]
 
@@ -182,21 +184,27 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">1</span>
-              <span>What is your Python experience level?</span>
+              <span>Pick your mentor</span>
             </label>
             <div className="options-grid three-col">
               {LEVEL_OPTIONS.map((opt) => (
                 <button
                   type="button"
                   key={opt.value}
-                  className={`choice-card ${level === opt.value ? 'selected' : ''}`}
+                  className={`choice-card level-choice ${level === opt.value ? 'selected' : ''}`}
                   onClick={() => setLevel(opt.value)}
                 >
+                  <NibbleSprite
+                    size="medium"
+                    mascot={mascotForLevel(opt.value)}
+                  />
                   <div className="choice-header">
-                    <strong>{opt.label}</strong>
+                    <strong>{mascotName(mascotForLevel(opt.value))}</strong>
                     <span className="choice-tag">{opt.badge}</span>
                   </div>
-                  <p>{opt.desc}</p>
+                  <p>
+                    {opt.label} · {opt.desc}
+                  </p>
                 </button>
               ))}
             </div>

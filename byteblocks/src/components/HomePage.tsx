@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
+import { NibbleSprite } from './NibbleSprite'
 
 interface HomePageProps {
   onOpenWorkspace: () => void
@@ -136,7 +137,7 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               </span>
             </button>
             <a href="#demo" className="hero-secondary-btn">
-              <span>Meet your coach</span>
+              <span>Meet Nibble</span>
               <Icon name="chevron" size={14} />
             </a>
           </div>
@@ -166,14 +167,17 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               <div className="workbench-label">
                 BUILD <span>01</span>
               </div>
-              <div className="sample-block block-blue">
-                for each <b>number</b> in <b>numbers</b>
+              <div className="sample-block block-repeat">
+                <span className="sample-block-icon">↻</span>
+                <span>for every <b>number</b> in <b>numbers</b></span>
               </div>
-              <div className="sample-block block-yellow">
-                if <b>number</b> is even
+              <div className="sample-block block-decision">
+                <span className="sample-block-icon">?</span>
+                <span>if <b>number</b> is even</span>
               </div>
-              <div className="sample-block block-coral">
-                print <b>number</b>
+              <div className="sample-block block-output">
+                <span className="sample-block-icon">›</span>
+                <span>say <b>number</b></span>
               </div>
               <div className="workbench-grid-mark">
                 <i />
@@ -240,8 +244,8 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
           <div className="demo-body">
             <div className="demo-chat-column">
               <div className="demo-chat-header">
-                <Icon name="sparkle" size={16} />
-                <span>Coach Simulation · Two Sum</span>
+                <NibbleSprite size="small" />
+                <span>Nibble Simulation · Two Sum</span>
                 <span className="demo-badge">
                   {DEMO_RESPONSES[demoLevel].roleTitle} Mode
                 </span>
@@ -256,11 +260,11 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
 
               <div className="demo-message coach-msg">
                 <span className="msg-avatar coach-avatar">
-                  <Icon name="sparkle" size={14} />
+                  <NibbleSprite size="small" />
                 </span>
                 <div className="msg-bubble">
                   <div className="msg-meta">
-                    <strong>ByteBlocks Coach</strong>
+                    <strong>Nibble</strong>
                     <span>{DEMO_RESPONSES[demoLevel].feedbackStyle}</span>
                   </div>
                   <p>{DEMO_RESPONSES[demoLevel].coachReply}</p>

@@ -9,7 +9,7 @@ import {
   savePreferences,
 } from '../preferences'
 import { Icon } from './Icon'
-import { AutoMentorSprite, NibbleSprite } from './NibbleSprite'
+import { NibbleSprite } from './NibbleSprite'
 import { mascotForLevel, mascotName } from './mascot'
 
 interface OnboardingModalProps {
@@ -20,17 +20,11 @@ interface OnboardingModalProps {
 }
 
 const LEVEL_OPTIONS: Array<{
-  value: ExperienceLevel
+  value: Exclude<ExperienceLevel, 'auto'>
   label: string
   badge: string
   desc: string
 }> = [
-  {
-    value: 'auto',
-    label: 'Auto',
-    badge: 'Choose for me',
-    desc: 'Your runs help pick a mentor.',
-  },
   {
     value: 'beginner',
     label: 'Beginner',
@@ -192,10 +186,8 @@ export function OnboardingModal({
               <span className="step-num">1</span>
               <span>Pick your mentor</span>
             </label>
-            <div className="options-grid two-col">
+            <div className="options-grid three-col">
               {LEVEL_OPTIONS.map((opt) => {
-                const mascotLevel =
-                  opt.value === 'auto' ? 'beginner' : opt.value
                 return (
                   <button
                     type="button"
@@ -203,20 +195,12 @@ export function OnboardingModal({
                     className={`choice-card level-choice ${level === opt.value ? 'selected' : ''}`}
                     onClick={() => setLevel(opt.value)}
                   >
-                    {opt.value === 'auto' ? (
-                      <AutoMentorSprite />
-                    ) : (
-                      <NibbleSprite
-                        size="medium"
-                        mascot={mascotForLevel(mascotLevel)}
-                      />
-                    )}
+                    <NibbleSprite
+                      size="medium"
+                      mascot={mascotForLevel(opt.value)}
+                    />
                     <div className="choice-header">
-                      <strong>
-                        {opt.value === 'auto'
-                          ? 'Auto'
-                          : mascotName(mascotForLevel(mascotLevel))}
-                      </strong>
+                      <strong>{mascotName(mascotForLevel(opt.value))}</strong>
                       <span className="choice-tag">{opt.badge}</span>
                     </div>
                     <p>
@@ -226,6 +210,15 @@ export function OnboardingModal({
                 )
               })}
             </div>
+            <button
+              type="button"
+              className={`auto-mentor-choice ${level === 'auto' ? 'selected' : ''}`}
+              onClick={() => setLevel('auto')}
+            >
+              <Icon name="sparkle" size={14} />
+              <span>Choose for me</span>
+              <small>I’ll switch mentors as you learn.</small>
+            </button>
           </section>
 
           {/* Question 2: Feedback Style */}

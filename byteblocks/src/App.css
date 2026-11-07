@@ -881,43 +881,6 @@
 .nibble-sprite-large {
   --nibble-unit: 10px;
 }
-.auto-mentor-sprite {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 42px;
-  flex: 0 0 auto;
-}
-.auto-mentor-antenna {
-  position: absolute;
-  left: 16px;
-  top: 1px;
-  width: 4px;
-  height: 9px;
-  background: #7c3aed;
-  box-shadow: 0 -3px #c4b5fd;
-}
-.auto-mentor-head {
-  position: absolute;
-  left: 3px;
-  bottom: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  width: 30px;
-  height: 28px;
-  border: 3px solid #32235b;
-  background: #8b5cf6;
-  box-shadow:
-    inset 3px 3px #c4b5fd,
-    3px 3px 0 #32235b;
-}
-.auto-mentor-head b {
-  width: 5px;
-  height: 5px;
-  background: #fff9dc;
-  box-shadow: 0 2px #32235b;
-}
 .nibble-sprite-bite .nibble-face {
   background: #ef7f3d;
   box-shadow:
@@ -2353,6 +2316,33 @@
 .level-choice:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+.auto-mentor-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px dashed var(--theme-border-strong);
+  background: transparent;
+  color: var(--theme-text-muted);
+  cursor: pointer;
+  font: 700 10px var(--mono);
+}
+.auto-mentor-choice svg {
+  color: var(--accent);
+}
+.auto-mentor-choice small {
+  font: 9px var(--mono);
+  color: var(--theme-text-subtle);
+}
+.auto-mentor-choice:hover,
+.auto-mentor-choice.selected {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
 }
 
 .tone-pills {

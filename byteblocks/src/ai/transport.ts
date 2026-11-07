@@ -136,7 +136,10 @@ export function createCoachTransport(
   return {
     async sendMessages({ messages, abortSignal }) {
       const context = getContext()
-      const instructions = buildCoachInstructions(context.preferences, context.problem)
+      const instructions = buildCoachInstructions(
+        context.preferences,
+        context.problem,
+      )
       const result = streamText({
         model: connector.createModel(),
         instructions,

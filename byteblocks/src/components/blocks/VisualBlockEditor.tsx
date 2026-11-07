@@ -388,6 +388,7 @@ export function VisualBlockEditor({
               type="button"
               className="blocks-mode-overlay"
               onClick={() => onSelectMode('blocks')}
+              aria-label="Edit blocks"
             >
               Click to edit blocks
             </button>

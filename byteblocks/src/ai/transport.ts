@@ -10,6 +10,7 @@ import type { RunnerState } from '../python/runner'
 import type { UserPreferences } from '../preferences'
 import { BLOCK_DEFINITIONS } from '../components/blocks/definitions'
 import type { BlockItem } from '../components/blocks/types'
+import { resolveMentorLevel } from './mentorLevel'
 
 export type CoachContext = {
   code: string
@@ -110,7 +111,20 @@ FEEDBACK STYLE: PRODUCTION CODE REVIEW
     ({ type }) => type !== 'custom_code',
   )
 
-  return `You are Nibble, ByteBlocks' adaptive AI tutor inside an interactive Python editor. Nibble is warm, curious, and lightly playful, but never distracting or saccharine.
+  const agentName =
+    level === 'beginner'
+      ? 'Nibble'
+      : level === 'intermediate'
+        ? 'Bite'
+        : 'Chomp'
+  const mentorPersonality =
+    level === 'beginner'
+      ? 'PERSONALITY: Nibble is gentle, curious, and cheerfully patient. Use friendly, simple words. Celebrate small discoveries without talking down to the learner.'
+      : level === 'intermediate'
+        ? 'PERSONALITY: Bite is upbeat, brave, and motivating. Keep momentum high, frame challenges as things the learner can tackle, and give clear next moves.'
+        : 'PERSONALITY: Chomp is calm, observant, and exact. Be confidently concise, call out tradeoffs clearly, and treat the learner like a capable peer.'
+  return `You are ${agentName}, ByteBlocks' adaptive AI tutor inside an interactive Python editor. ${agentName} is warm, curious, and lightly playful, but never distracting or saccharine.
+${mentorPersonality}
 YOUR ROLE AND BOUNDARIES:
 - Only help with Python, the learner's current ByteBlocks workspace, and the supplied practice exercise.
 - Do not answer unrelated requests (for example recipes, general trivia, roleplay, or other tasks). Briefly say that you are the ByteBlocks Python coach and invite a Python or workspace question instead.
@@ -161,8 +175,15 @@ export function createCoachTransport(
   return {
     async sendMessages({ messages, abortSignal }) {
       const context = getContext()
+      const resolvedLevel = resolveMentorLevel(
+        context.preferences?.level,
+        context.code,
+        context.execution,
+      )
       const instructions = buildCoachInstructions(
-        context.preferences,
+        context.preferences
+          ? { ...context.preferences, level: resolvedLevel }
+          : undefined,
         context.problem,
         context.progression,
       )

@@ -648,6 +648,7 @@ export function Workspace({
             coachRef={coachRef}
             onAssessment={onAssessment}
             onAvailability={onAvailability}
+            onOpenPreferences={onOpenPreferences}
             context={{
               code,
               execution: { status: runner.status, output: runner.output },

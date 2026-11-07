@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
 
 interface HomePageProps {
   onOpenWorkspace: () => void
@@ -54,6 +55,8 @@ const DEMO_RESPONSES: Record<
 export function HomePage({ onOpenWorkspace }: HomePageProps) {
   const { isAuthenticated, loginWithRedirect } = useAuth0()
   const [demoLevel, setDemoLevel] = useState<DemoLevel>('intermediate')
+  const demoMascot = mascotForLevel(demoLevel)
+  const demoAgentName = mascotName(demoMascot)
 
   const handlePrimaryAction = () => {
     if (isAuthenticated) {
@@ -137,7 +140,7 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
               </span>
             </button>
             <a href="#demo" className="hero-secondary-btn">
-              <span>Meet Nibble</span>
+              <span>Meet the team</span>
               <Icon name="chevron" size={14} />
             </a>
           </div>
@@ -217,12 +220,32 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
       {/* Interactive AI Preview Section */}
       <section id="demo" className="demo-section">
         <div className="section-header">
-          <span className="section-eyebrow">Interactive Preview</span>
-          <h2>A coach that meets you where you are</h2>
-          <p>
-            Pick a level and see how the same problem gets a different kind of
-            hint.
-          </p>
+          <span className="section-eyebrow">Meet the mentors</span>
+          <h2>Start anywhere. Grow with your coach.</h2>
+          <p>Nibble, Bite, and Chomp each help in their own way.</p>
+        </div>
+
+        <div className="coach-roster" aria-label="ByteBlocks mentors">
+          {(['beginner', 'intermediate', 'senior'] as DemoLevel[]).map(
+            (level) => {
+              const mascot = mascotForLevel(level)
+              return (
+                <div className="coach-roster-card" key={level}>
+                  <NibbleSprite size="medium" mascot={mascot} />
+                  <div>
+                    <strong>{mascotName(mascot)}</strong>
+                    <span>
+                      {level === 'beginner'
+                        ? 'Start coding'
+                        : level === 'intermediate'
+                          ? 'Build confidence'
+                          : 'Think deeper'}
+                    </span>
+                  </div>
+                </div>
+              )
+            },
+          )}
         </div>
 
         <div className="demo-card">
@@ -250,8 +273,8 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
           <div className="demo-body">
             <div className="demo-chat-column">
               <div className="demo-chat-header">
-                <NibbleSprite size="small" />
-                <span>Nibble Simulation · Two Sum</span>
+                <NibbleSprite size="small" mascot={demoMascot} />
+                <span>{demoAgentName} Simulation · Two Sum</span>
                 <span className="demo-badge">
                   {DEMO_RESPONSES[demoLevel].roleTitle} Mode
                 </span>
@@ -266,11 +289,11 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
 
               <div className="demo-message coach-msg">
                 <span className="msg-avatar coach-avatar">
-                  <NibbleSprite size="small" />
+                  <NibbleSprite size="small" mascot={demoMascot} />
                 </span>
                 <div className="msg-bubble">
                   <div className="msg-meta">
-                    <strong>Nibble</strong>
+                    <strong>{demoAgentName}</strong>
                     <span>{DEMO_RESPONSES[demoLevel].feedbackStyle}</span>
                   </div>
                   <p>{DEMO_RESPONSES[demoLevel].coachReply}</p>

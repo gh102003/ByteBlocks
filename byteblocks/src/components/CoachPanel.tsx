@@ -19,9 +19,15 @@ import type { UserPreferences } from '../preferences'
 import { Icon } from './Icon'
 import { AdviceBlocks } from './AdviceBlocks'
 import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
+import { resolveMentorLevel } from '../ai/mentorLevel'
 
-function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
-  const level = prefs?.level
+function getInitialCoachMessages(
+  prefs: UserPreferences | null | undefined,
+  level: Exclude<UserPreferences['level'], 'auto'>,
+): UIMessage[] {
+  const mascot = mascotForLevel(level)
+  const name = mascotName(mascot)
   const style = prefs?.feedbackStyle
   const levelLabel = level ? level.charAt(0).toUpperCase() + level.slice(1) : ''
   const styleLabel =
@@ -35,15 +41,14 @@ function getInitialCoachMessages(prefs?: UserPreferences | null): UIMessage[] {
             ? 'production code review'
             : ''
 
-  let welcomeText =
-    'Hi, I’m Nibble! Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.'
+  let welcomeText = `Hi, I’m ${name}! Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
 
   if (level === 'senior') {
-    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate your current challenge and its tradeoffs.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s evaluate your current challenge and its tradeoffs.`
   } else if (level === 'beginner') {
-    welcomeText = `Hi, I’m Nibble! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge step-by-step. Try running the code first to see how it works!`
+    welcomeText = `Hi, I’m ${name}! I’m calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge step-by-step. Try running the code first to see how it works!`
   } else if (level) {
-    welcomeText = `Hi, I’m Nibble — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
+    welcomeText = `Hi, I’m ${name} — calibrated for ${levelLabel} level with ${styleLabel}. Let’s work through this challenge. Ask me about your code, share an idea, or run it and we’ll explore the results together.`
   }
 
   return [
@@ -76,14 +81,23 @@ export function CoachPanel({
   coachRef,
   onAssessment,
   onAvailability,
+  onOpenPreferences,
 }: {
   context: CoachContext
   connector?: ChatConnector
   coachRef?: React.Ref<CoachHandle>
   onAssessment?: (result: 'advance' | 'bonus' | 'skip') => void
   onAvailability?: (busy: boolean, unavailable: boolean) => void
+  onOpenPreferences?: () => void
 }) {
   const effectivePreferences = context.preferences
+  const resolvedLevel = resolveMentorLevel(
+    effectivePreferences?.level,
+    context.code,
+    context.execution,
+  )
+  const mascot = mascotForLevel(resolvedLevel)
+  const agentName = mascotName(mascot)
   const connector = useMemo(
     () => suppliedConnector ?? getChatConnector(),
     [suppliedConnector],
@@ -97,8 +111,8 @@ export function CoachPanel({
     [connector, context, effectivePreferences],
   )
   const initialMessages = useMemo(
-    () => getInitialCoachMessages(effectivePreferences),
-    [effectivePreferences],
+    () => getInitialCoachMessages(effectivePreferences, resolvedLevel),
+    [effectivePreferences, resolvedLevel],
   )
   const assessmentPending = useRef(false)
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
@@ -158,26 +172,28 @@ export function CoachPanel({
     <section className="panel coach-panel" aria-label="AI coach">
       <div className="panel-toolbar coach-toolbar">
         <div className="coach-title">
-          <NibbleSprite size="small" />
-          <strong>Nibble</strong>
+          <NibbleSprite size="small" mascot={mascot} />
+          <strong>{agentName}</strong>
           <span className="coach-subtitle">
             {effectivePreferences
-              ? `Calibrated for ${effectivePreferences.level} (${effectivePreferences.feedbackStyle})`
+              ? `Your ${resolvedLevel} mentor${effectivePreferences.level === 'auto' ? ' (auto)' : ''}`
               : 'Your pocket-sized Python guide.'}
           </span>
         </div>
-        <span className="sample-badge" title={connector.label}>
-          {connector.configurationError
-            ? 'Not connected'
-            : effectivePreferences
-              ? effectivePreferences.level.toUpperCase()
-              : 'Ready'}
-        </span>
+        {onOpenPreferences && (
+          <button
+            type="button"
+            className="coach-settings-button"
+            onClick={onOpenPreferences}
+          >
+            Change mentor
+          </button>
+        )}
       </div>
       <div
         className="coach-messages"
         role="log"
-        aria-label="Nibble conversation"
+        aria-label={`${agentName} conversation`}
         aria-live="polite"
         aria-busy={busy}
       >
@@ -195,19 +211,14 @@ export function CoachPanel({
               className={`message-avatar ${message.role === 'assistant' ? 'coach-message-avatar' : ''}`}
             >
               {message.role === 'assistant' ? (
-                <NibbleSprite size="small" />
+                <NibbleSprite size="small" mascot={mascot} />
               ) : (
                 'Y'
               )}
             </span>
             <div className="message-content">
               <div className="message-label">
-                {message.role === 'assistant' ? 'Nibble' : 'You'}
-                {message.role === 'assistant' && effectivePreferences && (
-                  <span className="calibrated-tag">
-                    {effectivePreferences.feedbackStyle.toUpperCase()}
-                  </span>
-                )}
+                {message.role === 'assistant' ? agentName : 'You'}
               </div>
               {message.parts.map((part, index) =>
                 part.type === 'text' ? (
@@ -260,17 +271,17 @@ export function CoachPanel({
             <button
               onClick={() =>
                 setDraft(
-                  effectivePreferences?.level === 'senior'
+                  resolvedLevel === 'senior'
                     ? 'Help me evaluate the memory tradeoffs.'
-                    : effectivePreferences?.level === 'beginner'
+                    : resolvedLevel === 'beginner'
                       ? 'Guide me step-by-step through the loop.'
                       : 'Help me understand the complexity.',
                 )
               }
             >
-              {effectivePreferences?.level === 'senior'
+              {resolvedLevel === 'senior'
                 ? 'Evaluate memory tradeoffs'
-                : effectivePreferences?.level === 'beginner'
+                : resolvedLevel === 'beginner'
                   ? 'Step-by-step guide'
                   : 'Explore the complexity'}
               <Icon name="arrow" size={13} />
@@ -281,8 +292,8 @@ export function CoachPanel({
           <p className="coach-status" role="status">
             <span className="status-dot pulsing" />
             {status === 'submitted'
-              ? 'Nibble is thinking…'
-              : 'Nibble is nibbling on a reply…'}
+              ? `${agentName} is thinking…`
+              : `${agentName} is writing a reply…`}
           </p>
         )}
         {(connector.configurationError || error) && (
@@ -302,7 +313,7 @@ export function CoachPanel({
         <form className="coach-composer" onSubmit={submitMessage}>
           <textarea
             aria-label="Message the coach"
-            placeholder="Ask Nibble a question, or think out loud…"
+            placeholder={`Ask ${agentName} a question, or think out loud…`}
             maxLength={4000}
             rows={2}
             value={draft}
@@ -321,9 +332,7 @@ export function CoachPanel({
           <div className="composer-bottom">
             <span>
               <Icon name="code" size={13} />
-              {effectivePreferences
-                ? `main.py + ${effectivePreferences.feedbackStyle} mode`
-                : 'main.py + latest output'}
+              main.py + latest output
             </span>
             {busy ? (
               <button

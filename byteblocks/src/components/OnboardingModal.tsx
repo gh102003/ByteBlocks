@@ -9,6 +9,8 @@ import {
   savePreferences,
 } from '../preferences'
 import { Icon } from './Icon'
+import { NibbleSprite } from './NibbleSprite'
+import { mascotForLevel, mascotName } from './mascot'
 
 interface OnboardingModalProps {
   initialPreferences?: UserPreferences | null
@@ -18,7 +20,7 @@ interface OnboardingModalProps {
 }
 
 const LEVEL_OPTIONS: Array<{
-  value: ExperienceLevel
+  value: Exclude<ExperienceLevel, 'auto'>
   label: string
   badge: string
   desc: string
@@ -26,20 +28,20 @@ const LEVEL_OPTIONS: Array<{
   {
     value: 'beginner',
     label: 'Beginner',
-    badge: 'Foundations',
-    desc: 'New to Python or algorithms. Focus on core syntax, step-by-step logic, and gentle hints.',
+    badge: 'Start here',
+    desc: 'Core Python, one step at a time.',
   },
   {
     value: 'intermediate',
     label: 'Intermediate',
-    badge: 'DSA & Patterns',
-    desc: 'Comfortable writing code. Practicing common algorithmic patterns, edge cases, and Big-O efficiency.',
+    badge: 'Build speed',
+    desc: 'Patterns, edge cases, and Big-O.',
   },
   {
     value: 'senior',
     label: 'Senior',
-    badge: 'Systems & Idioms',
-    desc: 'Experienced engineer. Focus on optimal complexity, subtle memory tradeoffs, and production Python idioms.',
+    badge: 'Go deep',
+    desc: 'Tradeoffs, performance, and clean code.',
   },
 ]
 
@@ -50,23 +52,23 @@ const FEEDBACK_OPTIONS: Array<{
 }> = [
   {
     value: 'socratic',
-    label: 'Socratic Hints',
-    desc: 'Ask targeted questions to guide you toward the answer without spoiling it.',
+    label: 'Ask me questions',
+    desc: 'Help me figure it out myself.',
   },
   {
     value: 'direct',
-    label: 'Direct & Concise',
-    desc: 'Get straight to the point with brief, actionable pointers on bugs and complexity.',
+    label: 'Just tell me',
+    desc: 'Show me the next step.',
   },
   {
     value: 'detailed',
-    label: 'Detailed Explanations',
-    desc: 'Deep-dive into underlying data structure behavior, tradeoffs, and analogies.',
+    label: 'Explain it slowly',
+    desc: 'Tell me why it works.',
   },
   {
     value: 'code-review',
-    label: 'Production Code Review',
-    desc: 'Evaluate PEP 8 style, variable naming, immutability, and readability.',
+    label: 'Check my code',
+    desc: 'Spot ways to make it better.',
   },
 ]
 
@@ -77,23 +79,23 @@ const GOAL_OPTIONS: Array<{
 }> = [
   {
     value: 'interview',
-    label: 'Technical Interview Prep',
-    desc: 'Tackle DSA questions under realistic interview constraints.',
+    label: 'Get interview ready',
+    desc: 'Practice tricky questions.',
   },
   {
     value: 'pythonic',
-    label: 'Idiomatic Python',
-    desc: 'Learn expressive and clean Python features, comprehensions, and generators.',
+    label: 'Write better Python',
+    desc: 'Learn neat Python tricks.',
   },
   {
     value: 'algorithms',
-    label: 'Problem Solving Mastery',
-    desc: 'Strengthen systematic problem decomposition and algorithmic thinking.',
+    label: 'Solve puzzles',
+    desc: 'Break big problems into steps.',
   },
   {
     value: 'general',
-    label: 'General Practice',
-    desc: 'Fun, self-paced exploration and daily coding challenges.',
+    label: 'Explore and play',
+    desc: 'Try things at your own pace.',
   },
 ]
 
@@ -101,9 +103,9 @@ const TONE_OPTIONS: Array<{
   value: GuidanceTone
   label: string
 }> = [
-  { value: 'encouraging', label: '🌱 Encouraging & Supportive' },
-  { value: 'pragmatic', label: '⚖️ Pragmatic & Direct' },
-  { value: 'rigorous', label: '🔬 Rigorous & Challenging' },
+  { value: 'encouraging', label: 'Cheer me on' },
+  { value: 'pragmatic', label: 'Keep it simple' },
+  { value: 'rigorous', label: 'Push me hard' },
 ]
 
 const ADVICE_FORMAT_OPTIONS: Array<{
@@ -111,12 +113,12 @@ const ADVICE_FORMAT_OPTIONS: Array<{
   label: string
   desc: string
 }> = [
-  { value: 'text', label: 'Text', desc: 'Explanations and hints only.' },
-  { value: 'python', label: 'Python', desc: 'Show read-only Python examples.' },
+  { value: 'text', label: 'Words', desc: 'Explain it to me.' },
+  { value: 'python', label: 'Code', desc: 'Show me Python.' },
   {
     value: 'blocks',
     label: 'Blocks',
-    desc: 'Show read-only visual block examples.',
+    desc: 'Show me the blocks.',
   },
 ]
 
@@ -182,31 +184,48 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">1</span>
-              <span>What is your Python experience level?</span>
+              <span>Pick your mentor</span>
             </label>
             <div className="options-grid three-col">
-              {LEVEL_OPTIONS.map((opt) => (
-                <button
-                  type="button"
-                  key={opt.value}
-                  className={`choice-card ${level === opt.value ? 'selected' : ''}`}
-                  onClick={() => setLevel(opt.value)}
-                >
-                  <div className="choice-header">
-                    <strong>{opt.label}</strong>
-                    <span className="choice-tag">{opt.badge}</span>
-                  </div>
-                  <p>{opt.desc}</p>
-                </button>
-              ))}
+              {LEVEL_OPTIONS.map((opt) => {
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    className={`choice-card level-choice ${level === opt.value ? 'selected' : ''}`}
+                    onClick={() => setLevel(opt.value)}
+                  >
+                    <NibbleSprite
+                      size="medium"
+                      mascot={mascotForLevel(opt.value)}
+                    />
+                    <div className="choice-header">
+                      <strong>{mascotName(mascotForLevel(opt.value))}</strong>
+                      <span className="choice-tag">{opt.badge}</span>
+                    </div>
+                    <p>
+                      {opt.label} · {opt.desc}
+                    </p>
+                  </button>
+                )
+              })}
             </div>
+            <button
+              type="button"
+              className={`auto-mentor-choice ${level === 'auto' ? 'selected' : ''}`}
+              onClick={() => setLevel('auto')}
+            >
+              <Icon name="sparkle" size={14} />
+              <span>Choose for me</span>
+              <small>I’ll switch mentors as you learn.</small>
+            </button>
           </section>
 
           {/* Question 2: Feedback Style */}
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">2</span>
-              <span>What style of feedback do you prefer?</span>
+              <span>How should your mentor help?</span>
             </label>
             <div className="options-grid two-col">
               {FEEDBACK_OPTIONS.map((opt) => (
@@ -229,7 +248,7 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">3</span>
-              <span>What is your primary goal right now?</span>
+              <span>What do you want to do today?</span>
             </label>
             <div className="options-grid two-col">
               {GOAL_OPTIONS.map((opt) => (
@@ -252,7 +271,7 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">4</span>
-              <span>Preferred AI Tone</span>
+              <span>How should they sound?</span>
             </label>
             <div className="tone-pills">
               {TONE_OPTIONS.map((opt) => (
@@ -271,7 +290,7 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label">
               <span className="step-num">5</span>
-              <span>How should the coach show examples?</span>
+              <span>How should examples look?</span>
             </label>
             <div className="options-grid three-col">
               {ADVICE_FORMAT_OPTIONS.map((opt) => (
@@ -294,13 +313,13 @@ export function OnboardingModal({
           <section className="onboarding-section">
             <label className="onboarding-label" htmlFor="custom-notes-input">
               <span className="step-num">6</span>
-              <span>Any special instructions for the AI coach? (Optional)</span>
+              <span>Anything else? (Optional)</span>
             </label>
             <input
               id="custom-notes-input"
               type="text"
               className="onboarding-input"
-              placeholder="e.g. Focus on space complexity, warn me if I create extra lists..."
+              placeholder="e.g. Give me small hints first"
               value={customNotes}
               onChange={(e) => setCustomNotes(e.target.value)}
               maxLength={200}

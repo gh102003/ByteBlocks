@@ -1,23 +1,45 @@
+import { mascotName } from './mascot'
+import type { Mascot } from './mascot'
+
 export function NibbleSprite({
   size = 'medium',
   standing = false,
+  mascot = 'nibble',
 }: {
   size?: 'small' | 'medium' | 'large'
   standing?: boolean
+  mascot?: Mascot
 }) {
+  const name = mascotName(mascot)
   return (
     <span
-      className={`nibble-sprite nibble-sprite-${size} ${standing ? 'nibble-standing' : ''}`}
+      className={`nibble-sprite nibble-sprite-${mascot} nibble-sprite-${size} ${standing ? 'nibble-standing' : ''}`}
       role="img"
-      aria-label="Nibble, the ByteBlocks assistant"
+      aria-label={`${name}, the ByteBlocks assistant`}
     >
-      <span className="nibble-ear nibble-ear-left" />
-      <span className="nibble-ear nibble-ear-right" />
+      {mascot === 'nibble' && (
+        <>
+          <span className="nibble-ear nibble-ear-left" />
+          <span className="nibble-ear nibble-ear-right" />
+        </>
+      )}
+      {mascot === 'chomp' && <span className="chomp-spines" />}
       <span className="nibble-face">
         <i className="nibble-eye nibble-eye-left" />
         <i className="nibble-eye nibble-eye-right" />
-        <i className="nibble-tooth nibble-tooth-left" />
-        <i className="nibble-tooth nibble-tooth-right" />
+        {mascot === 'nibble' && (
+          <>
+            <i className="nibble-tooth nibble-tooth-left" />
+            <i className="nibble-tooth nibble-tooth-right" />
+          </>
+        )}
+        {mascot === 'bite' && <i className="bite-mouth" />}
+        {mascot === 'chomp' && (
+          <>
+            <i className="chomp-snout" />
+            <i className="chomp-mouth" />
+          </>
+        )}
       </span>
       {standing && (
         <>

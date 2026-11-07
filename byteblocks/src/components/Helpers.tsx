@@ -1,4 +1,5 @@
 import { Icon } from './Icon'
+import { estimateComplexity } from './complexity'
 import { CHALLENGES } from './challenges'
 import type { ChallengeId } from './challenges'
 
@@ -63,51 +64,32 @@ export function GoalPanel({
   )
 }
 
-export function ComplexityPanel() {
+export function ComplexityPanel({ code }: { code: string }) {
+  const estimate = estimateComplexity(code)
   return (
     <div className="helper-content">
       <div className="section-heading">
         <div>
           <p className="eyebrow">UNDERSTAND THE TRADEOFF</p>
-          <h2>A little memory. A lot less work.</h2>
+          <h2>Complexity estimate</h2>
         </div>
-        <span className="sample-badge">Example</span>
+        <span className="sample-badge">Estimate</span>
       </div>
       <p className="muted">
-        Illustration of the supplied Two Sum solution. This is not an analysis
-        of your current code.
+        Based on the current Python code. This simple estimate treats
+        input-dependent loops as linear and may miss hidden work, recursion, and
+        allocations.
       </p>
       <div className="complexity-stats">
         <div>
           <span>TIME COMPLEXITY</span>
-          <strong>O(n)</strong>
-          <p>One pass through the array</p>
+          <strong>{estimate.time}</strong>
+          <p>{estimate.timeDetail}</p>
         </div>
         <div>
           <span>SPACE COMPLEXITY</span>
-          <strong>O(n)</strong>
-          <p>A map of numbers seen</p>
-        </div>
-      </div>
-      <div
-        className="chart"
-        role="img"
-        aria-label="Illustrative graph comparing linear hash-map work with quadratic nested-loop work"
-      >
-        <svg viewBox="0 0 500 140" preserveAspectRatio="none">
-          <path className="chart-grid" d="M35 15V115H480M35 65H480M35 15H480" />
-          <path className="chart-slow" d="M35 115Q290 115 460 15" />
-          <path className="chart-fast" d="M35 115L460 75" />
-          <text x="400" y="38">
-            O(n²)
-          </text>
-          <text className="fast-label" x="437" y="100">
-            O(n)
-          </text>
-        </svg>
-        <div className="chart-caption">
-          <span>Fewer items</span>
-          <span>More items →</span>
+          <strong>{estimate.space}</strong>
+          <p>{estimate.spaceDetail}</p>
         </div>
       </div>
     </div>

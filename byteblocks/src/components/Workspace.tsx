@@ -310,7 +310,7 @@ export function Workspace({
               {activeTab === 'Goal' && (
                 <GoalPanel selected={challenge} onSelect={setChallenge} />
               )}
-              {activeTab === 'Complexity' && <ComplexityPanel />}
+              {activeTab === 'Complexity' && <ComplexityPanel code={code} />}
               {activeTab === 'Visualizer' && (
                 <ExecutionVisualizer
                   runner={runner}

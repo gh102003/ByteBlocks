@@ -1,6 +1,6 @@
 # ByteBlocks
 
-![ByteBlocks — Build, Run, Learn with Nibble, Bite, and Chomp](docs/cover.png)
+![ByteBlocks — Build, Run, Learn with Nibble, Bite, and Chomp](docs/cover-branded.png)
 
 **Think in blocks. Code in Python.**
 

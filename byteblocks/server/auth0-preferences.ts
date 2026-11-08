@@ -13,10 +13,32 @@ const feedbackStyles = new Set([
 const goals = new Set(['interview', 'pythonic', 'algorithms', 'general'])
 const tones = new Set(['encouraging', 'pragmatic', 'rigorous'])
 const adviceFormats = new Set(['text', 'python', 'blocks'])
+const concepts = new Set([
+  'arrays',
+  'loops',
+  'dictionaries',
+  'searching',
+  'stacks',
+  'debugging',
+])
 
 function isPreferences(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== 'object') return false
   const preferences = value as Record<string, unknown>
+  const profile = preferences.learningProfile
+  const validProfile =
+    profile === undefined ||
+    (!!profile &&
+      typeof profile === 'object' &&
+      typeof (profile as Record<string, unknown>).diagnosticComplete ===
+        'boolean' &&
+      Object.entries((profile as { concepts?: unknown }).concepts ?? {}).every(
+        ([key, score]) =>
+          concepts.has(key) &&
+          typeof score === 'number' &&
+          score >= 0 &&
+          score <= 2,
+      ))
   return (
     typeof preferences.completedAt === 'string' &&
     levels.has(String(preferences.level)) &&
@@ -26,7 +48,8 @@ function isPreferences(value: unknown): value is Record<string, unknown> {
     adviceFormats.has(String(preferences.adviceFormat)) &&
     (preferences.customNotes === undefined ||
       (typeof preferences.customNotes === 'string' &&
-        preferences.customNotes.length <= 2_000))
+        preferences.customNotes.length <= 2_000)) &&
+    validProfile
   )
 }
 

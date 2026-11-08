@@ -134,6 +134,18 @@ export default function App({ initialView }: AppProps = {}) {
     setView('home')
   }
 
+  const handleLearningUpdate = (
+    learningProfile: NonNullable<UserPreferences['learningProfile']>,
+  ) => {
+    if (!preferences) return
+    const next = { ...preferences, learningProfile }
+    setPreferences(next)
+    if (authUserId) savePreferences(next, authUserId)
+    void saveAuth0Preferences(next, () => getAccessTokenSilently()).catch(
+      () => {},
+    )
+  }
+
   // If view is workspace but user is not authenticated, fallback to home
   if (
     !isTest &&
@@ -159,6 +171,7 @@ export default function App({ initialView }: AppProps = {}) {
           onNavigateHome={handleNavigateHome}
           onOpenPreferences={() => setIsEditingPreferences(true)}
           preferences={preferences}
+          onLearningUpdate={handleLearningUpdate}
         />
       )}
 

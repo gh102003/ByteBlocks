@@ -135,8 +135,8 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
                   : 'Get Started Free'}
               </span>
             </button>
-            <a href="#demo" className="hero-secondary-btn">
-              <span>Meet the team</span>
+            <a href="#auto-learning" className="hero-secondary-btn">
+              <span>Not sure? Let us choose</span>
               <Icon name="chevron" size={14} />
             </a>
           </div>
@@ -158,30 +158,35 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
         <div className="hero-workbench" aria-hidden="true">
           <div className="workbench-top">
             <span>● ● ●</span>
-            <span>YOUR PRACTICE SPACE</span>
-            <span>01 / PYTHON</span>
+            <span>BYTEBLOCKS · PRACTICE SPACE</span>
+            <span>PYTHON 3</span>
           </div>
           <div className="workbench-body">
-            <div className="workbench-blocks">
+            <div className="workbench-editor">
+              <div className="workbench-editor-tabs">
+                <span className="active">BLOCKS</span>
+                <span>CODE</span>
+                <button type="button">▶ RUN CODE</button>
+              </div>
               <div className="workbench-label">
-                BUILD <span>01</span>
+                BUILD YOUR PROGRAM <span>main.py</span>
               </div>
               <div className="sample-block block-repeat">
                 <span className="sample-block-icon">↻</span>
                 <span>
-                  for every <b>number</b> in <b>numbers</b>
+                  for every <b>num</b> in <b>nums</b>
                 </span>
               </div>
               <div className="sample-block block-decision">
                 <span className="sample-block-icon">?</span>
                 <span>
-                  if <b>number</b> is even
+                  if <b>target - num</b> is in <b>lookup</b>
                 </span>
               </div>
               <div className="sample-block block-output">
                 <span className="sample-block-icon">›</span>
                 <span>
-                  say <b>number</b>
+                  return <b>[lookup[...], i]</b>
                 </span>
               </div>
               <div className="workbench-grid-mark">
@@ -191,18 +196,31 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
                 <i />
               </div>
             </div>
-            <div className="workbench-code">
-              <div className="workbench-label">
-                PYTHON <span>02</span>
+            <div className="workbench-helper">
+              <div className="workbench-helper-tabs">
+                <span>GOAL</span>
+                <span>COMPLEXITY</span>
+                <span className="active">VISUALIZER</span>
               </div>
-              <pre>
-                <span>01</span> <em>for</em> number <em>in</em> numbers:{'\n'}
-                <span>02</span> <em>if</em> number % 2 == 0:{'\n'}
-                <span>03</span> print(number)
-              </pre>
-              <div className="workbench-hint">
-                <strong>✳ A LITTLE HINT</strong>
-                <p>What happens when you divide an even number by 2?</p>
+              <div className="workbench-visualizer">
+                <div className="workbench-label">
+                  STEP 04 <span>LINE 3</span>
+                </div>
+                <div className="visualizer-state">
+                  <span>num</span>
+                  <b>7</b>
+                  <span>target</span>
+                  <b>9</b>
+                  <span>lookup</span>
+                  <b>{'{2: 0}'}</b>
+                </div>
+              </div>
+              <div className="workbench-coach">
+                <NibbleSprite size="small" mascot="bite" />
+                <p>
+                  <strong>Bite</strong> · You&apos;re close—what complement does
+                  7 need?
+                </p>
               </div>
             </div>
           </div>
@@ -221,29 +239,6 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
           <p>Nibble, Bite, and Chomp each help in their own way.</p>
         </div>
 
-        <div className="coach-roster" aria-label="ByteBlocks mentors">
-          {(['beginner', 'intermediate', 'senior'] as DemoLevel[]).map(
-            (level) => {
-              const mascot = mascotForLevel(level)
-              return (
-                <div className="coach-roster-card" key={level}>
-                  <NibbleSprite size="medium" mascot={mascot} />
-                  <div>
-                    <strong>{mascotName(mascot)}</strong>
-                    <span>
-                      {level === 'beginner'
-                        ? 'Start coding'
-                        : level === 'intermediate'
-                          ? 'Build confidence'
-                          : 'Think deeper'}
-                    </span>
-                  </div>
-                </div>
-              )
-            },
-          )}
-        </div>
-
         <div className="demo-card">
           <div className="demo-tabs" role="tablist">
             {(['beginner', 'intermediate', 'senior'] as DemoLevel[]).map(
@@ -256,8 +251,11 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
                   className={`demo-tab ${demoLevel === lvl ? 'active' : ''}`}
                   onClick={() => setDemoLevel(lvl)}
                 >
-                  <span className="tab-circle" />
-                  <strong>{lvl.charAt(0).toUpperCase() + lvl.slice(1)}</strong>
+                  <NibbleSprite size="small" mascot={mascotForLevel(lvl)} />
+                  <strong>
+                    {mascotName(mascotForLevel(lvl))} ·{' '}
+                    {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                  </strong>
                   <span className="tab-style-label">
                     {DEMO_RESPONSES[lvl].feedbackStyle}
                   </span>
@@ -331,6 +329,57 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
         </div>
       </section>
 
+      <section className="auto-learning-bridge" aria-hidden="true">
+        <div className="auto-learning-rule">
+          <span />
+          <strong>OR</strong>
+          <span />
+        </div>
+        <h2>Let the team pick you.</h2>
+      </section>
+
+      <section
+        id="auto-learning"
+        className="auto-learning-section"
+        aria-labelledby="auto-learning-title"
+      >
+        <div className="auto-learning-card">
+          <div className="auto-learning-copy">
+            <span className="section-eyebrow">Not sure where to start?</span>
+            <h2 id="auto-learning-title">Find your fit in a minute.</h2>
+            <p>
+              Pick <strong>“Choose for me”</strong>. We’ll do a quick skills
+              check, then match you with the mentor that fits right now.
+            </p>
+            <div className="auto-learning-benefits">
+              <p>
+                <strong>Your style, your call.</strong> Questions, direct
+                answers, deep dives, or code review—you choose the vibe.
+              </p>
+              <p>
+                <strong>Help at the right moment.</strong> A sharp hint when
+                you&apos;re close; a clearer next step when you&apos;re stuck.
+              </p>
+            </div>
+          </div>
+          <div
+            className="auto-learning-steps"
+            aria-label="How automatic learning works"
+          >
+            <span>1 · Quick skills check</span>
+            <span>2 · Practise key concepts</span>
+            <span>3 · Coaching adapts with you</span>
+            <button
+              type="button"
+              className="auto-learning-cta"
+              onClick={handlePrimaryAction}
+            >
+              Try Auto mode <Icon name="arrow" size={14} />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="features-section">
         <div className="section-header">
@@ -388,8 +437,8 @@ export function HomePage({ onOpenWorkspace }: HomePageProps) {
             <p>
               ByteBlocks compiles Python directly to WebAssembly in your
               browser. Code autosaves safely to your browser’s local storage,
-              and your AI coaching preferences persist securely in session
-              storage.
+              while your signed-in AI coaching preferences can follow your
+              account through secure profile storage.
             </p>
             <div className="arch-metrics">
               <div className="metric">

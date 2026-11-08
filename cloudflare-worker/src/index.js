@@ -190,7 +190,11 @@ export async function handle(request, env, verify = authenticate) {
   };
   if (request.method === "OPTIONS") {
     cors.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    cors.set("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    // The browser AI SDK sets User-Agent; Firefox includes it in preflights.
+    cors.set(
+      "Access-Control-Allow-Headers",
+      "Authorization, Content-Type, User-Agent",
+    );
     return new Response(null, { status: 204, headers: cors });
   }
   const path = new URL(request.url).pathname;

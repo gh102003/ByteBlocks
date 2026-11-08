@@ -11,6 +11,12 @@ This Worker streams Gemini or OpenAI chat and creates ElevenLabs WebRTC conversa
 
 For local Worker development, use `.dev.vars` for secrets and `npm run dev`; this file is ignored by Git. Include the local frontend origin in `ALLOWED_ORIGINS` and configure Auth0 for it. The frontend's Vite voice endpoint is used only when `VITE_WORKER_URL` is unset.
 
+### CORS troubleshooting
+
+`ALLOWED_ORIGINS` must contain the frontend's origin, without a path, trailing slash, or hash. For the current hosted frontend this is `https://byteblocks-static.george-account-3f1.workers.dev`, without `/#workspace`. Set this variable on the API Worker, not the static frontend Worker. Keep the deployed variable and `wrangler.jsonc` in sync: Wrangler deploys the variables in this file.
+
+The API permits `Authorization`, `Content-Type`, and the AI SDK's `User-Agent` request header. Preflights do not require authentication. A `403` with `{"error":"Origin not allowed."}` means the frontend origin is missing from the deployed allowlist; update it and deploy the Worker again. Deploy code changes too when changing allowed headers.
+
 To switch back to OpenAI, set `CHAT_PROVIDER` to `openai`, choose `OPENAI_MODEL`, add the `OPENAI_API_KEY` Worker secret, and redeploy. Switching provider does not require a frontend rebuild. The Worker uses each provider's chat completions endpoint and sends the complete conversation on every turn. OpenAI requests use `store: false`. Gemini's data usage and retention policies are separate; see the pricing and terms for your tier.
 
 This changes text chat only. The ElevenLabs voice agent's language model is configured separately in ElevenLabs. If upgrading from the earlier Worker that used `/v1/responses`, deploy this Worker and rebuild the frontend together because the Worker chat endpoint is now `/v1/chat/completions`.

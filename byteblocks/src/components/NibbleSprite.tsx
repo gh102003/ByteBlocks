@@ -35,14 +35,32 @@ export function NibbleSprite({
             <rect x="30" y="10" width="10" height="10" fill="#a62d36" />
           </g>
         )}
+        {standing && (
+          <g className="mascot-body">
+            <rect
+              x="10"
+              y="60"
+              width="40"
+              height="50"
+              fill="#28669e"
+              stroke="#123b66"
+              strokeWidth="2"
+            />
+            <rect x="20" y="60" width="20" height="30" fill="#f5f0df" />
+            <path d="M30 70h10v30H30l-5-5 5-5-5-5z" fill="#ef806d" />
+            <g className="mascot-arm mascot-arm-left">
+              <rect x="0" y="70" width="10" height="30" fill="#5db5ed" />
+            </g>
+            <g className="mascot-arm mascot-arm-right">
+              <rect x="50" y="70" width="10" height="30" fill="#5db5ed" />
+            </g>
+            <rect x="10" y="110" width="20" height="20" fill="#102e50" />
+            <rect x="30" y="110" width="20" height="20" fill="#102e50" />
+            <path d="M10 120h20m0 0h20" stroke="#071a30" strokeWidth="10" />
+          </g>
+        )}
         <g className="mascot-head">
-          <rect
-            className="mascot-face"
-            x="0"
-            y={standing ? 20 : 20}
-            width="60"
-            height="50"
-          />
+          <rect className="mascot-face" x="0" y="20" width="60" height="50" />
           <rect className="mascot-eye" x="10" y="40" width="10" height="10" />
           <rect className="mascot-eye" x="40" y="40" width="10" height="10" />
           {mascot === 'nibble' && (
@@ -69,30 +87,6 @@ export function NibbleSprite({
             </g>
           )}
         </g>
-        {standing && (
-          <g className="mascot-body">
-            <rect
-              x="10"
-              y="60"
-              width="40"
-              height="50"
-              fill="#28669e"
-              stroke="#123b66"
-              strokeWidth="2"
-            />
-            <rect x="20" y="60" width="20" height="30" fill="#f5f0df" />
-            <path d="M30 70h10v30H30l-5-5 5-5-5-5z" fill="#ef806d" />
-            <g className="mascot-arm mascot-arm-left">
-              <rect x="0" y="70" width="10" height="30" fill="#5db5ed" />
-            </g>
-            <g className="mascot-arm mascot-arm-right">
-              <rect x="50" y="70" width="10" height="30" fill="#5db5ed" />
-            </g>
-            <rect x="10" y="110" width="20" height="20" fill="#102e50" />
-            <rect x="30" y="110" width="20" height="20" fill="#102e50" />
-            <path d="M10 120h20m0 0h20" stroke="#071a30" strokeWidth="10" />
-          </g>
-        )}
       </g>
     </svg>
   )

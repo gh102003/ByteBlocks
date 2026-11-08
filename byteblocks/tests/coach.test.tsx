@@ -301,6 +301,28 @@ describe('AI coach', () => {
     ).not.toContain('"type":"dict_create"')
   })
 
+  test('renders a diagram when the response has an unquoted JSON object key', async () => {
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
+      <CoachPanel
+        context={{ ...context, preferences: blockPreferences }}
+        connector={connector}
+      />,
+    )
+    await send('Make my two sum faster.')
+    reply.text(
+      'Use a dictionary.\n\n```byteblocks\n[{"type":"math_calculate","varName":"complement","valueOperand":{"kind":"variable","name":"target"},operator:"-","rightOperand":{"kind":"variable","name":"num"}}]\n```',
+    )
+    reply.finish()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toMatchTextContent('calculate')
+    expect(
+      document.querySelector('.message-markdown')?.textContent,
+    ).not.toContain('operator:"-"')
+  })
+
   test('shows an explicitly requested block diagram even with text advice selected', async () => {
     const reply = responseStream()
     mockProvider().mockResolvedValueOnce(reply.response)

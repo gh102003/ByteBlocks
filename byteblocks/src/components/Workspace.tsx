@@ -110,6 +110,7 @@ export function Workspace({
   )
   const [activeTab, setActiveTab] = useState<HelperTab>('Visualizer')
   const [traceStep, setTraceStep] = useState(0)
+  const [complexityHoverLine, setComplexityHoverLine] = useState<number>()
   const [progress, setProgress] = useState(initialProgress)
   const unlocked = Math.min(
     progress.findIndex((item) => !item.complete) === -1
@@ -377,9 +378,10 @@ export function Workspace({
     void runner.run(code)
   }
   const highlightedLine =
-    activeTab === 'Visualizer' && runner.source === code
+    complexityHoverLine ??
+    (activeTab === 'Visualizer' && runner.source === code
       ? runner.trace.steps[traceStep]?.line
-      : undefined
+      : undefined)
 
   return (
     <div className="app-shell">
@@ -572,7 +574,13 @@ export function Workspace({
                   unavailable={coachUnavailable}
                 />
               )}
-              {activeTab === 'Complexity' && <ComplexityPanel code={code} />}
+              {activeTab === 'Complexity' && (
+                <ComplexityPanel
+                  code={code}
+                  trace={runner.source === code ? runner.trace : undefined}
+                  onLineHover={setComplexityHoverLine}
+                />
+              )}
               {activeTab === 'Visualizer' && (
                 <ExecutionVisualizer
                   runner={runner}

@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import type { BlockItem, ValueOperand } from './types'
+import type { BlockItem, ValueOperand, VariableScope } from './types'
 import { BLOCK_DEFINITIONS } from './definitions'
 import { Icon } from '../Icon'
 import { BlockIcon } from './BlockIcon'
+import { generatePython } from './generator'
+
+type FunctionDefinition = { name: string; args: string[] }
 
 interface BlockNodeProps {
   block: BlockItem
@@ -22,6 +25,9 @@ interface BlockNodeProps {
   listNames?: string[]
   stackNames?: string[]
   queueNames?: string[]
+  variableScopes?: Record<string, VariableScope>
+  highlightedSource?: string
+  functionDefinitions?: FunctionDefinition[]
   invalidConditionalPlacement?: boolean
 }
 
@@ -130,6 +136,9 @@ export function BlockNode({
   listNames = [],
   stackNames = [],
   queueNames = [],
+  variableScopes,
+  highlightedSource,
+  functionDefinitions = [],
   invalidConditionalPlacement: hasInvalidConditionalPlacement = false,
 }: BlockNodeProps) {
   const [isDragOverChildren, setIsDragOverChildren] = useState(false)
@@ -164,6 +173,13 @@ export function BlockNode({
     args[index] = value
     if (index === args.length - 1 && value.trim()) args.push('')
     onUpdate({ ...block, functionArgs: args })
+  }
+
+  const handleReturnValueChange = (index: number, value: string) => {
+    const values = [...(block.returnValues ?? ['', ''])]
+    values[index] = value
+    if (index === values.length - 1 && value.trim()) values.push('')
+    onUpdate({ ...block, returnValues: values })
   }
 
   const handleDictionaryEntryChange = (
@@ -204,7 +220,6 @@ export function BlockNode({
   }) => (
     <input
       type="text"
-      list="byteblocks-variables"
       className="chunk-input var-input"
       value={value}
       onChange={(e) => handleUpdateField(field, e.target.value)}
@@ -925,43 +940,149 @@ export function BlockNode({
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">return</span>
-            <input
-              type="text"
-              className="chunk-input expr-input"
-              value={block.value ?? ''}
-              onChange={(e) => handleUpdateField('value', e.target.value)}
-              placeholder="result"
-            />
+            <select
+              className="chunk-select"
+              value={block.returnMode ?? 'value'}
+              onChange={(e) =>
+                onUpdate({
+                  ...block,
+                  returnMode: e.target.value as BlockItem['returnMode'],
+                  returnValues:
+                    e.target.value === 'list'
+                      ? (block.returnValues ?? ['', ''])
+                      : block.returnValues,
+                })
+              }
+              aria-label="Return type"
+            >
+              <option value="value">a value</option>
+              <option value="list">a list</option>
+            </select>
+            {block.returnMode === 'list' ? (
+              <span
+                className="function-arg-slots"
+                aria-label="List items to return"
+              >
+                {(block.returnValues ?? ['', '']).map((value, index) => (
+                  <span className="function-arg-slot" key={index}>
+                    {index > 0 && <span className="chunk-bracket">,</span>}
+                    <input
+                      type="text"
+                      className="chunk-input func-arg-input"
+                      value={value}
+                      onChange={(e) =>
+                        handleReturnValueChange(index, e.target.value)
+                      }
+                      placeholder={`item ${index + 1}`}
+                      aria-label={`Returned list item ${index + 1}`}
+                    />
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <input
+                type="text"
+                className="chunk-input expr-input"
+                value={block.value ?? ''}
+                onChange={(e) => handleUpdateField('value', e.target.value)}
+                placeholder="result"
+              />
+            )}
           </div>
         )
 
-      case 'function_call':
+      case 'function_call': {
+        const selectedFunction = functionDefinitions.find(
+          (item) => item.name === block.funcName,
+        )
+        const inputs = (block.funcArgs ?? '')
+          .split(',')
+          .map((arg) => arg.trim())
+        const args = selectedFunction?.args ?? []
+        const resultTarget =
+          block.resultTarget ?? (block.varName?.trim() ? 'existing' : 'discard')
         return (
           <div className="chunk-inputs">
-            <input
-              type="text"
-              className="chunk-input func-name-input"
+            <select
+              className="chunk-select func-name-input"
               value={block.funcName ?? ''}
-              onChange={(e) => handleUpdateField('funcName', e.target.value)}
-              placeholder="my_func"
-            />
+              onChange={(e) => {
+                const definition = functionDefinitions.find(
+                  (item) => item.name === e.target.value,
+                )
+                onUpdate({
+                  ...block,
+                  funcName: e.target.value,
+                  funcArgs: definition?.args.map(() => '').join(', ') ?? '',
+                })
+              }}
+              aria-label="Function to call"
+            >
+              <option value="">choose a function</option>
+              {functionDefinitions.map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
             <span className="chunk-bracket">(</span>
-            <input
-              type="text"
-              className="chunk-input func-args-input"
-              value={block.funcArgs ?? ''}
-              onChange={(e) => handleUpdateField('funcArgs', e.target.value)}
-              placeholder="args"
-            />
+            {selectedFunction ? (
+              args.map((arg, index) => (
+                <span className="function-arg-slot" key={arg}>
+                  {index > 0 && <span className="chunk-bracket">,</span>}
+                  <input
+                    type="text"
+                    className="chunk-input func-arg-input"
+                    value={inputs[index] ?? ''}
+                    onChange={(e) => {
+                      const next = args.map((_, inputIndex) =>
+                        inputIndex === index
+                          ? e.target.value
+                          : (inputs[inputIndex] ?? ''),
+                      )
+                      handleUpdateField('funcArgs', next.join(', '))
+                    }}
+                    placeholder={arg}
+                    aria-label={`Value for ${arg}`}
+                  />
+                </span>
+              ))
+            ) : (
+              <span className="chunk-label">select a function</span>
+            )}
             <span className="chunk-bracket">)</span>
             <span className="chunk-label">save result in</span>
-            <VariableInput
-              value={block.varName ?? ''}
-              field="varName"
-              placeholder="optional"
-            />
+            <select
+              className="chunk-select variable-picker"
+              value={resultTarget}
+              onChange={(e) =>
+                onUpdate({
+                  ...block,
+                  resultTarget: e.target.value as BlockItem['resultTarget'],
+                  varName: e.target.value === 'discard' ? '' : block.varName,
+                })
+              }
+              aria-label="Where to save the function result"
+            >
+              <option value="discard">don't save it</option>
+              <option value="new">a new variable</option>
+              <option value="existing">an existing variable</option>
+            </select>
+            {resultTarget === 'new' ? (
+              <input
+                type="text"
+                className="chunk-input var-input"
+                value={block.varName ?? ''}
+                onChange={(e) => handleUpdateField('varName', e.target.value)}
+                placeholder="new result name"
+                aria-label="New result variable name"
+              />
+            ) : resultTarget === 'existing' ? (
+              <VariablePicker value={block.varName ?? ''} field="varName" />
+            ) : null}
           </div>
         )
+      }
 
       case 'list_create':
         return (
@@ -1364,10 +1485,15 @@ export function BlockNode({
     : hasMissingIndent
       ? 'Add an indented block inside.'
       : 'You must select a required item.'
+  const isHighlighted =
+    !!highlightedSource &&
+    generatePython([block])
+      .split('\n')
+      .some((line) => line.trim() === highlightedSource)
 
   return (
     <div
-      className={`scratch-chunk ${isContainer ? 'is-container' : ''} ${hasWarning ? 'has-warning' : ''}`}
+      className={`scratch-chunk ${isContainer ? 'is-container' : ''} ${hasWarning ? 'has-warning' : ''} ${isHighlighted ? 'trace-block-highlight' : ''}`}
       style={
         {
           '--chunk-color': def.color,
@@ -1475,10 +1601,15 @@ export function BlockNode({
                     onUpdate({ ...block, children: nextChildren })
                   }}
                   onDropBlock={onDropBlock}
-                  variableNames={variableNames}
-                  listNames={listNames}
-                  stackNames={stackNames}
-                  queueNames={queueNames}
+                  variableNames={
+                    variableScopes?.[child.id]?.names ?? variableNames
+                  }
+                  listNames={variableScopes?.[child.id]?.lists ?? listNames}
+                  stackNames={variableScopes?.[child.id]?.stacks ?? stackNames}
+                  queueNames={variableScopes?.[child.id]?.queues ?? queueNames}
+                  variableScopes={variableScopes}
+                  highlightedSource={highlightedSource}
+                  functionDefinitions={functionDefinitions}
                   invalidConditionalPlacement={invalidConditionalPlacement(
                     child,
                     block.children?.[cIdx - 1],
@@ -1531,10 +1662,19 @@ export function BlockNode({
                       onUpdate({ ...block, elseChildren: nextChildren })
                     }}
                     onDropBlock={onDropBlock}
-                    variableNames={variableNames}
-                    listNames={listNames}
-                    stackNames={stackNames}
-                    queueNames={queueNames}
+                    variableNames={
+                      variableScopes?.[child.id]?.names ?? variableNames
+                    }
+                    listNames={variableScopes?.[child.id]?.lists ?? listNames}
+                    stackNames={
+                      variableScopes?.[child.id]?.stacks ?? stackNames
+                    }
+                    queueNames={
+                      variableScopes?.[child.id]?.queues ?? queueNames
+                    }
+                    variableScopes={variableScopes}
+                    highlightedSource={highlightedSource}
+                    functionDefinitions={functionDefinitions}
                     invalidConditionalPlacement={invalidConditionalPlacement(
                       child,
                       block.elseChildren?.[cIdx - 1],

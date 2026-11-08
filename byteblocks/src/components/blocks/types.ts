@@ -105,15 +105,27 @@ export interface BlockItem {
   listName?: string
   itemVar?: string
   funcName?: string
+  /** Whether a function call discards its result, creates a name, or reuses one. */
+  resultTarget?: 'discard' | 'new' | 'existing'
   /** Locks the required entry-point signature supplied by an exercise preset. */
   isProblemFunction?: boolean
   /** Individual function definition parameter slots. funcArgs is retained for saved projects. */
   functionArgs?: string[]
   funcArgs?: string
+  /** Return either one expression or a list assembled from individual slots. */
+  returnMode?: 'value' | 'list'
+  returnValues?: string[]
   commentText?: string
   customCode?: string
   children?: BlockItem[]
   elseChildren?: BlockItem[]
+}
+
+export type VariableScope = {
+  names: string[]
+  lists: string[]
+  stacks: string[]
+  queues: string[]
 }
 
 export interface BlockDefinition {

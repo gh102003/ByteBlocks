@@ -182,7 +182,12 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
       }
 
       case 'return_val': {
-        const val = block.value?.trim() || 'None'
+        const val =
+          block.returnMode === 'list'
+            ? `[${(block.returnValues ?? [])
+                .filter((value) => value.trim())
+                .join(', ')}]`
+            : block.value?.trim() || 'None'
         lines.push(`${indent}return ${val}`)
         break
       }
@@ -190,7 +195,8 @@ function generatePythonBody(blocks: BlockItem[], indentLevel: number): string {
       case 'function_call': {
         const name = block.funcName?.trim() || 'my_function'
         const args = block.funcArgs?.trim() || ''
-        const result = block.varName?.trim()
+        const result =
+          block.resultTarget === 'discard' ? '' : block.varName?.trim()
         lines.push(`${indent}${result ? `${result} = ` : ''}${name}(${args})`)
         break
       }

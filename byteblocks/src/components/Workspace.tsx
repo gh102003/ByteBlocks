@@ -108,7 +108,7 @@ export function Workspace({
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unavailable'>(
     'saving',
   )
-  const [activeTab, setActiveTab] = useState<HelperTab>('Visualizer')
+  const [activeTab, setActiveTab] = useState<HelperTab>('Goal')
   const [traceStep, setTraceStep] = useState(0)
   const [progress, setProgress] = useState(initialProgress)
   const unlocked = Math.min(

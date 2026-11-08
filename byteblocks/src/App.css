@@ -3732,7 +3732,9 @@
   text-align: left;
   cursor: text;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
+  align-content: start;
   justify-content: flex-start;
 }
 

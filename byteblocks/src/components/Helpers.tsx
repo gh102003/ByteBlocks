@@ -3,7 +3,8 @@ import Markdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import { Icon } from './Icon'
-import { estimateComplexity } from './complexity'
+import { estimateComplexity, profileExecution } from './complexity'
+import type { ExecutionTrace } from '../python/trace'
 import { CHALLENGES } from './challenges'
 import type { TestCase, TestResult } from './challengeTests'
 
@@ -374,8 +375,26 @@ function ComplexityGraph({ title, value }: { title: string; value: string }) {
   )
 }
 
-export function ComplexityPanel({ code }: { code: string }) {
+export function ComplexityPanel({
+  code,
+  trace,
+  onLineHover,
+}: {
+  code: string
+  trace?: ExecutionTrace
+  onLineHover?: (line?: number) => void
+}) {
   const estimate = estimateComplexity(code)
+  const profile =
+    trace && trace.steps.length ? profileExecution(code, trace) : null
+  const totalRuns = profile?.lines.reduce(
+    (total, item) => total + item.executions,
+    0,
+  )
+  const peakItems = profile?.collections.reduce(
+    (total, item) => total + item.peakSize,
+    0,
+  )
   return (
     <div className="helper-content">
       <div className="section-heading">
@@ -406,6 +425,88 @@ export function ComplexityPanel({ code }: { code: string }) {
         <ComplexityGraph title="Time" value={estimate.time} />
         <ComplexityGraph title="Space" value={estimate.space} />
       </div>
+      <section className="observed-complexity" aria-labelledby="observed-title">
+        <h3 id="observed-title">Observed in the latest run</h3>
+        {!profile ? (
+          <p className="muted">
+            Run the current code to see how many times each line executes and
+            the largest collections it creates.
+          </p>
+        ) : (
+          <>
+            <p className="muted">
+              Exact counts for this run — not Big-O estimates.
+              {profile.truncated &&
+                ' Recording stopped early, so these counts are partial.'}
+            </p>
+            <div className="observed-totals" aria-label="Run totals">
+              <div className="observed-total observed-total-runs">
+                <span>Total line runs</span>
+                <strong>{totalRuns}</strong>
+                <small>steps recorded</small>
+              </div>
+              <div className="observed-total observed-total-space">
+                <span>Peak items tracked</span>
+                <strong>{peakItems}</strong>
+                <small>across collections</small>
+              </div>
+            </div>
+            <div className="observed-complexity-grid">
+              <div className="observed-panel observed-panel-runs">
+                <h4>
+                  <span>↻</span> Line runs
+                </h4>
+                <ul
+                  className="observed-list"
+                  aria-label="Line execution counts"
+                >
+                  {profile.lines.map((item) => (
+                    <li
+                      key={item.line}
+                      onMouseEnter={() => onLineHover?.(item.line)}
+                      onMouseLeave={() => onLineHover?.()}
+                      onFocus={() => onLineHover?.(item.line)}
+                      onBlur={() => onLineHover?.()}
+                      tabIndex={0}
+                    >
+                      <span className="observed-line-number">{item.line}</span>
+                      <code>{item.source}</code>
+                      <span className="observed-count">{item.executions}×</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="observed-panel observed-panel-space">
+                <h4>
+                  <span>▣</span> Peak collection sizes
+                </h4>
+                {profile.collections.length ? (
+                  <ul
+                    className="observed-list"
+                    aria-label="Observed collection sizes"
+                  >
+                    {profile.collections.map((item, index) => (
+                      <li key={`${item.name}-${index}`}>
+                        <code>
+                          {item.name} <small>({item.type})</small>
+                        </code>
+                        <span className="observed-count">
+                          {item.peakSize} items
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">
+                    No lists, dictionaries, sets, tuples, or deques were
+                    observed.
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </section>
     </div>
   )
 }

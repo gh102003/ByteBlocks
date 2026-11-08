@@ -20,7 +20,7 @@ describe('Block Generator to Python', () => {
     const solution = PRESETS.find((preset) => preset.id === 'two-sum-solution')
     expect(solution).toBeDefined()
     expect(generatePython(solution!.blocks)).toBe(
-      'def two_sum(nums, target):\n    # Try every pair of different positions.\n    for i in range(len(nums)):\n        for j in range(len(nums)):\n            if i != j and nums[i] + nums[j] == target:\n                return [i, j]\n    return []',
+      'def two_sum(nums, target):\n    # Try every pair of different positions.\n    for i in range(len(nums)):\n        for j in range(len(nums)):\n            if i != j and nums[i] + nums[j] == target:\n                return [i, j]\n    return []\nnumbers = [1, 2, 3]\nx = two_sum(numbers, 3)\nprint(x)',
     )
   })
 

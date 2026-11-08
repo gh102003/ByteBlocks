@@ -1,8 +1,75 @@
+import type { ExecutionTrace } from '../python/trace'
+
 export interface ComplexityEstimate {
   time: string
   timeDetail: string
   space: string
   spaceDetail: string
+}
+
+export type ObservedLine = {
+  line: number
+  source: string
+  executions: number
+}
+
+export type ObservedCollection = {
+  name: string
+  type: string
+  peakSize: number
+}
+
+export type ExecutionProfile = {
+  lines: ObservedLine[]
+  collections: ObservedCollection[]
+  truncated: boolean
+}
+
+// Python emits a "line" event immediately before it runs that line. Counting
+// those events lets us show the learner what this particular run actually did,
+// while keeping the separate Big-O estimate about growth as input changes.
+export function profileExecution(
+  code: string,
+  trace: ExecutionTrace,
+): ExecutionProfile {
+  const sourceLines = code.split('\n')
+  const executions = new Map<number, number>()
+  const collections = new Map<string, ObservedCollection>()
+
+  for (const step of trace.steps) {
+    if (step.event === 'line')
+      executions.set(step.line, (executions.get(step.line) ?? 0) + 1)
+
+    for (const frame of step.frames) {
+      for (const variable of frame.variables) {
+        const size = variable.value.size
+        if (size === undefined) continue
+        const key = `${frame.id}:${variable.name}`
+        const previous = collections.get(key)
+        if (!previous || size > previous.peakSize)
+          collections.set(key, {
+            name: variable.name,
+            type: variable.value.type,
+            peakSize: size,
+          })
+      }
+    }
+  }
+
+  return {
+    lines: [...executions.entries()]
+      .sort(([left], [right]) => left - right)
+      .map(([line, count]) => ({
+        line,
+        source: sourceLines[line - 1]?.trim() || `Line ${line}`,
+        executions: count,
+      })),
+    collections: [...collections.values()].sort(
+      (left, right) =>
+        right.peakSize - left.peakSize || left.name.localeCompare(right.name),
+    ),
+    truncated: trace.truncated,
+  }
 }
 
 // This intentionally recognizes only simple loop shapes; it is not a Python parser.

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { estimateComplexity } from '../src/components/complexity'
+import {
+  estimateComplexity,
+  profileExecution,
+} from '../src/components/complexity'
 
 describe('complexity estimates', () => {
   it('estimates loops and collection growth', () => {
@@ -31,5 +34,49 @@ for item in items:
     expect(estimateComplexity('def f(n):\n    return n\nf(1)').time).toBe(
       'O(1)',
     )
+  })
+
+  it('profiles actual line runs and peak collection sizes', () => {
+    const profile = profileExecution(
+      'items = []\nfor n in range(2):\n    items.append(n)',
+      {
+        truncated: false,
+        steps: [
+          { event: 'line', line: 1, frames: [] },
+          { event: 'line', line: 2, frames: [] },
+          {
+            event: 'line',
+            line: 3,
+            frames: [
+              {
+                id: 1,
+                name: '<module>',
+                line: 3,
+                variables: [
+                  {
+                    name: 'items',
+                    value: {
+                      kind: 'list',
+                      type: 'list',
+                      text: 'list',
+                      size: 2,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          { event: 'line', line: 3, frames: [] },
+        ],
+      },
+    )
+    expect(profile.lines).toEqual([
+      { line: 1, source: 'items = []', executions: 1 },
+      { line: 2, source: 'for n in range(2):', executions: 1 },
+      { line: 3, source: 'items.append(n)', executions: 2 },
+    ])
+    expect(profile.collections).toEqual([
+      { name: 'items', type: 'list', peakSize: 2 },
+    ])
   })
 })

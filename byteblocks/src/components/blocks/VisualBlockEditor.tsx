@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { CodeEditor } from '../CodeEditor'
-import type { BlockItem } from './types'
+import type { BlockItem, VariableScope } from './types'
 import { generatePython } from './generator'
 import { BlockPalette } from './BlockPalette'
 import { BlockNode } from './BlockNode'
@@ -53,52 +53,135 @@ function invalidConditionalPlacement(block: BlockItem, previous?: BlockItem) {
   return false
 }
 
-function findVariableNames(blocks: BlockItem[]): {
-  names: string[]
-  lists: string[]
-  stacks: string[]
-  queues: string[]
-} {
-  const names = new Set<string>()
-  const lists = new Set<string>()
-  const stacks = new Set<string>()
-  const queues = new Set<string>()
-  const addName = (name: string | undefined) => {
-    const trimmed = name?.trim()
-    if (trimmed && /^[A-Za-z_]\w*$/.test(trimmed)) names.add(trimmed)
-  }
-  const addFunctionParameter = (name: string | undefined) => {
-    const trimmed = name?.trim()
-    if (!trimmed || !/^[A-Za-z_]\w*$/.test(trimmed)) return
-    names.add(trimmed)
-    // Parameters do not carry runtime type information. Make them available to
-    // each collection picker so callers can pass a list, stack, or queue in.
-    lists.add(trimmed)
-    stacks.add(trimmed)
-    queues.add(trimmed)
-  }
-  const visit = (items: BlockItem[]) =>
-    items.forEach((block) => {
-      addName(block.varName)
-      if (block.type === 'list_create' && block.varName?.trim())
-        lists.add(block.varName.trim())
-      if (block.type === 'stack_create' && block.varName?.trim())
-        stacks.add(block.varName.trim())
-      if (block.type === 'queue_create' && block.varName?.trim())
-        queues.add(block.varName.trim())
-      addName(block.itemVar)
-      block.functionArgs?.forEach(addFunctionParameter)
-      block.funcArgs?.split(',').forEach(addFunctionParameter)
+type FunctionDefinition = { name: string; args: string[] }
+
+function findFunctionDefinitions(blocks: BlockItem[]): FunctionDefinition[] {
+  const functions: FunctionDefinition[] = []
+  const visit = (items: BlockItem[]) => {
+    for (const block of items) {
+      if (block.type === 'function_def' && block.funcName?.trim()) {
+        const args = (block.functionArgs ?? block.funcArgs?.split(',') ?? [])
+          .map((arg) => arg.trim())
+          .filter(Boolean)
+        functions.push({ name: block.funcName.trim(), args })
+      }
       if (block.children) visit(block.children)
       if (block.elseChildren) visit(block.elseChildren)
-    })
-  visit(blocks)
-  return {
-    names: [...names],
-    lists: [...lists],
-    stacks: [...stacks],
-    queues: [...queues],
+    }
   }
+  visit(blocks)
+  return functions
+}
+
+function findVariableScopes(
+  blocks: BlockItem[],
+): Record<string, VariableScope> {
+  const scopes: Record<string, VariableScope> = {}
+  type MutableScope = {
+    names: Set<string>
+    lists: Set<string>
+    stacks: Set<string>
+    queues: Set<string>
+  }
+  const copy = (scope: MutableScope): MutableScope => ({
+    names: new Set(scope.names),
+    lists: new Set(scope.lists),
+    stacks: new Set(scope.stacks),
+    queues: new Set(scope.queues),
+  })
+  const snapshot = (scope: MutableScope): VariableScope => ({
+    names: [...scope.names],
+    lists: [...scope.lists],
+    stacks: [...scope.stacks],
+    queues: [...scope.queues],
+  })
+  const add = (scope: MutableScope, name?: string) => {
+    const value = name?.trim()
+    if (value && /^[A-Za-z_]\w*$/.test(value)) scope.names.add(value)
+  }
+  const visit = (items: BlockItem[], inherited: MutableScope) => {
+    const available = copy(inherited)
+    for (const block of items) {
+      scopes[block.id] = snapshot(available)
+      if (block.children) {
+        const nested = copy(available)
+        if (block.type === 'function_def')
+          (block.functionArgs ?? block.funcArgs?.split(',') ?? []).forEach(
+            (arg) => {
+              add(nested, arg)
+              const value = arg.trim()
+              if (value) {
+                nested.lists.add(value)
+                nested.stacks.add(value)
+                nested.queues.add(value)
+              }
+            },
+          )
+        if (block.type === 'for_range') add(nested, block.varName)
+        if (block.type === 'for_in') add(nested, block.itemVar)
+        visit(block.children, nested)
+      }
+      if (block.elseChildren) visit(block.elseChildren, copy(available))
+
+      // A declaration becomes available only to later blocks in this scope.
+      if (!['function_def', 'for_range', 'for_in'].includes(block.type))
+        add(available, block.varName)
+      if (block.type === 'list_create' && block.varName?.trim())
+        available.lists.add(block.varName.trim())
+      if (block.type === 'stack_create' && block.varName?.trim())
+        available.stacks.add(block.varName.trim())
+      if (block.type === 'queue_create' && block.varName?.trim())
+        available.queues.add(block.varName.trim())
+    }
+  }
+  visit(blocks, {
+    names: new Set(),
+    lists: new Set(),
+    stacks: new Set(),
+    queues: new Set(),
+  })
+  return scopes
+}
+
+function matchCallArguments(
+  blocks: BlockItem[],
+  functions: FunctionDefinition[],
+): { blocks: BlockItem[]; changed: boolean } {
+  const normalize = (
+    items: BlockItem[],
+  ): { items: BlockItem[]; changed: boolean } => {
+    let changed = false
+    const normalized = items.map((block) => {
+      const childResult = block.children && normalize(block.children)
+      const elseResult = block.elseChildren && normalize(block.elseChildren)
+      let next =
+        childResult?.changed || elseResult?.changed
+          ? {
+              ...block,
+              children: childResult?.items,
+              elseChildren: elseResult?.items,
+            }
+          : block
+      if (block.type === 'function_call') {
+        const definition = functions.find(
+          (item) => item.name === block.funcName,
+        )
+        if (definition) {
+          const current = (block.funcArgs ?? '')
+            .split(',')
+            .map((arg) => arg.trim())
+          const args = definition.args.map((_, index) => current[index] ?? '')
+          const funcArgs = args.join(', ')
+          if (funcArgs !== (block.funcArgs ?? '')) next = { ...next, funcArgs }
+        }
+      }
+      if (next !== block) changed = true
+      return next
+    })
+    return { items: changed ? normalized : items, changed }
+  }
+  const result = normalize(blocks)
+  return { blocks: result.items, changed: result.changed }
 }
 
 function PythonPreview({ code }: { code: string }) {
@@ -176,10 +259,14 @@ export function VisualBlockEditor({
   const generatedCode = useMemo(() => {
     return generatePython(blocks)
   }, [blocks])
+  const highlightedSource = highlightedLine
+    ? generatedCode.split('\n')[highlightedLine - 1]?.trim()
+    : undefined
   useEffect(() => {
     if (mode === 'blocks') onPythonChange(generatedCode)
   }, [mode, generatedCode, onPythonChange])
-  const variables = useMemo(() => findVariableNames(blocks), [blocks])
+  const variableScopes = useMemo(() => findVariableScopes(blocks), [blocks])
+  const functions = useMemo(() => findFunctionDefinitions(blocks), [blocks])
 
   useEffect(() => {
     onBlocksChange?.(blocks)
@@ -188,10 +275,14 @@ export function VisualBlockEditor({
   // Sync python code whenever blocks change
   const updateBlocks = useCallback(
     (newBlocks: BlockItem[]) => {
-      setBlocks(newBlocks)
-      onBlocksChange?.(newBlocks)
+      const matched = matchCallArguments(
+        newBlocks,
+        findFunctionDefinitions(newBlocks),
+      )
+      setBlocks(matched.blocks)
+      onBlocksChange?.(matched.blocks)
       try {
-        localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(newBlocks))
+        localStorage.setItem(STORAGE_BLOCKS_KEY, JSON.stringify(matched.blocks))
       } catch {
         // ignore
       }
@@ -332,11 +423,6 @@ export function VisualBlockEditor({
 
   return (
     <div className="visual-block-editor">
-      <datalist id="byteblocks-variables">
-        {variables.names.map((name) => (
-          <option key={name} value={name} />
-        ))}
-      </datalist>
       <div
         className={`palette-mode ${mode === 'code' ? 'blocks-disabled' : ''}`}
         inert={mode === 'code'}
@@ -404,10 +490,13 @@ export function VisualBlockEditor({
                     onDelete={() => handleDeleteBlock(idx)}
                     onDuplicate={() => handleDuplicate(idx)}
                     onDropBlock={handleDrop}
-                    variableNames={variables.names}
-                    listNames={variables.lists}
-                    stackNames={variables.stacks}
-                    queueNames={variables.queues}
+                    variableNames={variableScopes[block.id]?.names ?? []}
+                    listNames={variableScopes[block.id]?.lists ?? []}
+                    stackNames={variableScopes[block.id]?.stacks ?? []}
+                    queueNames={variableScopes[block.id]?.queues ?? []}
+                    variableScopes={variableScopes}
+                    functionDefinitions={functions}
+                    highlightedSource={highlightedSource}
                     invalidConditionalPlacement={invalidConditionalPlacement(
                       block,
                       blocks[idx - 1],

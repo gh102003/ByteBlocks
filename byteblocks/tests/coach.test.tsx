@@ -185,6 +185,10 @@ describe('AI coach', () => {
     expect(JSON.stringify(body.input)).toContain(
       'Do not answer unrelated requests',
     )
+    expect(JSON.stringify(body.input)).toContain('BLOCK DIAGRAM WIRE CONTRACT')
+    expect(JSON.stringify(body.input)).toContain(
+      'never use `blocks`, `json`, or another label',
+    )
     expect(body.tools ?? []).toEqual([])
 
     await screen.rerender(
@@ -291,6 +295,28 @@ describe('AI coach', () => {
     await send('Make my two sum faster.')
     reply.text(
       'A lookup dictionary makes this O(n). byteblocks [{"type":"dict_create","varName":"lookup","startsEmpty":true}]',
+    )
+    reply.finish()
+    await expect
+      .element(page.getByLabelText('Read-only block example'))
+      .toMatchTextContent('create a dictionary')
+    expect(
+      document.querySelector('.message-markdown')?.textContent,
+    ).not.toContain('"type":"dict_create"')
+  })
+
+  test('renders a diagram when the response abbreviates the payload label to blocks', async () => {
+    const reply = responseStream()
+    mockProvider().mockResolvedValueOnce(reply.response)
+    await render(
+      <CoachPanel
+        context={{ ...context, preferences: blockPreferences }}
+        connector={connector}
+      />,
+    )
+    await send('Make me a block diagram.')
+    reply.text(
+      'Use a lookup dictionary.\n\nblocks\n\n```json\n[{"type":"dict_create","varName":"seen","startsEmpty":true}]\n```',
     )
     reply.finish()
     await expect

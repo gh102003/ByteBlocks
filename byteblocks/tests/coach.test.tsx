@@ -316,7 +316,7 @@ describe('AI coach', () => {
     )
     await send('Make me a block diagram.')
     reply.text(
-      'Use a lookup dictionary.\n\nblocks\n\n```json\n[{"type":"dict_create","varName":"seen","startsEmpty":true}]\n```',
+      'Use blocks such as [a dictionary lookup] to organize the algorithm.\n\nblocks\n\n```json\n[{"type":"dict_create","varName":"seen","startsEmpty":true}]\n```',
     )
     reply.finish()
     await expect

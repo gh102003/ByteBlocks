@@ -221,7 +221,11 @@ export function CoachPanel({
               <img
                 className="message-avatar user-message-avatar"
                 src={user.picture}
-                alt={user.name ? `${user.name}'s profile picture` : 'Your profile picture'}
+                alt={
+                  user.name
+                    ? `${user.name}'s profile picture`
+                    : 'Your profile picture'
+                }
               />
             ) : (
               <span

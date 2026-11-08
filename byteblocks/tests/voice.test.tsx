@@ -127,7 +127,9 @@ test('voice connects only after an explicit click, using a temporary token and c
   )
   expect(sdk.startSession).not.toHaveBeenCalled()
   expect(fetcher).not.toHaveBeenCalled()
-  await page.getByRole('button', { name: 'Start voice', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Start voice chat', exact: true })
+    .click()
   await expect.poll(() => sdk.startSession.mock.calls.length).toBe(1)
   const options = sdk.startSession.mock.calls[0][0]
   expect(options.connectionType).toBe('webrtc')
@@ -160,12 +162,16 @@ test('voice displays endpoint failures and allows retry without connecting', asy
       onTranscript={vi.fn()}
     />,
   )
-  await page.getByRole('button', { name: 'Start voice', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Start voice chat', exact: true })
+    .click()
   await expect
     .element(page.getByRole('alert'))
     .toMatchTextContent('Voice is not configured.')
   expect(sdk.startSession).not.toHaveBeenCalled()
   await expect
-    .element(page.getByRole('button', { name: 'Start voice', exact: true }))
+    .element(
+      page.getByRole('button', { name: 'Start voice chat', exact: true }),
+    )
     .toBeEnabled()
 })

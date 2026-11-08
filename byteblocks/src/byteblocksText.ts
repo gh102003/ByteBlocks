@@ -5,6 +5,63 @@ export type ByteblocksPayload = {
 }
 
 /**
+ * Models occasionally omit quotes around an object key in an otherwise-valid
+ * byteblocks payload (for example, `operator: "-"`). JSON requires those
+ * quotes, but accepting this limited repair lets us render the diagram rather
+ * than expose its implementation detail in the chat.
+ */
+function quoteUnquotedObjectKeys(json: string): string {
+  let repaired = ''
+  let quote = ''
+  let escaped = false
+
+  for (let index = 0; index < json.length; index += 1) {
+    const character = json[index]
+    if (quote) {
+      repaired += character
+      if (escaped) escaped = false
+      else if (character === '\\') escaped = true
+      else if (character === quote) quote = ''
+      continue
+    }
+    if (character === '"' || character === "'") {
+      quote = character
+      repaired += character
+      continue
+    }
+
+    if (character === '{' || character === ',') {
+      const remainder = json.slice(index + 1)
+      const match = remainder.match(/^(\s*)([A-Za-z_$][\w$-]*)(\s*:)/)
+      if (match) {
+        repaired += `${character}${match[1]}"${match[2]}"${match[3]}`
+        index += match[0].length
+        continue
+      }
+    }
+    repaired += character
+  }
+
+  return repaired
+}
+
+function parseByteblocksJson(json: string): string | null {
+  try {
+    JSON.parse(json)
+    return json
+  } catch {
+    const repaired = quoteUnquotedObjectKeys(json)
+    if (repaired === json) return null
+    try {
+      JSON.parse(repaired)
+      return repaired
+    } catch {
+      return null
+    }
+  }
+}
+
+/**
  * Finds either a fenced `byteblocks` example or the compact
  * `byteblocks [ ... ]` form used by voice/chat transports.
  */
@@ -35,13 +92,8 @@ export function findByteblocksPayload(text: string): ByteblocksPayload | null {
     if (character === ']') {
       depth -= 1
       if (depth === 0) {
-        const json = text.slice(start, index + 1)
-        try {
-          JSON.parse(json)
-          return { json, start: found.index, end: index + 1 }
-        } catch {
-          return null
-        }
+        const json = parseByteblocksJson(text.slice(start, index + 1))
+        return json ? { json, start: found.index, end: index + 1 } : null
       }
     }
   }

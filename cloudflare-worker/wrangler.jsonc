@@ -8,7 +8,7 @@
     "AUTH0_AUDIENCE": "https://byteblocks-api",
     "ALLOWED_ORIGINS": "https://byteblocks-static.george-account-3f1.workers.dev,http://localhost:5173",
     "CHAT_PROVIDER": "gemini",
-    "GEMINI_MODEL": "gemini-2.5-flash-lite",
+    "GEMINI_MODEL": "gemini-3.5-flash-lite",
     "OPENAI_MODEL": "gpt-4.1-mini",
     "ELEVENLABS_AGENT_ID": "agent_7501m6vzqf1ef3cavbcmxc8vp2rg",
   },

@@ -170,7 +170,7 @@ test("Gemini uses its own key and model, preserves history and streams", async (
         ...env,
         CHAT_PROVIDER: "gemini",
         GEMINI_API_KEY: "gemini-secret",
-        GEMINI_MODEL: "gemini-2.5-flash-lite",
+        GEMINI_MODEL: "gemini-3.5-flash-lite",
       },
       auth,
     );
@@ -182,7 +182,7 @@ test("Gemini uses its own key and model, preserves history and streams", async (
     );
     assert.equal(outgoing.headers.Authorization, "Bearer gemini-secret");
     const body = JSON.parse(outgoing.body);
-    assert.equal(body.model, "gemini-2.5-flash-lite");
+    assert.equal(body.model, "gemini-3.5-flash-lite");
     assert.equal(body.messages.length, 4);
     assert.equal(body.messages[3].content, "Continue");
     assert.equal(body.max_tokens, 1024);

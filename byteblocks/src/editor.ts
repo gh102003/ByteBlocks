@@ -1,4 +1,6 @@
 import * as monaco from 'monaco-editor/editor/editor.api'
+// The API-only entry point omits the icon font; Monaco's exports only map JS.
+import '../node_modules/monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.css'
 import 'monaco-editor/languages/definitions/python/register'
 import 'monaco-editor/editor/contrib/clipboard/browser/clipboard'
 import 'monaco-editor/editor/contrib/contextmenu/browser/contextmenu'

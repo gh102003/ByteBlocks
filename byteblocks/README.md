@@ -2,6 +2,12 @@
 
 A single-file Python practice workspace: Monaco on the left, tabbed helpers and an AI coach on the right. Built with React, TypeScript, and Vite.
 
+## Product demo
+
+[Watch the 50-second ByteBlocks product demo](./ByteBlocks-ad-v6-elevator-team.mp4)
+
+The video introduces the visual-first workspace, then follows Nibble, Bite, and Chomp through a single Goal → Run → Complexity learning flow.
+
 ## Run locally
 
 ```sh

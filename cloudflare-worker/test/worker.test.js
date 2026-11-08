@@ -24,6 +24,58 @@ const request = (path, body) =>
     body: JSON.stringify(body),
   });
 
+test("allows browser preflights for chat and voice without authentication", async () => {
+  for (const path of ["/v1/chat/completions", "/api/voice/session"]) {
+    const requestedHeaders = ["authorization", "content-type", "user-agent"];
+    const response = await handle(
+      new Request(`https://worker.test${path}`, {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://example.com",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": requestedHeaders.join(", "),
+        },
+      }),
+      env,
+      async () => {
+        assert.fail("Preflights must not require an access token");
+      },
+    );
+    assert.equal(response.status, 204);
+    assert.equal(
+      response.headers.get("Access-Control-Allow-Origin"),
+      "https://example.com",
+    );
+    assert.match(response.headers.get("Access-Control-Allow-Methods"), /POST/);
+    const allowedHeaders = response.headers
+      .get("Access-Control-Allow-Headers")
+      .toLowerCase()
+      .split(",")
+      .map((header) => header.trim());
+    for (const header of requestedHeaders)
+      assert.ok(allowedHeaders.includes(header), `${header} must be allowed`);
+    assert.equal(response.headers.get("Vary"), "Origin");
+  }
+});
+
+test("rejects preflights from disallowed origins", async () => {
+  const response = await handle(
+    new Request("https://worker.test/v1/chat/completions", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://evil.example",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers":
+          "authorization, content-type, user-agent",
+      },
+    }),
+    env,
+    auth,
+  );
+  assert.equal(response.status, 403);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+});
+
 test("rejects unauthenticated and rate limited requests", async () => {
   assert.equal(
     (await handle(request("/v1/chat/completions", {}), env, async () => null))

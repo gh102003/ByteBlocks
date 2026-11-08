@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import {
   ConversationProvider,
   useConversationClientTool,
@@ -28,6 +29,7 @@ type Props = {
 }
 
 function VoiceControls({ context, messages, access }: Props) {
+  const { getAccessTokenSilently } = useAuth0()
   const { startSession, endSession, sendContextualUpdate } =
     useConversationControls()
   const { status } = useConversationStatus()
@@ -86,9 +88,21 @@ function VoiceControls({ context, messages, access }: Props) {
     setRequesting(true)
     setError('')
     try {
-      const response = await fetch('/api/voice/session', {
+      const workerURL = import.meta.env.VITE_WORKER_URL?.trim().replace(
+        /\/$/,
+        '',
+      )
+      const audience = import.meta.env.VITE_AUTH0_AUDIENCE?.trim()
+      if (workerURL && !audience)
+        throw new Error('Configure VITE_AUTH0_AUDIENCE to use voice.')
+      const token = workerURL
+        ? await getAccessTokenSilently({ authorizationParams: { audience } })
+        : undefined
+      if (workerURL && !token) throw new Error('Sign in to use voice.')
+      const response = await fetch(`${workerURL || ''}/api/voice/session`, {
         method: 'POST',
         signal: controller.signal,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
       if (!response.headers.get('content-type')?.includes('application/json'))
         throw new Error(

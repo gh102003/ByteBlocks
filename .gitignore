@@ -2,3 +2,6 @@
 .env
 .env.*
 !.env.example
+cloudflare-worker/node_modules/
+cloudflare-worker/.wrangler/
+cloudflare-worker/.dev.vars*

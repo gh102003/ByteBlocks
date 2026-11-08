@@ -5,6 +5,8 @@ export type ConnectorSettings = {
   apiKey: string
   model?: string
   baseURL?: string
+  fetch?: typeof fetch
+  chatCompletions?: boolean
 }
 
 export type ChatConnector = {
@@ -24,7 +26,24 @@ const connectors: Record<string, () => ChatConnector> = {
     }),
 }
 
-export function getChatConnector(): ChatConnector {
+export function getChatConnector(
+  getAccessToken?: () => Promise<string>,
+): ChatConnector {
+  const workerURL = import.meta.env.VITE_WORKER_URL?.trim().replace(/\/$/, '')
+  if (workerURL) {
+    return createOpenAIConnector({
+      apiKey: 'worker',
+      baseURL: `${workerURL}/v1`,
+      chatCompletions: true,
+      fetch: async (input, init) => {
+        if (!getAccessToken) throw new Error('Sign in to use the coach.')
+        const token = await getAccessToken()
+        const headers = new Headers(init?.headers)
+        headers.set('Authorization', `Bearer ${token}`)
+        return fetch(input, { ...init, headers })
+      },
+    })
+  }
   const provider = import.meta.env.VITE_AI_PROVIDER?.trim() || 'openai'
   const factory = connectors[provider]
   if (!factory) {

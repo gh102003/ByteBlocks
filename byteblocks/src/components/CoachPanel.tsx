@@ -98,6 +98,7 @@ export function CoachPanel({
 }) {
   const { user } = useAuth0()
   const effectivePreferences = context.preferences
+  const { getAccessTokenSilently } = useAuth0()
   const resolvedLevel = resolveMentorLevel(
     effectivePreferences?.level,
     context.code,
@@ -107,8 +108,19 @@ export function CoachPanel({
   const mascot = mascotForLevel(resolvedLevel)
   const agentName = mascotName(mascot)
   const connector = useMemo(
-    () => suppliedConnector ?? getChatConnector(),
-    [suppliedConnector],
+    () =>
+      suppliedConnector ??
+      getChatConnector(async () => {
+        const audience = import.meta.env.VITE_AUTH0_AUDIENCE?.trim()
+        if (!audience)
+          throw new Error('Configure VITE_AUTH0_AUDIENCE to use the coach.')
+        const token = await getAccessTokenSilently({
+          authorizationParams: { audience },
+        })
+        if (!token) throw new Error('Sign in to use the coach.')
+        return token
+      }),
+    [suppliedConnector, getAccessTokenSilently],
   )
   const transport = useMemo(
     () =>

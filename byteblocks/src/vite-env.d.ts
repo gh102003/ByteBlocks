@@ -4,6 +4,8 @@ interface ImportMetaEnv {
   readonly VITE_AI_PROVIDER?: string
   readonly VITE_AI_MODEL?: string
   readonly VITE_AI_BASE_URL?: string
+  readonly VITE_WORKER_URL?: string
+  readonly VITE_AUTH0_AUDIENCE?: string
 }
 
 declare module 'monaco-editor/languages/definitions/python/register'

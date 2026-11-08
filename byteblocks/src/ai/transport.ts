@@ -182,11 +182,15 @@ ${supportGuidance}
 export function describeChatError(error: unknown): string {
   if (APICallError.isInstance(error)) {
     if (error.statusCode === 401 || error.statusCode === 403)
-      return 'OpenAI rejected the API key or access. Check VITE_OPENAI_API_KEY and your project permissions.'
+      return import.meta.env.VITE_WORKER_URL
+        ? 'The coach could not authorize this request. Sign in and check your account access.'
+        : 'OpenAI rejected the API key or access. Check VITE_OPENAI_API_KEY and your project permissions.'
     if (error.statusCode === 429)
       return 'The provider is rate limited or out of quota. Check your API usage, then retry.'
     if (error.statusCode === 404)
-      return 'The model or API endpoint was not found. Check VITE_AI_MODEL and VITE_AI_BASE_URL.'
+      return import.meta.env.VITE_WORKER_URL
+        ? 'The coach endpoint was not found. Check VITE_WORKER_URL.'
+        : 'The model or API endpoint was not found. Check VITE_AI_MODEL and VITE_AI_BASE_URL.'
   }
   return error instanceof Error
     ? error.message

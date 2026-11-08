@@ -67,33 +67,33 @@ function parseByteblocksJson(json: string): string | null {
  */
 export function findByteblocksPayload(text: string): ByteblocksPayload | null {
   const marker = /\b(?:byteblocks|blocks)\b/gi
-  const found = marker.exec(text)
-  if (!found) return null
+  for (const found of text.matchAll(marker)) {
+    const start = text.indexOf('[', found.index + found[0].length)
+    if (start === -1) continue
 
-  const start = text.indexOf('[', found.index + found[0].length)
-  if (start === -1) return null
-
-  let depth = 0
-  let quote = ''
-  let escaped = false
-  for (let index = start; index < text.length; index += 1) {
-    const character = text[index]
-    if (quote) {
-      if (escaped) escaped = false
-      else if (character === '\\') escaped = true
-      else if (character === quote) quote = ''
-      continue
-    }
-    if (character === '"' || character === "'") {
-      quote = character
-      continue
-    }
-    if (character === '[') depth += 1
-    if (character === ']') {
-      depth -= 1
-      if (depth === 0) {
-        const json = parseByteblocksJson(text.slice(start, index + 1))
-        return json ? { json, start: found.index, end: index + 1 } : null
+    let depth = 0
+    let quote = ''
+    let escaped = false
+    for (let index = start; index < text.length; index += 1) {
+      const character = text[index]
+      if (quote) {
+        if (escaped) escaped = false
+        else if (character === '\\') escaped = true
+        else if (character === quote) quote = ''
+        continue
+      }
+      if (character === '"' || character === "'") {
+        quote = character
+        continue
+      }
+      if (character === '[') depth += 1
+      if (character === ']') {
+        depth -= 1
+        if (depth === 0) {
+          const json = parseByteblocksJson(text.slice(start, index + 1))
+          if (json) return { json, start: found.index, end: index + 1 }
+          break
+        }
       }
     }
   }

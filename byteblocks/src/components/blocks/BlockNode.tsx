@@ -22,6 +22,24 @@ interface BlockNodeProps {
   listNames?: string[]
   stackNames?: string[]
   queueNames?: string[]
+  invalidConditionalPlacement?: boolean
+}
+
+function cloneWithNewIds(block: BlockItem): BlockItem {
+  return {
+    ...block,
+    id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    children: block.children?.map(cloneWithNewIds),
+    elseChildren: block.elseChildren?.map(cloneWithNewIds),
+  }
+}
+
+function invalidConditionalPlacement(block: BlockItem, previous?: BlockItem) {
+  if (block.type === 'else_if')
+    return !['if_condition', 'else_if'].includes(previous?.type ?? '')
+  if (block.type === 'else_clause')
+    return !['if_condition', 'else_if'].includes(previous?.type ?? '')
+  return false
 }
 
 const MATH_OPERATORS = ['+', '−', '×', '÷', '%', '**']
@@ -112,9 +130,11 @@ export function BlockNode({
   listNames = [],
   stackNames = [],
   queueNames = [],
+  invalidConditionalPlacement: hasInvalidConditionalPlacement = false,
 }: BlockNodeProps) {
   const [isDragOverChildren, setIsDragOverChildren] = useState(false)
   const [isDragOverElse, setIsDragOverElse] = useState(false)
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false)
 
   const def =
     BLOCK_DEFINITIONS.find((d) => d.type === block.type) ?? BLOCK_DEFINITIONS[0]
@@ -611,17 +631,48 @@ export function BlockNode({
           </div>
         )
 
-      case 'for_range':
+      case 'for_range': {
+        const rangeMode = block.rangeMode ?? 'number'
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">repeat</span>
-            <input
-              type="text"
-              className="chunk-input count-input"
-              value={block.rangeCount ?? ''}
-              onChange={(e) => handleUpdateField('rangeCount', e.target.value)}
-              placeholder="5"
-            />
+            <select
+              className="chunk-select value-kind-select"
+              value={rangeMode}
+              onChange={(e) =>
+                onUpdate({
+                  ...block,
+                  rangeMode: e.target.value as 'number' | 'variable' | 'length',
+                  rangeCount:
+                    e.target.value === 'number' ? block.rangeCount || '5' : '',
+                  listName: e.target.value === 'length' ? block.listName : '',
+                })
+              }
+              aria-label="Range endpoint type"
+            >
+              <option value="number">number:</option>
+              <option value="variable">variable:</option>
+              <option value="length">length of:</option>
+            </select>
+            {rangeMode === 'number' ? (
+              <input
+                type="number"
+                className="chunk-input count-input"
+                value={block.rangeCount ?? ''}
+                onChange={(e) =>
+                  handleUpdateField('rangeCount', e.target.value)
+                }
+                placeholder="5"
+                aria-label="Number of repeats"
+              />
+            ) : rangeMode === 'variable' ? (
+              <VariablePicker
+                value={block.rangeCount ?? ''}
+                field="rangeCount"
+              />
+            ) : (
+              <ListPicker value={block.listName ?? ''} field="listName" />
+            )}
             <span className="chunk-label">times as</span>
             <input
               type="text"
@@ -629,9 +680,11 @@ export function BlockNode({
               value={block.varName ?? ''}
               onChange={(e) => handleUpdateField('varName', e.target.value)}
               placeholder="i"
+              aria-label="Loop counter variable"
             />
           </div>
         )
+      }
 
       case 'for_in':
         return (
@@ -652,6 +705,7 @@ export function BlockNode({
       case 'while_loop':
       case 'if_condition':
       case 'if_else':
+      case 'else_if':
         if (
           !block.conditionLeft &&
           !block.conditionOperator &&
@@ -660,7 +714,11 @@ export function BlockNode({
           return (
             <div className="chunk-inputs">
               <span className="chunk-keyword">
-                {block.type === 'while_loop' ? 'repeat while' : 'if'}
+                {block.type === 'while_loop'
+                  ? 'repeat while'
+                  : block.type === 'else_if'
+                    ? 'else if'
+                    : 'if'}
               </span>
               <input
                 type="text"
@@ -677,7 +735,11 @@ export function BlockNode({
           return (
             <div className="chunk-inputs">
               <span className="chunk-keyword">
-                {block.type === 'while_loop' ? 'repeat while' : 'if'}
+                {block.type === 'while_loop'
+                  ? 'repeat while'
+                  : block.type === 'else_if'
+                    ? 'else if'
+                    : 'if'}
               </span>
               <select
                 className="chunk-select value-kind-select"
@@ -712,7 +774,11 @@ export function BlockNode({
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword">
-              {block.type === 'while_loop' ? 'repeat while' : 'if'}
+              {block.type === 'while_loop'
+                ? 'repeat while'
+                : block.type === 'else_if'
+                  ? 'else if'
+                  : 'if'}
             </span>
             <select
               className="chunk-select value-kind-select"
@@ -762,6 +828,13 @@ export function BlockNode({
           </div>
         )
 
+      case 'else_clause':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword">else:</span>
+          </div>
+        )
+
       case 'if_collection_contains':
         return (
           <div className="chunk-inputs">
@@ -783,6 +856,13 @@ export function BlockNode({
         return (
           <div className="chunk-inputs">
             <span className="chunk-keyword stop-text">break loop</span>
+          </div>
+        )
+
+      case 'continue_loop':
+        return (
+          <div className="chunk-inputs">
+            <span className="chunk-keyword stop-text">continue loop</span>
           </div>
         )
 
@@ -1227,6 +1307,11 @@ export function BlockNode({
       names.includes(name ?? '')
 
     switch (block.type) {
+      case 'for_range':
+        return (
+          (block.rangeMode === 'variable' && !hasVariable(block.rangeCount)) ||
+          (block.rangeMode === 'length' && !hasList(block.listName))
+        )
       case 'var_set':
         return (
           block.valueKind === 'variable' && !hasVariable(block.valueVariable)
@@ -1246,6 +1331,7 @@ export function BlockNode({
         )
       case 'if_condition':
       case 'if_else':
+      case 'else_if':
       case 'while_loop':
         return (
           block.conditionKind !== 'boolean' &&
@@ -1271,10 +1357,13 @@ export function BlockNode({
     }
   })()
   const hasMissingIndent = isContainer && !block.children?.length
-  const hasWarning = hasMissingSelection || hasMissingIndent
-  const warningMessage = hasMissingIndent
-    ? 'Add an indented block inside.'
-    : 'You must select a required item.'
+  const hasWarning =
+    hasMissingSelection || hasMissingIndent || hasInvalidConditionalPlacement
+  const warningMessage = hasInvalidConditionalPlacement
+    ? 'Place this directly after an if or else-if block.'
+    : hasMissingIndent
+      ? 'Add an indented block inside.'
+      : 'You must select a required item.'
 
   return (
     <div
@@ -1345,13 +1434,7 @@ export function BlockNode({
           <button
             type="button"
             className="chunk-btn delete-btn"
-            onClick={() => {
-              if (
-                window.confirm('Delete this block and any blocks inside it?')
-              ) {
-                onDelete()
-              }
-            }}
+            onClick={() => setShowDeleteWarning(true)}
             title="Delete Block"
           >
             <Icon name="trash" size={12} />
@@ -1386,11 +1469,20 @@ export function BlockNode({
                   block={child}
                   onUpdate={(up) => handleChildUpdate(cIdx, up)}
                   onDelete={() => handleChildDelete(cIdx)}
+                  onDuplicate={() => {
+                    const nextChildren = [...(block.children ?? [])]
+                    nextChildren.splice(cIdx + 1, 0, cloneWithNewIds(child))
+                    onUpdate({ ...block, children: nextChildren })
+                  }}
                   onDropBlock={onDropBlock}
                   variableNames={variableNames}
                   listNames={listNames}
                   stackNames={stackNames}
                   queueNames={queueNames}
+                  invalidConditionalPlacement={invalidConditionalPlacement(
+                    child,
+                    block.children?.[cIdx - 1],
+                  )}
                 />
               ))}
             </div>
@@ -1433,11 +1525,20 @@ export function BlockNode({
                     block={child}
                     onUpdate={(up) => handleElseChildUpdate(cIdx, up)}
                     onDelete={() => handleElseChildDelete(cIdx)}
+                    onDuplicate={() => {
+                      const nextChildren = [...(block.elseChildren ?? [])]
+                      nextChildren.splice(cIdx + 1, 0, cloneWithNewIds(child))
+                      onUpdate({ ...block, elseChildren: nextChildren })
+                    }}
                     onDropBlock={onDropBlock}
                     variableNames={variableNames}
                     listNames={listNames}
                     stackNames={stackNames}
                     queueNames={queueNames}
+                    invalidConditionalPlacement={invalidConditionalPlacement(
+                      child,
+                      block.elseChildren?.[cIdx - 1],
+                    )}
                   />
                 ))}
               </div>
@@ -1448,6 +1549,39 @@ export function BlockNode({
             )}
           </div>
         </>
+      )}
+      {showDeleteWarning && (
+        <div className="block-delete-dialog-backdrop">
+          <section
+            className="block-delete-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={`delete-block-title-${block.id}`}
+          >
+            <h2 id={`delete-block-title-${block.id}`}>Delete this block?</h2>
+            <p>
+              {isContainer
+                ? 'The blocks inside it will also be deleted.'
+                : 'This cannot be undone.'}
+            </p>
+            <div className="block-delete-actions">
+              <button
+                type="button"
+                className="dialog-secondary-btn"
+                onClick={() => setShowDeleteWarning(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="dialog-danger-btn"
+                onClick={onDelete}
+              >
+                Delete block
+              </button>
+            </div>
+          </section>
+        </div>
       )}
     </div>
   )

@@ -47,6 +47,12 @@ function cloneWithNewIds(block: BlockItem): BlockItem {
   }
 }
 
+function invalidConditionalPlacement(block: BlockItem, previous?: BlockItem) {
+  if (block.type === 'else_if' || block.type === 'else_clause')
+    return !['if_condition', 'else_if'].includes(previous?.type ?? '')
+  return false
+}
+
 function findVariableNames(blocks: BlockItem[]): {
   names: string[]
   lists: string[]
@@ -133,6 +139,21 @@ function PythonPreview({ code }: { code: string }) {
         <code>{code}</code>
       )}
     </pre>
+  )
+}
+
+function PythonLogo() {
+  return (
+    <svg className="python-logo" viewBox="0 0 32 32" aria-hidden="true">
+      <path
+        fill="#3776ab"
+        d="M16 3c-7 0-6.6 3-6.6 3v3h6.8v1H6.7S2 9.5 2 16s4.1 6.3 4.1 6.3h2.4v-3.4s-.1-4.1 4-4.1h6.8s3.8.1 3.8-3.7V6.7S23 3 16 3Zm-3.8 3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"
+      />
+      <path
+        fill="#ffd343"
+        d="M16 29c7 0 6.6-3 6.6-3v-3h-6.8v-1h9.5s4.7.5 4.7-6S25.9 9.7 25.9 9.7h-2.4v3.4s.1 4.1-4 4.1h-6.8s-3.8-.1-3.8 3.7v4.4S9 29 16 29Zm3.8-3.1a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Z"
+      />
+    </svg>
   )
 }
 
@@ -387,6 +408,10 @@ export function VisualBlockEditor({
                     listNames={variables.lists}
                     stackNames={variables.stacks}
                     queueNames={variables.queues}
+                    invalidConditionalPlacement={invalidConditionalPlacement(
+                      block,
+                      blocks[idx - 1],
+                    )}
                   />
                 ))}
 
@@ -408,30 +433,43 @@ export function VisualBlockEditor({
             )}
           </div>
 
+          {/* Live Generated Python Panel */}
           {mode === 'code' && (
             <button
               type="button"
-              className="blocks-mode-overlay"
+              className="editor-dismiss-layer"
               onClick={() => onSelectMode('blocks')}
-              aria-label="Edit blocks"
-            >
-              Click to edit blocks
-            </button>
+              aria-label="Close Python editor and return to blocks"
+            />
           )}
-
-          {/* Live Generated Python Panel */}
           {
             <div
               className={`python-live-preview ${mode === 'code' ? 'python-editor-active' : ''}`}
             >
               <div className="preview-header">
                 <div className="preview-label">
-                  <span className="python-icon">Py</span>
+                  <PythonLogo />
                   <span>
                     {mode === 'blocks' ? 'Generated Python' : 'Python editor'}
                   </span>
                 </div>
                 <div className="preview-header-actions">
+                  <button
+                    type="button"
+                    className="copy-py-btn"
+                    onClick={() =>
+                      onSelectMode(mode === 'blocks' ? 'code' : 'blocks')
+                    }
+                    aria-label={
+                      mode === 'blocks' ? 'Open Python editor' : 'Edit blocks'
+                    }
+                  >
+                    <Icon
+                      name={mode === 'blocks' ? 'code' : 'puzzle'}
+                      size={12}
+                    />
+                    <span>{mode === 'blocks' ? 'Edit' : 'Blocks'}</span>
+                  </button>
                   <button
                     type="button"
                     className="copy-py-btn"
@@ -453,7 +491,6 @@ export function VisualBlockEditor({
                   <PythonPreview
                     code={generatedCode || '# No code generated yet'}
                   />
-                  <span className="preview-edit-hint">Click to edit code</span>
                 </button>
               ) : (
                 <CodeEditor
@@ -467,8 +504,8 @@ export function VisualBlockEditor({
               <div className="preview-footer">
                 <span>
                   {mode === 'blocks'
-                    ? 'Editing code freezes blocks'
-                    : 'Editing blocks replaces code changes'}
+                    ? 'Blocks generate this Python. Use Edit to make code-only changes.'
+                    : 'Python edits are saved as code only and cannot become blocks.'}
                 </span>
                 {onRun && (
                   <button

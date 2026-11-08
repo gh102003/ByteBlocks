@@ -82,6 +82,28 @@ test('voice receives the shared workspace, history, and voice-specific boundarie
     'Only claim to have run code after a successful run_code tool call',
   )
   expect(prompt).toContain('Never change code, blocks')
+  expect(prompt).toContain('Never emit, quote, spell out')
+  expect(prompt).not.toContain('BLOCKS IS A HARD OUTPUT REQUIREMENT')
+})
+
+test('voice context excludes visual byteblocks JSON', () => {
+  const snapshot = JSON.parse(
+    voiceSnapshot(context, [
+      {
+        id: 'message',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'text',
+            text: 'This dictionary approach is O(n). byteblocks [{"type":"dict_create","varName":"lookup","startsEmpty":true}]',
+          },
+        ],
+      },
+    ]),
+  )
+  expect(snapshot.conversation[0].text).toBe(
+    'This dictionary approach is O(n).',
+  )
 })
 
 test('voice connects only after an explicit click, using a temporary token and current context', async () => {

@@ -13,7 +13,9 @@ beforeEach(() => {
 describe('Desktop coding workspace', () => {
   test('switches helper tabs with the mouse and keyboard and labels the complexity estimate', async () => {
     await render(<App />)
-    await page.getByRole('tab', { name: 'Goal', exact: true }).click()
+    await expect
+      .element(page.getByRole('tab', { name: 'Goal', exact: true }))
+      .toHaveAttribute('aria-selected', 'true')
     await expect
       .element(page.getByRole('heading', { name: 'Two Sum.' }))
       .toBeVisible()

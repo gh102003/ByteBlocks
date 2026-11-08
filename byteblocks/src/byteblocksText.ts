@@ -52,7 +52,16 @@ export function findByteblocksPayload(text: string): ByteblocksPayload | null {
 export function withoutByteblocksPayload(text: string): string {
   const payload = findByteblocksPayload(text)
   if (!payload) return text
-  return `${text.slice(0, payload.start)}${text.slice(payload.end)}`
-    .replace(/^\s*```\s*$/m, '')
-    .trim()
+
+  let start = payload.start
+  let end = payload.end
+  const prefix = text.slice(0, start)
+  const openingFence = prefix.match(/```$/)
+  if (openingFence?.index !== undefined) {
+    start = openingFence.index
+    const closingFence = text.slice(end).match(/^\s*```/)
+    if (closingFence) end += closingFence[0].length
+  }
+
+  return `${text.slice(0, start)}${text.slice(end)}`.trim()
 }

@@ -313,6 +313,7 @@ describe('AI coach', () => {
     await expect
       .element(page.getByLabelText('Read-only block example'))
       .toMatchTextContent('create a dictionary')
+    expect(document.querySelector('.message-markdown pre')).toBeNull()
     expect(
       document.querySelector('.message-markdown')?.textContent,
     ).not.toContain('"type":"dict_create"')

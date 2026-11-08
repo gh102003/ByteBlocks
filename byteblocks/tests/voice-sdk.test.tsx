@@ -42,7 +42,9 @@ test('the real SDK provider reaches the session endpoint before any conversation
       onTranscript={vi.fn()}
     />,
   )
-  await page.getByRole('button', { name: 'Start voice', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Start voice chat', exact: true })
+    .click()
   await expect
     .element(page.getByRole('alert'))
     .toMatchTextContent('Endpoint reached')
@@ -97,7 +99,9 @@ test.each([
         onTranscript={vi.fn()}
       />,
     )
-    await page.getByRole('button', { name: 'Start voice', exact: true }).click()
+    await page
+      .getByRole('button', { name: 'Start voice chat', exact: true })
+      .click()
     await expect
       .element(page.getByRole('alert'))
       .toMatchTextContent('Voice connection failed')
@@ -106,7 +110,9 @@ test.each([
     expect(options.dynamicVariables?.workspace_context).toContain(code)
     expect(options.overrides?.tts?.voiceId).toBe(voiceId)
     expect(options.conversationToken).toBe('test-token')
-    await page.getByRole('button', { name: 'Start voice', exact: true }).click()
+    await page
+      .getByRole('button', { name: 'Start voice chat', exact: true })
+      .click()
     await expect.poll(() => start.mock.calls.length).toBe(2)
   },
 )

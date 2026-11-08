@@ -317,7 +317,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
   {
     type: 'dict_create',
     category: 'dictionaries',
-    label: 'make a dictionary',
+    label: 'create a dictionary',
     color: '#3730a3',
     borderColor: '#4f46e5',
     bgHover: '#4f46e51a',

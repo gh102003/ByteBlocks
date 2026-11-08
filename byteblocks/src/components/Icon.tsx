@@ -24,6 +24,8 @@ type IconName =
   | 'copy'
   | 'eye'
   | 'refresh'
+  | 'mic'
+  | 'micOff'
 
 const paths: Record<IconName, string> = {
   pause: 'M9 5v14M15 5v14',
@@ -53,6 +55,9 @@ const paths: Record<IconName, string> = {
   eye: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   refresh:
     'M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15',
+  mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Zm-7 10a7 7 0 0 0 14 0m-7 7v3m-4 0h8',
+  micOff:
+    'm2 2 20 20M9 9v3a3 3 0 0 0 5.12 2.12M15 9V5a3 3 0 0 0-5.83-1M5 12a7 7 0 0 0 12 4.9M12 19v3m-4 0h8',
 }
 
 export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {

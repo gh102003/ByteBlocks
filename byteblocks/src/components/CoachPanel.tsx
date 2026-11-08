@@ -1,4 +1,5 @@
 import { useChat } from '@ai-sdk/react'
+import { useAuth0 } from '@auth0/auth0-react'
 import {
   useEffect,
   useImperativeHandle,
@@ -95,6 +96,7 @@ export function CoachPanel({
   onOpenPreferences?: () => void
   voiceAccess?: VoiceAccess
 }) {
+  const { user } = useAuth0()
   const effectivePreferences = context.preferences
   const resolvedLevel = resolveMentorLevel(
     effectivePreferences?.level,
@@ -210,25 +212,32 @@ export function CoachPanel({
         aria-live="polite"
         aria-busy={busy}
       >
-        <div className="conversation-date">
-          <span />
-          LET’S FIGURE IT OUT
-          <span />
-        </div>
         {messages.map((message) => (
           <div
             className={`message message-${message.role === 'assistant' ? 'coach' : 'user'}`}
             key={message.id}
           >
-            <span
-              className={`message-avatar ${message.role === 'assistant' ? 'coach-message-avatar' : ''}`}
-            >
-              {message.role === 'assistant' ? (
-                <NibbleSprite size="small" mascot={mascot} />
-              ) : (
-                'Y'
-              )}
-            </span>
+            {message.role === 'user' && user?.picture ? (
+              <img
+                className="message-avatar user-message-avatar"
+                src={user.picture}
+                alt={
+                  user.name
+                    ? `${user.name}'s profile picture`
+                    : 'Your profile picture'
+                }
+              />
+            ) : (
+              <span
+                className={`message-avatar ${message.role === 'assistant' ? 'coach-message-avatar' : ''}`}
+              >
+                {message.role === 'assistant' ? (
+                  <NibbleSprite size="small" mascot={mascot} />
+                ) : (
+                  'Y'
+                )}
+              </span>
+            )}
             <div className="message-content">
               <div className="message-label">
                 {message.role === 'assistant' ? agentName : 'You'}
@@ -361,10 +370,6 @@ export function CoachPanel({
             }}
           />
           <div className="composer-bottom">
-            <span>
-              <Icon name="code" size={13} />
-              main.py + latest output
-            </span>
             {busy ? (
               <button
                 key="stop"
@@ -386,10 +391,6 @@ export function CoachPanel({
             )}
           </div>
         </form>
-        <p className="coach-disclaimer">
-          <span className="tiny-dot" />
-          {connector.label} · AI can make mistakes
-        </p>
       </div>
     </section>
   )

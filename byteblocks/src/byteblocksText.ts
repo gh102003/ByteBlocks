@@ -62,11 +62,11 @@ function parseByteblocksJson(json: string): string | null {
 }
 
 /**
- * Finds either a fenced `byteblocks` example or the compact
- * `byteblocks [ ... ]` form used by voice/chat transports.
+ * Finds either a fenced `byteblocks` example or the `blocks [ ... ]` form
+ * occasionally emitted by a model that abbreviates the requested fence name.
  */
 export function findByteblocksPayload(text: string): ByteblocksPayload | null {
-  const marker = /\bbyteblocks\b/gi
+  const marker = /\b(?:byteblocks|blocks)\b/gi
   const found = marker.exec(text)
   if (!found) return null
 

@@ -3731,6 +3731,9 @@
   color: inherit;
   text-align: left;
   cursor: text;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .preview-edit-trigger:hover .python-code-display {

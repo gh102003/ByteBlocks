@@ -14,18 +14,22 @@ import { Icon } from './Icon'
 import { AuthNav } from './AuthNav'
 import { usePythonRunner } from '../python/usePythonRunner'
 import { STARTER_CODE } from '../starter'
-import type { UserPreferences } from '../preferences'
+import type { LearningConcept, UserPreferences } from '../preferences'
 
 interface WorkspaceProps {
   onNavigateHome: () => void
   onOpenPreferences: () => void
   preferences: UserPreferences | null
+  onLearningUpdate: (
+    profile: NonNullable<UserPreferences['learningProfile']>,
+  ) => void
 }
 
 type HelperTab = 'Goal' | 'Complexity' | 'Visualizer' | 'Output'
 const STORAGE_KEY = 'byteblocks.main.py'
 const EDITOR_MODE_KEY = 'byteblocks.editor.mode'
 type Progress = { stage: number; bonus: boolean; complete: boolean }
+type FailureEvent = { at: number; passedTests: number }
 const PROGRESS_KEY = 'byteblocks.challenge-progress.v1'
 const initialProgress = (): Progress[] => {
   try {
@@ -77,6 +81,7 @@ export function Workspace({
   onNavigateHome,
   onOpenPreferences,
   preferences,
+  onLearningUpdate,
 }: WorkspaceProps) {
   const [code, setCode] = useState(readCode)
   const [editorTab, setEditorTab] = useState(readEditorMode)
@@ -159,6 +164,7 @@ export function Workspace({
   }, [checkAttempts])
   const [stageScrollKey, setStageScrollKey] = useState(0)
   const [testResults, setTestResults] = useState<TestResult[] | null>(null)
+  const [failureEvents, setFailureEvents] = useState<FailureEvent[]>([])
   const [testError, setTestError] = useState('')
   const [testedCode, setTestedCode] = useState('')
   const testRunner = usePythonRunner()
@@ -238,7 +244,15 @@ export function Workspace({
         throw new Error()
       setTestResults(parsed as TestResult[])
       setTestedCode(request.source)
+      const passedTests = parsed.filter((item) => item.passed).length
+      if (passedTests < 15)
+        setFailureEvents((previous) =>
+          [...previous, { at: Date.now(), passedTests }].slice(-8),
+        )
     } catch {
+      setFailureEvents((previous) =>
+        [...previous, { at: Date.now(), passedTests: 0 }].slice(-8),
+      )
       setTestError(
         'Could not run the checks. Check your code for errors or an infinite loop, then try again.',
       )
@@ -268,6 +282,28 @@ export function Workspace({
       }),
     )
     setTestResults(null)
+    if (preferences?.level === 'auto') {
+      const concept: Record<string, LearningConcept> = {
+        'two-sum': 'arrays',
+        'bubble-sort': 'loops',
+        'binary-search': 'searching',
+        'valid-parentheses': 'stacks',
+        'word-frequency': 'dictionaries',
+      }
+      const key = concept[currentChallenge.id]
+      const profile = preferences.learningProfile
+      const current = profile?.concepts[key] ?? 1
+      // A passed stage reinforces mastery; repeated attempts improve more slowly.
+      const increase = checkAttempts[challenge] <= 2 ? 1 : 0.5
+      onLearningUpdate({
+        concepts: {
+          ...(profile?.concepts ?? {}),
+          [key]: Math.min(2, current + increase),
+        } as NonNullable<UserPreferences['learningProfile']>['concepts'],
+        diagnosticComplete: true,
+        lastReason: `Completed ${currentChallenge.title} practice`,
+      })
+    }
   }
   const onAssessment = (result: 'advance' | 'bonus' | 'skip') => {
     if (
@@ -677,6 +713,14 @@ export function Workspace({
               testSummary: passed
                 ? `All 15 test cases passed. The learner has run checks ${checkAttempts[challenge]} time(s) on this challenge across its stages.`
                 : undefined,
+              learningSupport: {
+                recentFailedChecks: failureEvents.length,
+                lastFailureAt: failureEvents.at(-1)?.at,
+                closestAttemptPassed: failureEvents.reduce(
+                  (best, event) => Math.max(best, event.passedTests),
+                  0,
+                ),
+              },
               progression: {
                 finalStage:
                   currentProgress.stage === currentChallenge.stages.length - 1,

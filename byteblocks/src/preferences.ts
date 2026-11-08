@@ -3,6 +3,15 @@ export type FeedbackStyle = 'socratic' | 'direct' | 'detailed' | 'code-review'
 export type LearningGoal = 'interview' | 'pythonic' | 'algorithms' | 'general'
 export type GuidanceTone = 'encouraging' | 'pragmatic' | 'rigorous'
 export type AdviceFormat = 'text' | 'python' | 'blocks'
+export type LearningConcept =
+  'arrays' | 'loops' | 'dictionaries' | 'searching' | 'stacks' | 'debugging'
+
+export type LearningProfile = {
+  /** 0 = needs support, 1 = practising, 2 = confident. */
+  concepts: Record<LearningConcept, number>
+  diagnosticComplete: boolean
+  lastReason?: string
+}
 
 export interface UserPreferences {
   level: ExperienceLevel
@@ -11,7 +20,20 @@ export interface UserPreferences {
   tone: GuidanceTone
   adviceFormat: AdviceFormat
   customNotes?: string
+  learningProfile?: LearningProfile
   completedAt: string
+}
+
+export const DEFAULT_LEARNING_PROFILE: LearningProfile = {
+  concepts: {
+    arrays: 1,
+    loops: 1,
+    dictionaries: 1,
+    searching: 1,
+    stacks: 1,
+    debugging: 1,
+  },
+  diagnosticComplete: false,
 }
 
 export const PREFERENCES_STORAGE_KEY = 'byteblocks.ai.preferences'

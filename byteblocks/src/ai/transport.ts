@@ -20,6 +20,11 @@ export type CoachContext = {
   blocks?: BlockItem[]
   progression?: { finalStage: boolean; bonus: boolean }
   testSummary?: string
+  learningSupport?: {
+    recentFailedChecks: number
+    lastFailureAt?: number
+    closestAttemptPassed?: number
+  }
 }
 
 export function buildCoachInstructions(
@@ -27,6 +32,7 @@ export function buildCoachInstructions(
   problem = 'Two Sum: given integers nums and target, return the indices of two distinct elements whose sum is target. Exactly one solution exists.',
   progression?: CoachContext['progression'],
   channel: 'text' | 'voice' = 'text',
+  learningSupport?: CoachContext['learningSupport'],
 ): string {
   const level = preferences?.level ?? 'intermediate'
   const feedbackStyle = preferences?.feedbackStyle ?? 'socratic'
@@ -127,6 +133,17 @@ FEEDBACK STYLE: PRODUCTION CODE REVIEW
       : level === 'intermediate'
         ? 'PERSONALITY: Bite is upbeat, brave, and motivating. Keep momentum high, frame challenges as things the learner can tackle, and give clear next moves.'
         : 'PERSONALITY: Chomp is calm, observant, and exact. Be confidently concise, call out tradeoffs clearly, and treat the learner like a capable peer.'
+  const learningProfile = preferences?.learningProfile
+  const supportGuidance = learningSupport
+    ? `\nRECENT LEARNING SIGNALS: ${learningSupport.recentFailedChecks} unsuccessful check${learningSupport.recentFailedChecks === 1 ? '' : 's'} in this session${learningSupport.lastFailureAt ? `; latest was ${Math.max(0, Math.round((Date.now() - learningSupport.lastFailureAt) / 60_000))} minute(s) ago` : ''}.${learningSupport.closestAttemptPassed !== undefined ? ` Their closest recent attempt passed ${learningSupport.closestAttemptPassed}/15 tests.` : ''}
+- Preserve the learner's chosen feedback style. If they are close (12+ tests), offer one targeted hint first. After repeated failures, proactively give a smaller concrete step, explain the relevant concept, and warmly invite them to try again; do not shame them or dump a complete answer unless asked.`
+    : ''
+  const weakestConcepts = learningProfile
+    ? Object.entries(learningProfile.concepts)
+        .filter(([, score]) => score < 1)
+        .map(([concept]) => concept)
+        .join(', ')
+    : ''
   return `You are ${agentName}, ByteBlocks' adaptive AI tutor inside an interactive Python editor. ${agentName} is warm, curious, and lightly playful, but never distracting or saccharine.
 ${mentorPersonality}
 YOUR ROLE AND BOUNDARIES:
@@ -157,6 +174,8 @@ ${personaGuidance}
 ${styleGuidance}
 ${goalGuidance}
 ${toneGuidance}${customNotes}
+${learningProfile?.diagnosticComplete ? `LEARNING MODEL: The learner has completed a short skills check. Give extra scaffolding for: ${weakestConcepts || 'no currently weak concepts'}. Their profile updates from completed challenge stages; never describe it as a judgement or change their selected feedback style.` : ''}
+${supportGuidance}
 `
 }
 
@@ -185,6 +204,7 @@ export function createCoachTransport(
         context.preferences?.level,
         context.code,
         context.execution,
+        context.preferences?.learningProfile,
       )
       const instructions = buildCoachInstructions(
         context.preferences
@@ -192,6 +212,8 @@ export function createCoachTransport(
           : undefined,
         context.problem,
         context.progression,
+        'text',
+        context.learningSupport,
       )
       const result = streamText({
         model: connector.createModel(),

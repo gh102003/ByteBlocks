@@ -102,6 +102,7 @@ export function CoachPanel({
     effectivePreferences?.level,
     context.code,
     context.execution,
+    effectivePreferences?.learningProfile,
   )
   const mascot = mascotForLevel(resolvedLevel)
   const agentName = mascotName(mascot)
@@ -191,7 +192,9 @@ export function CoachPanel({
           <strong>{agentName}</strong>
           <span className="coach-subtitle">
             {effectivePreferences
-              ? `Your ${resolvedLevel} mentor${effectivePreferences.level === 'auto' ? ' (auto)' : ''}`
+              ? effectivePreferences.level === 'auto'
+                ? `Auto-adapting as you build skills · ${resolvedLevel} guidance`
+                : `Your ${resolvedLevel} mentor`
               : 'Your pocket-sized Python guide.'}
           </span>
         </div>

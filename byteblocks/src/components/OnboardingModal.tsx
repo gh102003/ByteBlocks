@@ -5,6 +5,7 @@ import {
   type GuidanceTone,
   type AdviceFormat,
   type LearningGoal,
+  DEFAULT_LEARNING_PROFILE,
   type UserPreferences,
 } from '../preferences'
 import { Icon } from './Icon'
@@ -145,6 +146,10 @@ export function OnboardingModal({
   const [customNotes, setCustomNotes] = useState(
     initialPreferences?.customNotes ?? '',
   )
+  const [diagnostic, setDiagnostic] = useState<Record<string, number>>(
+    initialPreferences?.learningProfile?.concepts ??
+      DEFAULT_LEARNING_PROFILE.concepts,
+  )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -155,6 +160,14 @@ export function OnboardingModal({
       tone,
       adviceFormat,
       customNotes: customNotes.trim() || undefined,
+      learningProfile:
+        level === 'auto'
+          ? {
+              concepts: { ...DEFAULT_LEARNING_PROFILE.concepts, ...diagnostic },
+              diagnosticComplete: true,
+              lastReason: 'Started with the skills check',
+            }
+          : initialPreferences?.learningProfile,
       completedAt: new Date().toISOString(),
     }
     onComplete(prefs)
@@ -208,15 +221,52 @@ export function OnboardingModal({
                 )
               })}
             </div>
+            <div className="auto-mentor-divider" aria-hidden="true">
+              <span /> OR <span />
+            </div>
             <button
               type="button"
               className={`auto-mentor-choice ${level === 'auto' ? 'selected' : ''}`}
               onClick={() => setLevel('auto')}
             >
               <Icon name="sparkle" size={14} />
-              <span>Choose for me</span>
+              <span>Not sure? Choose for me</span>
               <small>I’ll switch mentors as you learn.</small>
             </button>
+            {level === 'auto' && (
+              <div className="auto-learning-check" aria-label="Skills check">
+                <strong>Quick skills check</strong>
+                <p>
+                  This helps your mentor begin at the right level. It will keep
+                  adapting as you practise key concepts.
+                </p>
+                {[
+                  ['loops', 'How comfortable are you tracing a loop?'],
+                  [
+                    'dictionaries',
+                    'How comfortable are you using a dictionary?',
+                  ],
+                  ['debugging', 'How comfortable are you reading an error?'],
+                ].map(([concept, question]) => (
+                  <label key={concept} className="auto-learning-question">
+                    <span>{question}</span>
+                    <select
+                      value={diagnostic[concept] ?? 1}
+                      onChange={(event) =>
+                        setDiagnostic((current) => ({
+                          ...current,
+                          [concept]: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={0}>I need help</option>
+                      <option value={1}>I am practising</option>
+                      <option value={2}>I am confident</option>
+                    </select>
+                  </label>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Question 2: Feedback Style */}

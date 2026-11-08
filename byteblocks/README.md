@@ -24,6 +24,87 @@ npm run preview
 
 The resulting `dist/` is a static website. Serve it over HTTP(S), rather than opening `index.html` as a local file. Python execution needs no server, external CDN, API key, or cross-origin-isolation headers. The AI coach needs the configuration below.
 
+## Running locally — evaluator handoff
+
+ByteBlocks is a **browser application**, not an IDE plugin or extension. There
+is no `.vsix`, JetBrains plugin `.zip`, editor-specific configuration, or
+required editor extension. The full source is in this repository; the built
+application is the `byteblocks/dist/` directory created by `npm run build`.
+
+### Versions and prerequisites
+
+- App: ByteBlocks `0.0.0`
+- Runtime: Node.js **24** (the version used by CI); npm is bundled with Node.
+- Browser: current Chromium-family browser. The test suite uses Playwright
+  Chromium `1.65.0`.
+- Core runtime packages: React `19.3.1`, Vite `8.3.6`, Monaco Editor `0.57.0`,
+  Pyodide `314.0.7`, Vercel AI SDK `7.0.164`, Auth0 React SDK `2.30.0`, and
+  ElevenLabs React SDK `1.21.1`. Exact transitive versions are pinned by
+  `package-lock.json`.
+
+No third-party editor plugins or extensions are needed. The committed
+configuration is `vite.config.ts`, `vitest.config.ts`, TypeScript configs,
+`.env.example`, and, when using the secured hosted AI path,
+`../cloudflare-worker/wrangler.jsonc`.
+
+### Fresh-clone setup
+
+```sh
+git clone <repository-url>
+cd ByteBlocks/byteblocks
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+Open the Vite URL printed in the terminal. Python editing, blocks, execution,
+visualisation, and challenges work with no credentials. For text coaching,
+set `VITE_OPENAI_API_KEY` in `.env`, or configure the authenticated Worker as
+described in the next section. Never commit `.env`, `.env.local`, or provider
+keys.
+
+### Starting a coaching session
+
+1. Open the application and sign in with Auth0. If Auth0 is not configured,
+   the rest of the workspace still opens but account-linked profiles are
+   unavailable.
+2. Complete onboarding. Select a mentor or choose **“Choose for me”** for the
+   short skills check and automatic mentor calibration.
+3. Open the workspace, choose a challenge, then ask the text coach a question.
+   The coach receives the current code, blocks, challenge, execution output,
+   recent failed checks, and learner preferences.
+4. For voice coaching, configure ElevenLabs as below, then choose **Start
+   voice** and grant microphone permission.
+
+### Optional secured Worker and voice setup
+
+The production architecture is a separate Cloudflare Worker in
+`../cloudflare-worker`. It keeps Gemini/OpenAI and ElevenLabs secrets off the
+browser and requires Auth0 API tokens. Its complete fresh-clone, configuration,
+and deployment instructions are in [the Worker README](../cloudflare-worker/README.md).
+
+For local development without that Worker, the Vite server can issue voice
+tokens from server-only `ELEVENLABS_API_KEY` and `ELEVENLABS_AGENT_ID` values
+in `.env.local`. Run the provisioning command shown in `.env.example` after
+creating an ElevenLabs agent. These secrets, Auth0 Management API credentials,
+and Cloudflare Worker `.dev.vars` cannot be committed and must be supplied by
+the evaluator's own accounts.
+
+### Build package and checks
+
+```sh
+npm run build          # creates byteblocks/dist/
+npm run preview        # serves that build locally
+npm run lint
+npm run typecheck
+npm run format:check
+npx playwright install chromium
+npm test
+```
+
+The resulting `dist/` directory contains the complete static application.
+Deploy it over HTTP(S), not by opening `index.html` directly.
+
 ## AI coach
 
 Copy `.env.example` to `.env` and set `VITE_OPENAI_API_KEY`, then start (or restart) Vite. The defaults are `VITE_AI_PROVIDER=openai` and `VITE_AI_MODEL=gpt-4.1-mini`. `VITE_AI_BASE_URL` optionally overrides the OpenAI Responses API base URL. These values are read at build time; rebuild static deployments after changing them.

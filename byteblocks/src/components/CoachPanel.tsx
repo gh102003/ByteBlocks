@@ -13,6 +13,7 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import type { UIMessage } from 'ai'
 import { getChatConnector } from '../ai/connector'
+import { getWorkerAccessToken } from '../ai/workerAuth'
 import type { ChatConnector } from '../ai/connector'
 import { createCoachTransport } from '../ai/transport'
 import type { CoachContext } from '../ai/transport'
@@ -98,7 +99,7 @@ export function CoachPanel({
 }) {
   const { user } = useAuth0()
   const effectivePreferences = context.preferences
-  const { getAccessTokenSilently } = useAuth0()
+  const { getAccessTokenSilently, loginWithRedirect } = useAuth0()
   const resolvedLevel = resolveMentorLevel(
     effectivePreferences?.level,
     context.code,
@@ -114,13 +115,15 @@ export function CoachPanel({
         const audience = import.meta.env.VITE_AUTH0_AUDIENCE?.trim()
         if (!audience)
           throw new Error('Configure VITE_AUTH0_AUDIENCE to use the coach.')
-        const token = await getAccessTokenSilently({
-          authorizationParams: { audience },
-        })
+        const token = await getWorkerAccessToken(
+          getAccessTokenSilently,
+          loginWithRedirect,
+          audience,
+        )
         if (!token) throw new Error('Sign in to use the coach.')
         return token
       }),
-    [suppliedConnector, getAccessTokenSilently],
+    [suppliedConnector, getAccessTokenSilently, loginWithRedirect],
   )
   const transport = useMemo(
     () =>

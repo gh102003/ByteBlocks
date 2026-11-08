@@ -1,5 +1,7 @@
 # ByteBlocks
 
+![ByteBlocks — Build, Run, Learn with Nibble, Bite, and Chomp](docs/cover.png)
+
 **Think in blocks. Code in Python.**
 
 ByteBlocks is a browser-based Python practice workspace. Build a program with visual blocks or edit Python directly, run it alongside the challenge, and explore what happens one step at a time. Nibble, Bite, and Chomp offer AI coaching tailored to your experience and learning preferences.

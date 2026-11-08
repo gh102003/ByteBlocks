@@ -10,6 +10,7 @@ import {
 } from '@elevenlabs/react'
 import type { UIMessage } from 'ai'
 import type { CoachContext } from '../ai/transport'
+import { getWorkerAccessToken } from '../ai/workerAuth'
 import {
   createVoiceTools,
   mentorVoice,
@@ -29,7 +30,7 @@ type Props = {
 }
 
 function VoiceControls({ context, messages, access }: Props) {
-  const { getAccessTokenSilently } = useAuth0()
+  const { getAccessTokenSilently, loginWithRedirect } = useAuth0()
   const { startSession, endSession, sendContextualUpdate } =
     useConversationControls()
   const { status } = useConversationStatus()
@@ -95,9 +96,14 @@ function VoiceControls({ context, messages, access }: Props) {
       const audience = import.meta.env.VITE_AUTH0_AUDIENCE?.trim()
       if (workerURL && !audience)
         throw new Error('Configure VITE_AUTH0_AUDIENCE to use voice.')
-      const token = workerURL
-        ? await getAccessTokenSilently({ authorizationParams: { audience } })
-        : undefined
+      const token =
+        workerURL && audience
+          ? await getWorkerAccessToken(
+              getAccessTokenSilently,
+              loginWithRedirect,
+              audience,
+            )
+          : undefined
       if (workerURL && !token) throw new Error('Sign in to use voice.')
       const response = await fetch(`${workerURL || ''}/api/voice/session`, {
         method: 'POST',

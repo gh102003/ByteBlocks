@@ -25,8 +25,13 @@ if (!domain || !clientId) {
       <Auth0Provider
         domain={domain}
         clientId={clientId}
+        useRefreshTokens
+        useRefreshTokensFallback={false}
         authorizationParams={{
           redirect_uri: window.location.origin,
+          audience: import.meta.env.VITE_WORKER_URL?.trim()
+            ? import.meta.env.VITE_AUTH0_AUDIENCE?.trim() || undefined
+            : undefined,
         }}
       >
         <App />
